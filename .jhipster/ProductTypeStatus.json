@@ -1,0 +1,24 @@
+{
+    "relationships": [],
+    "fields": [
+        {
+            "fieldId": 1,
+            "fieldName": "title",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 2,
+            "fieldName": "orderIndex",
+            "fieldType": "Long"
+        },
+        {
+            "fieldName": "code",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20160602072600",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "product_type_status",
+    "pagination": "no"
+}

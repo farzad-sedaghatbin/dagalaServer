@@ -1,0 +1,32 @@
+{
+    "fluentMethods": true,
+    "relationships": [
+        {
+            "relationshipName": "user",
+            "otherEntityName": "user",
+            "relationshipType": "one-to-one",
+            "ownerSide": true
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "image",
+            "fieldType": "byte[]",
+            "fieldTypeBlobContent": "image",
+            "fieldValidateRules": [
+                "required",
+                "maxbytes"
+            ],
+            "fieldValidateRulesMaxbytes": 5000000
+        },
+        {
+            "fieldName": "deleted",
+            "fieldType": "Boolean"
+        }
+    ],
+    "changelogDate": "20170226182357",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "user_image",
+    "pagination": "pagination"
+}

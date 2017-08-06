@@ -1,0 +1,88 @@
+{
+    "relationships": [
+        {
+            "relationshipId": 1,
+            "relationshipName": "shop",
+            "otherEntityName": "shop",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        },
+        {
+            "relationshipId": 2,
+            "relationshipName": "propertyValue",
+            "otherEntityName": "productPropertyValue",
+            "relationshipType": "one-to-many",
+            "otherEntityRelationshipName": "product"
+        },
+        {
+            "relationshipId": 3,
+            "relationshipName": "content",
+            "otherEntityName": "productContent",
+            "relationshipType": "one-to-many",
+            "otherEntityRelationshipName": "product"
+        },
+        {
+            "relationshipId": 4,
+            "relationshipName": "status",
+            "otherEntityName": "productStatus",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        },
+        {
+            "relationshipId": 5,
+            "relationshipName": "productType",
+            "otherEntityName": "productType",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        }
+    ],
+    "fields": [
+        {
+            "fieldId": 1,
+            "fieldName": "title",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 2,
+            "fieldName": "discount",
+            "fieldType": "Float"
+        },
+        {
+            "fieldId": 3,
+            "fieldName": "counts",
+            "fieldType": "Long"
+        },
+        {
+            "fieldId": 5,
+            "fieldName": "icon",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 6,
+            "fieldName": "averageTrust",
+            "fieldType": "Double"
+        },
+        {
+            "fieldName": "description",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "hashId",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "tags",
+            "fieldType": "String",
+            "fieldValidateRules": []
+        },
+        {
+            "fieldName": "price",
+            "fieldType": "Integer"
+        }
+    ],
+    "changelogDate": "20160602072608",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "product",
+    "pagination": "no"
+}

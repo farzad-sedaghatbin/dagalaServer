@@ -1,0 +1,21 @@
+{
+    "relationships": [],
+    "fields": [
+        {
+            "fieldId": 1,
+            "fieldName": "value",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 2,
+            "fieldName": "contactType",
+            "fieldType": "ContactType",
+            "fieldValues": "INSTAGRAM,FACEBOOK,GOOGLEPLUS,TELEGRAM"
+        }
+    ],
+    "changelogDate": "20160602072613",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "user_contact",
+    "pagination": "no"
+}

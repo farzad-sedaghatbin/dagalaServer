@@ -1,0 +1,10 @@
+---
+applications:
+  - name: uniroo
+    buildpack: java_buildpack
+    path: target/product-management-0.0.1-SNAPSHOT.war
+    services:
+       - migmigdb2
+       - migmig
+
+

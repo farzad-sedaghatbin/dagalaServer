@@ -1,0 +1,49 @@
+{
+    "relationships": [
+        {
+            "relationshipId": 1,
+            "relationshipName": "product",
+            "otherEntityName": "product",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        }
+    ],
+    "fields": [
+        {
+            "fieldId": 1,
+            "fieldName": "contentType",
+            "fieldType": "ProductContentType",
+            "fieldValues": "IMAGE,VIDEO,AUDIO"
+        },
+        {
+            "fieldId": 2,
+            "fieldName": "posterUrl",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 3,
+            "fieldName": "poster",
+            "fieldType": "byte[]",
+            "fieldTypeBlobContent": "image"
+        },
+        {
+            "fieldId": 4,
+            "fieldName": "content",
+            "fieldType": "byte[]",
+            "fieldTypeBlobContent": "image"
+        },
+        {
+            "fieldName": "description",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "contentUrl",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20160602072609",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "product_content",
+    "pagination": "no"
+}

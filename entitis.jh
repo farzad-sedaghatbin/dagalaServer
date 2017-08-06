@@ -1,0 +1,205 @@
+entity ProductTypeStatus{
+  title String,
+  orderIndex Long
+}
+
+entity ProductTypeCategory{
+    title String,
+    description String,
+    icon String,
+    color String,
+    path String
+
+}
+
+entity ProductType{
+    title String,
+    description String
+    trustType TrustType,
+    color String,
+    icon String
+}
+
+entity ProductTrust{
+value Double
+}
+
+entity ProductPropertyCategory{
+    title String
+}
+
+entity ProductProperty{
+title String,
+identifier String,
+propertyType PropertyType,
+icon String
+}
+enum TrustType{
+REPUTATION_SCALAR,REPUTATION_FLOAT
+}
+
+entity User{
+name String,
+status Boolean,
+family String,
+email String,
+username String,
+password String,
+image ImageBlob,
+imageUrl String
+
+}
+
+entity ProductStatus{
+ title String
+}
+ entity Product{
+ title String,
+ discount Float,
+ counts Long,
+ description Long,
+ icon String,
+ averageTrust Double
+
+ }
+ entity ProductContent{
+ contentType ProductContentType,
+ posterUrl String,
+ poster ImageBlob,
+ content ImageBlob
+ }
+
+enum ProductContentType{
+    IMAGE,VIDEO,AUDIO
+}
+
+ entity ProductStatusHistory{
+  createDateTime ZonedDateTime
+  }
+
+  entity ProductPropertyValue{
+  value String,
+  accepted Boolean,
+  fromDateTime ZonedDateTime,
+  toDateTime ZonedDateTime
+  }
+
+  entity Merchant{
+
+  vName String ,
+  family String,
+  tel String,
+  mobile String,
+  address String,
+  nationalId String,
+  username String,
+  password String
+  }
+  entity UserContact{
+  value String,
+  contactType ContactType
+  }
+    enum ContactType{
+     INSTAGRAM,FACEBOOK,GOOGLEPLUS,TELEGRAM,MOBILE,ADDRESS
+  }
+
+  entity Comment{
+  message String,
+  submitDate ZonedDateTime,
+  likes Long
+  }
+
+  entity Shop{
+  name String,
+  latitude String,
+  longitude String,
+  address String ,
+  tel String,
+  logo String
+  }
+
+  entity State{
+  latitude String,
+  longitude String,
+  name String
+  }
+
+ relationship ManyToOne{
+	Product{shop} to Shop
+ }
+
+ relationship ManyToOne{
+	ProductTrust{product} to Product
+ }
+
+relationship ManyToOne{
+Comment{product} to Product
+}
+
+relationship ManyToOne{
+Comment{user} to User
+}
+ relationship ManyToOne{
+	ProductTrust{user} to User
+ }
+
+relationship ManyToOne {
+	Shop{merchant} to Merchant
+}
+
+relationship ManyToOne {
+	Shop{state} to State
+}
+
+relationship OneToMany {
+	Product{propertyValue} to ProductPropertyValue
+}
+
+relationship OneToMany {
+	Merchant{contact} to UserContact
+}
+relationship ManyToOne {
+	ProductPropertyValue{productProperty} to ProductProperty
+}
+relationship OneToMany {
+	Product{content} to ProductContent
+}
+relationship ManyToOne {
+	ProductStatusHistory{product} to Product
+}
+relationship  ManyToOne {
+	ProductStatusHistory{status} to ProductStatus
+}
+relationship ManyToOne {
+	Product{status} to ProductStatus
+}
+
+relationship ManyToOne {
+	Product{productType} to ProductType
+}
+
+enum ProductPropertyType{
+       CHECKBOX,COLOR,RANGE,COMBO_DYNAMIC,OSTAN
+}
+
+
+relationship ManyToOne {
+	ProductProperty{category} to ProductPropertyCategory
+}
+
+relationship ManyToOne {
+	ProductType{status} to ProductTypeStatus
+}
+relationship ManyToOne {
+	ProductTypeCategory{status} to ProductTypeStatus
+}
+relationship ManyToOne {
+	ProductTypeCategory{parent} to ProductTypeCategory
+}
+
+relationship ManyToMany{
+  ProductType{property} to ProductProperty{product}
+}
+
+paginate Product with infinite-scroll
+paginate Merchant with infinite-scroll

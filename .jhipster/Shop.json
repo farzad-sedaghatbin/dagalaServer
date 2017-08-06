@@ -1,0 +1,105 @@
+{
+    "relationships": [
+        {
+            "relationshipId": 2,
+            "relationshipName": "state",
+            "otherEntityName": "state",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        },
+        {
+            "relationshipName": "shopPropertyValue",
+            "otherEntityName": "shopPropertyValue",
+            "relationshipType": "one-to-many",
+            "otherEntityRelationshipName": "shop"
+        },
+        {
+            "relationshipName": "parent",
+            "otherEntityName": "shop",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "name"
+        },
+        {
+            "relationshipName": "user",
+            "otherEntityName": "user",
+            "relationshipType": "many-to-many",
+            "otherEntityField": "login",
+            "ownerSide": true
+        },
+        {
+            "relationshipName": "shopType",
+            "otherEntityName": "shopType",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        }
+    ],
+    "fields": [
+        {
+            "fieldId": 1,
+            "fieldName": "name",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 2,
+            "fieldName": "latitude",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 3,
+            "fieldName": "longitude",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 4,
+            "fieldName": "address",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 5,
+            "fieldName": "tel",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 6,
+            "fieldName": "logo",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "shopActivityType",
+            "fieldType": "ShopActivityType",
+            "fieldValues": "PHYSICAL,VIRTUAL,BOTH"
+        },
+        {
+            "fieldName": "average",
+            "fieldType": "Double"
+        },
+        {
+            "fieldName": "tags",
+            "fieldType": "String",
+            "fieldValidateRules": []
+        },
+        {
+            "fieldName": "description",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "maxlength"
+            ],
+            "fieldValidateRulesMaxlength": "255"
+        },
+        {
+            "fieldName": "hashId",
+            "fieldType": "String",
+            "fieldValidateRules": []
+        },
+        {
+            "fieldName": "shopStatus",
+            "fieldType": "ShopStatus",
+            "fieldValues": "ACTIVE,DISABLE"
+        }
+    ],
+    "changelogDate": "20160602072615",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "shop",
+    "pagination": "no"
+}

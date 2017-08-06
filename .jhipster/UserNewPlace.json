@@ -1,0 +1,39 @@
+{
+    "relationships": [
+        {
+            "relationshipName": "user",
+            "otherEntityName": "user",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "login"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "longitude",
+            "fieldType": "Double"
+        },
+        {
+            "fieldName": "latitude",
+            "fieldType": "Double"
+        },
+        {
+            "fieldName": "description",
+            "fieldType": "String",
+            "fieldValidateRules": []
+        },
+        {
+            "fieldName": "status",
+            "fieldType": "UserNewPlaceStatus",
+            "fieldValues": "CREATE,APPROVED,REJECT"
+        },
+        {
+            "fieldName": "createDate",
+            "fieldType": "ZonedDateTime"
+        }
+    ],
+    "changelogDate": "20160817065740",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "user_new_place",
+    "pagination": "pagination"
+}

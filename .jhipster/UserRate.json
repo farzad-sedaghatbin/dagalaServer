@@ -1,0 +1,37 @@
+{
+    "relationships": [
+        {
+            "relationshipName": "user",
+            "otherEntityName": "user",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        },
+        {
+            "relationshipName": "product",
+            "otherEntityName": "product",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        },
+        {
+            "relationshipName": "shop",
+            "otherEntityName": "shop",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "title"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "value",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "dateOfRate",
+            "fieldType": "ZonedDateTime"
+        }
+    ],
+    "changelogDate": "20160609160406",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "user_rate",
+    "pagination": "no"
+}

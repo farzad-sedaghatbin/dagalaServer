@@ -1,0 +1,39 @@
+{
+    "relationships": [
+        {
+            "relationshipName": "shop",
+            "otherEntityName": "shop",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "title"
+        },
+        {
+            "relationshipName": "shopProperty",
+            "otherEntityName": "shopProperty",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "title"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "value",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "accepted",
+            "fieldType": "Boolean"
+        },
+        {
+            "fieldName": "fromDateTime",
+            "fieldType": "ZonedDateTime"
+        },
+        {
+            "fieldName": "toDateTime",
+            "fieldType": "ZonedDateTime"
+        }
+    ],
+    "changelogDate": "20160820122510",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "shop_property_value",
+    "pagination": "pagination"
+}

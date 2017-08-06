@@ -1,0 +1,35 @@
+{
+    "relationships": [
+        {
+            "relationshipName": "shop",
+            "otherEntityName": "shop",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "name"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "contentUrl",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "posterUrl",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "contentType",
+            "fieldType": "ContentType",
+            "fieldValues": "IMAGE,AUDIO,VIDEO"
+        },
+        {
+            "fieldName": "posterContentType",
+            "fieldType": "ContentType",
+            "fieldValues": "IMAGE,AUDIO,VIDEO"
+        }
+    ],
+    "changelogDate": "20160903053914",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "shop_content",
+    "pagination": "pagination"
+}

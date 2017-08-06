@@ -1,0 +1,46 @@
+{
+  "relationships": [
+    {
+      "relationshipId": 1,
+      "relationshipName": "category",
+      "otherEntityName": "productPropertyCategory",
+      "relationshipType": "many-to-one",
+      "otherEntityField": "id"
+    },
+    {
+      "relationshipId": 2,
+      "relationshipName": "product",
+      "otherEntityName": "productType",
+      "relationshipType": "many-to-many",
+      "ownerSide": false,
+      "otherEntityRelationshipName": "property"
+    }
+  ],
+  "fields": [
+    {
+      "fieldId": 1,
+      "fieldName": "title",
+      "fieldType": "String"
+    },
+    {
+      "fieldId": 2,
+      "fieldName": "identifier",
+      "fieldType": "String"
+    },
+    {
+      "fieldId": 3,
+      "fieldName": "propertyType",
+      "fieldType": "PropertyType",
+      "fieldValues": "CHECKBOX,COLOR,RANGE,COMBO_DYNAMIC,OSTAN"
+    },
+    {
+      "fieldId": 4,
+      "fieldName": "icon",
+      "fieldType": "String"
+    }
+  ],
+  "changelogDate": "20160602072605",
+  "dto": "no",
+  "pagination": "no",
+  "service": "no"
+}

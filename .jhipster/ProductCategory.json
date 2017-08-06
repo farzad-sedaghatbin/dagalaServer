@@ -1,0 +1,15 @@
+{
+    "relationships": [],
+    "fields": [
+        {
+            "fieldName": "iconImage",
+            "fieldType": "byte[]",
+            "fieldTypeBlobContent": "image"
+        }
+    ],
+    "changelogDate": "20160717101720",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "product_category",
+    "pagination": "no"
+}

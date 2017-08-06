@@ -1,0 +1,32 @@
+{
+  "generator-jhipster": {
+    "jhipsterVersion": "3.4.0",
+    "baseName": "ProductManagement",
+    "packageName": "ir.anijuu.products",
+    "packageFolder": "ir/anijuu/products",
+    "serverPort": "8080",
+    "authenticationType": "jwt",
+    "hibernateCache": "ehcache",
+    "clusteredHttpSession": "no",
+    "websocket": "spring-websocket",
+    "databaseType": "sql",
+    "devDatabaseType": "h2Disk",
+    "prodDatabaseType": "postgrsql",
+    "searchEngine": "elasticsearch",
+    "buildTool": "maven",
+    "enableSocialSignIn": true,
+    "jwtSecretKey": "5ebc45b30741092ccdccc4d0af137f603bc53e1a",
+    "useSass": true,
+    "applicationType": "monolith",
+    "testFrameworks": [
+      "protractor"
+    ],
+    "jhiPrefix": "jhi",
+    "enableTranslation": true,
+    "nativeLanguage": "en",
+    "languages": [
+      "en",
+      "fr"
+    ]
+  }
+}

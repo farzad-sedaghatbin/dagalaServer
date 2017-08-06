@@ -1,0 +1,28 @@
+{
+    "relationships": [
+        {
+            "relationshipName": "product",
+            "otherEntityName": "product",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "title"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "productTypePath",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "discount",
+            "fieldType": "Float",
+            "fieldValidateRules": [
+                "required"
+            ]
+        }
+    ],
+    "changelogDate": "20161122124538",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "product_discount",
+    "pagination": "pagination"
+}

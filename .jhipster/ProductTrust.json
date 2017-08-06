@@ -1,0 +1,29 @@
+{
+  "relationships": [
+    {
+      "relationshipId": 1,
+      "relationshipName": "product",
+      "otherEntityName": "product",
+      "relationshipType": "many-to-one",
+      "otherEntityField": "id"
+    },
+    {
+      "relationshipId": 2,
+      "relationshipName": "user",
+      "otherEntityName": "user",
+      "relationshipType": "many-to-one",
+      "otherEntityField": "id"
+    }
+  ],
+  "fields": [
+    {
+      "fieldId": 1,
+      "fieldName": "value",
+      "fieldType": "Double"
+    }
+  ],
+  "changelogDate": "20160602072603",
+  "dto": "no",
+  "pagination": "no",
+  "service": "no"
+}

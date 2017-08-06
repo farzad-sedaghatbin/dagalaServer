@@ -1,0 +1,18 @@
+{
+    "relationships": [],
+    "fields": [
+        {
+            "fieldName": "url",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "index",
+            "fieldType": "Integer"
+        }
+    ],
+    "changelogDate": "20160814050702",
+    "dto": "mapstruct",
+    "service": "no",
+    "entityTableName": "startup_modal",
+    "pagination": "no"
+}

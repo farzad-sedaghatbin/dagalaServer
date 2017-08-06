@@ -1,0 +1,34 @@
+{
+    "relationships": [
+        {
+            "relationshipName": "shopPropertyCategory",
+            "otherEntityName": "shopPropertyCategory",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "propertyType",
+            "fieldType": "PropertyType",
+            "fieldValues": "CHECKBOX,COLOR,RANGE,COMBO_DYNAMIC,OSTAN"
+        },
+        {
+            "fieldName": "title",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "identifier",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "icon",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20160820101157",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "shop_property",
+    "pagination": "pager"
+}

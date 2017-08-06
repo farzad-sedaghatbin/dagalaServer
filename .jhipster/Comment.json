@@ -1,0 +1,51 @@
+{
+    "relationships": [
+        {
+            "relationshipId": 1,
+            "relationshipName": "product",
+            "otherEntityName": "product",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        },
+        {
+            "relationshipId": 2,
+            "relationshipName": "user",
+            "otherEntityName": "user",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        },
+        {
+            "relationshipName": "shop",
+            "otherEntityName": "shop",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "name"
+        }
+    ],
+    "fields": [
+        {
+            "fieldId": 1,
+            "fieldName": "message",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 2,
+            "fieldName": "submitDate",
+            "fieldType": "ZonedDateTime"
+        },
+        {
+            "fieldId": 3,
+            "fieldName": "likes",
+            "fieldType": "Long"
+        },
+        {
+            "fieldName": "status",
+            "fieldType": "CommntStatus",
+            "fieldValues": "ACTIVE,CREATED,REJECTED,DELETE"
+        }
+    ],
+    "changelogDate": "20160602072614",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "comment",
+    "pagination": "infinite-scroll"
+}

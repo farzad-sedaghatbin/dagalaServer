@@ -1,0 +1,66 @@
+{
+    "relationships": [
+        {
+            "relationshipId": 1,
+            "relationshipName": "status",
+            "otherEntityName": "productTypeStatus",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        },
+        {
+            "relationshipId": 2,
+            "relationshipName": "property",
+            "otherEntityName": "productProperty",
+            "relationshipType": "many-to-many",
+            "otherEntityField": "id",
+            "ownerSide": true
+        }
+    ],
+    "fields": [
+        {
+            "fieldId": 1,
+            "fieldName": "title",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 2,
+            "fieldName": "description",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 3,
+            "fieldName": "trustType",
+            "fieldType": "TrustType",
+            "fieldValues": "REPUTATION_SCALAR,REPUTATION_FLOAT"
+        },
+        {
+            "fieldId": 4,
+            "fieldName": "color",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 5,
+            "fieldName": "icon",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "banner",
+            "fieldType": "byte[]",
+            "fieldTypeBlobContent": "image"
+        },
+        {
+            "fieldName": "bannerUrl",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "productTypeActivityType",
+            "fieldType": "ProductTypeActivityType",
+            "fieldValues": "ShOWPALCE"
+        }
+    ],
+    "changelogDate": "20160602072602",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "product_type",
+    "pagination": "no"
+}

@@ -1,0 +1,31 @@
+{
+    "relationships": [
+        {
+            "relationshipName": "shop",
+            "otherEntityName": "shop",
+            "relationshipType": "many-to-one",
+            "relationshipValidateRules": [
+                "required"
+            ],
+            "otherEntityField": "name"
+        },
+        {
+            "relationshipName": "productTypeCategory",
+            "otherEntityName": "productTypeCategory",
+            "relationshipType": "many-to-many",
+            "otherEntityField": "title",
+            "ownerSide": true
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "isDefault",
+            "fieldType": "Boolean"
+        }
+    ],
+    "changelogDate": "20160902083651",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "shop_product_category",
+    "pagination": "pager"
+}

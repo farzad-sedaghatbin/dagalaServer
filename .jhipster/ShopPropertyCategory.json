@@ -1,0 +1,19 @@
+{
+    "relationships": [],
+    "fields": [
+        {
+            "fieldName": "title",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "icon",
+            "fieldType": "String",
+            "fieldValidateRules": []
+        }
+    ],
+    "changelogDate": "20160820094926",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "shop_property_category",
+    "pagination": "pager"
+}

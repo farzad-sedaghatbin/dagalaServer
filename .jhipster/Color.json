@@ -1,0 +1,18 @@
+{
+    "relationships": [],
+    "fields": [
+        {
+            "fieldName": "name",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "code",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20161122085932",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "color",
+    "pagination": "pagination"
+}

@@ -1,0 +1,68 @@
+{
+    "relationships": [
+        {
+            "relationshipId": 1,
+            "relationshipName": "status",
+            "otherEntityName": "productTypeStatus",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        },
+        {
+            "relationshipId": 2,
+            "relationshipName": "parent",
+            "otherEntityName": "productTypeCategory",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        }
+    ],
+    "fields": [
+        {
+            "fieldId": 1,
+            "fieldName": "title",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 2,
+            "fieldName": "description",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 3,
+            "fieldName": "icon",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 4,
+            "fieldName": "color",
+            "fieldType": "String"
+        },
+        {
+            "fieldId": 5,
+            "fieldName": "path",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "orderIndex",
+            "fieldType": "Integer"
+        },
+        {
+            "fieldName": "iconImage",
+            "fieldType": "byte[]",
+            "fieldTypeBlobContent": "image"
+        },
+        {
+            "fieldName": "categoryType",
+            "fieldType": "CategoryType",
+            "fieldValues": "PRODUCT,SHOP"
+        },
+        {
+            "fieldName": "pin",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20160602072601",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "product_type_category",
+    "pagination": "no"
+}

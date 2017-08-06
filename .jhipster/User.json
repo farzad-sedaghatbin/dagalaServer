@@ -1,0 +1,33 @@
+{
+    "relationships": [
+        {
+            "relationshipName": "invaitedUser1",
+            "otherEntityName": "user",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        },
+        {
+            "relationshipName": "invaitedUser2",
+            "otherEntityName": "user",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        },
+        {
+            "relationshipName": "invaitedUser3",
+            "otherEntityName": "user",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "hashId",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20170426190436",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "user",
+    "pagination": "pagination"
+}

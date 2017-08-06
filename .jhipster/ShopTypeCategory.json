@@ -1,0 +1,27 @@
+{
+    "relationships": [],
+    "fields": [
+        {
+            "fieldName": "title",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "maxlength"
+            ],
+            "fieldValidateRulesMaxlength": "50"
+        },
+        {
+            "fieldName": "description",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "iconUrl",
+            "fieldType": "String",
+            "fieldValidateRules": []
+        }
+    ],
+    "changelogDate": "20160818073938",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "shop_type_category",
+    "pagination": "pager"
+}

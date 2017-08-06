@@ -1,0 +1,29 @@
+{
+  "relationships": [
+    {
+      "relationshipId": 1,
+      "relationshipName": "product",
+      "otherEntityName": "product",
+      "relationshipType": "many-to-one",
+      "otherEntityField": "id"
+    },
+    {
+      "relationshipId": 2,
+      "relationshipName": "status",
+      "otherEntityName": "productStatus",
+      "relationshipType": "many-to-one",
+      "otherEntityField": "id"
+    }
+  ],
+  "fields": [
+    {
+      "fieldId": 1,
+      "fieldName": "createDateTime",
+      "fieldType": "ZonedDateTime"
+    }
+  ],
+  "changelogDate": "20160602072610",
+  "dto": "no",
+  "pagination": "no",
+  "service": "no"
+}

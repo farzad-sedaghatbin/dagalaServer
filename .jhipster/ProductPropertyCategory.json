@@ -1,0 +1,24 @@
+{
+    "relationships": [],
+    "fields": [
+        {
+            "fieldId": 1,
+            "fieldName": "title",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "iconUrl",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "icon",
+            "fieldType": "byte[]",
+            "fieldTypeBlobContent": "image"
+        }
+    ],
+    "changelogDate": "20160602072604",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "product_property_category",
+    "pagination": "no"
+}

@@ -1,0 +1,57 @@
+{
+  "relationships": [
+    {
+      "relationshipId": 1,
+      "relationshipName": "contact",
+      "otherEntityName": "userContact",
+      "relationshipType": "one-to-many",
+      "otherEntityRelationshipName": "merchant"
+    }
+  ],
+  "fields": [
+    {
+      "fieldId": 1,
+      "fieldName": "vName",
+      "fieldType": "String"
+    },
+    {
+      "fieldId": 2,
+      "fieldName": "family",
+      "fieldType": "String"
+    },
+    {
+      "fieldId": 3,
+      "fieldName": "tel",
+      "fieldType": "String"
+    },
+    {
+      "fieldId": 4,
+      "fieldName": "mobile",
+      "fieldType": "String"
+    },
+    {
+      "fieldId": 5,
+      "fieldName": "address",
+      "fieldType": "String"
+    },
+    {
+      "fieldId": 6,
+      "fieldName": "nationalId",
+      "fieldType": "String"
+    },
+    {
+      "fieldId": 7,
+      "fieldName": "username",
+      "fieldType": "String"
+    },
+    {
+      "fieldId": 8,
+      "fieldName": "password",
+      "fieldType": "String"
+    }
+  ],
+  "changelogDate": "20160602072612",
+  "dto": "no",
+  "pagination": "infinite-scroll",
+  "service": "no"
+}

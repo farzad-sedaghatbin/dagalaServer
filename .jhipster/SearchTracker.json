@@ -1,0 +1,33 @@
+{
+    "fluentMethods": true,
+    "relationships": [
+        {
+            "relationshipName": "shopType",
+            "otherEntityName": "shopType",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "y"
+        },
+        {
+            "relationshipName": "user",
+            "otherEntityName": "user",
+            "relationshipType": "many-to-one",
+            "otherEntityField": "id",
+            "ownerSide": true
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "datetime",
+            "fieldType": "ZonedDateTime"
+        },
+        {
+            "fieldName": "content",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20170220180326",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "search_tracker",
+    "pagination": "infinite-scroll"
+}

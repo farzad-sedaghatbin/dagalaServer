@@ -1,0 +1,19 @@
+{
+    "relationships": [],
+    "fields": [
+        {
+            "fieldName": "value",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "parameterType",
+            "fieldType": "ParameterType",
+            "fieldValues": "ROOTID"
+        }
+    ],
+    "changelogDate": "20160612141155",
+    "dto": "no",
+    "service": "no",
+    "entityTableName": "base_parameter",
+    "pagination": "no"
+}

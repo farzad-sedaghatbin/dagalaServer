@@ -1,0 +1,22 @@
+{
+    "relationships": [],
+    "fields": [
+        {
+            "fieldName": "title",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "rate",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "changed",
+            "fieldType": "Boolean"
+        }
+    ],
+    "changelogDate": "20170413090616",
+    "dto": "mapstruct",
+    "service": "serviceImpl",
+    "entityTableName": "rate_info",
+    "pagination": "pagination"
+}
