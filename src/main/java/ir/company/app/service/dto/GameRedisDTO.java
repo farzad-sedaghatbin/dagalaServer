@@ -9,12 +9,14 @@ import java.util.List;
  */
 public class GameRedisDTO {
 
-    public String first;
-    public String firstAvatar;
-    public String secondAvatar;
-    public String second;
+    public User first;
+    public User second;
     public Long gameId;
     public List<Challenge> challengeList;
 
+    public static class User {
+        public String user;
+        public String avatar;
 
+    }
 }

@@ -8,11 +8,8 @@ import com.kavenegar.sdk.excepctions.ApiException;
 import com.kavenegar.sdk.excepctions.HttpException;
 import ir.company.app.config.Constants;
 import ir.company.app.domain.Authority;
-import ir.company.app.domain.entity.Game;
-import ir.company.app.domain.entity.GameStatus;
 import ir.company.app.domain.entity.User;
 import ir.company.app.repository.AuthorityRepository;
-import ir.company.app.repository.GameRepository;
 import ir.company.app.repository.UserRepository;
 import ir.company.app.security.AuthoritiesConstants;
 import ir.company.app.security.SecurityUtils;
@@ -21,7 +18,6 @@ import ir.company.app.security.jwt.TokenProvider;
 import ir.company.app.service.UserService;
 import ir.company.app.service.dto.*;
 import ir.company.app.service.util.CalendarUtil;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,8 +29,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.ZonedDateTime;
@@ -44,22 +38,22 @@ import java.util.*;
 @RequestMapping("/api")
 public class FarzadUserService {
 
+    private final TokenProvider tokenProvider;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthorityRepository authorityRepository;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final UserService userService;
+
     @Inject
-    private TokenProvider tokenProvider;
-    @Inject
-    private PasswordEncoder passwordEncoder;
-    @Inject
-    private AuthorityRepository authorityRepository;
-    @Inject
-    private AuthenticationManager authenticationManager;
-    @Inject
-    private UserRepository userRepository;
-    @Inject
-    private GameRepository gameRepository;
-    @Inject
-    private UserService userService;
-    @PersistenceContext
-    private EntityManager em;
+    public FarzadUserService(TokenProvider tokenProvider, PasswordEncoder passwordEncoder, AuthorityRepository authorityRepository, AuthenticationManager authenticationManager, UserRepository userRepository, UserService userService) {
+        this.tokenProvider = tokenProvider;
+        this.passwordEncoder = passwordEncoder;
+        this.authorityRepository = authorityRepository;
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        this.userService = userService;
+    }
 
     @RequestMapping(value = "/1/user_authenticate", method = RequestMethod.POST)
     @Timed
@@ -92,10 +86,8 @@ public class FarzadUserService {
                 userLoginDTO.userid = user.getId();
                 return ResponseEntity.ok(new ObjectMapper().writeValueAsString(userLoginDTO));
             }
-        } catch (AuthenticationException exception) {
+        } catch (AuthenticationException | JsonProcessingException exception) {
             return new ResponseEntity<>(Collections.singletonMap("AuthenticationException", exception.getLocalizedMessage()), HttpStatus.UNAUTHORIZED);
-        } catch (JsonProcessingException e) {
-            return new ResponseEntity<>(Collections.singletonMap("AuthenticationException", e.getLocalizedMessage()), HttpStatus.UNAUTHORIZED);
         }
         return ResponseEntity.ok("401");
 
@@ -105,15 +97,15 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> signUp(@Valid @RequestBody UserDTO userDTO, HttpServletResponse response) {
+    public ResponseEntity<?> signUp(@Valid @RequestBody UserDTO userDTO) {
 
         User user = userRepository.findOneByGuestId(userDTO.getTempUser());
 
         user.setLogin(userDTO.getUsername());
         user.setActivated(true);
         user.setCreatedBy("system");
-        List<Authority> authoritie = new ArrayList<>();
-        authoritie.add(authorityRepository.findOne(AuthoritiesConstants.USER));
+        List<Authority> authorities = new ArrayList<>();
+        authorities.add(authorityRepository.findOne(AuthoritiesConstants.USER));
 //        user.setAuthorities(authoritie);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setFirstName(userDTO.getName());
@@ -127,7 +119,7 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> forget(@Valid @RequestBody String username, HttpServletResponse response) {
+    public ResponseEntity<?> forget(@Valid @RequestBody String username) {
         //todo forget scenario send email or sms
         Optional<User> user = userRepository.findOneByLogin(username);
         if (user.isPresent()) {
@@ -170,7 +162,7 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> confirmReset(@Valid @RequestBody ForgetPasswordDTO data, HttpServletResponse response) {
+    public ResponseEntity<?> confirmReset(@Valid @RequestBody ForgetPasswordDTO data) {
         //todo forget scenario send email or sms
         Optional<User> user = userRepository.findOneByResetKey(data.getCode());
         if (user.isPresent()) {
@@ -189,7 +181,7 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> changePassword(@Valid @RequestBody String password, HttpServletResponse response) {
+    public ResponseEntity<?> changePassword(@Valid @RequestBody String password) {
         User user1 = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
         user1.setPassword(passwordEncoder.encode(password));
         userRepository.save(user1);
@@ -200,7 +192,7 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 //todo testy
-    public ResponseEntity<?> deviceToken(HttpServletResponse response) {
+    public ResponseEntity<?> deviceToken() {
         User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
         UserDTO userDTO = new UserDTO();
         userDTO.setName(user.getFirstName());
@@ -219,7 +211,7 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> deviceToken(@Valid @RequestBody String token, HttpServletResponse response) {
+    public ResponseEntity<?> deviceToken(@Valid @RequestBody String token) {
         User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
         user.setPushSessionKey(token);
         userRepository.save(user);
@@ -229,8 +221,7 @@ public class FarzadUserService {
     @RequestMapping(value = "/1/rating", method = RequestMethod.POST)
     @Timed
     @CrossOrigin(origins = "*")
-
-    public ResponseEntity<?> rating(@Valid @RequestBody String param, HttpServletResponse response) {
+    public ResponseEntity<?> rating(@Valid @RequestBody String param) {
         String[] s = param.split(",");
 
         return ResponseEntity.ok("200");
@@ -242,37 +233,9 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> refreshMoney(HttpServletResponse response) throws JsonProcessingException {
-        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
-        HomeDTO homeDTO = new HomeDTO();
-        homeDTO.score = user.getScore();
-        homeDTO.gem = user.getGem();
-        homeDTO.level = user.getLevel();
-        homeDTO.avatar = user.getAvatar();
-        homeDTO.rating = user.getRating();
-        homeDTO.coins = user.getCoin();
-        homeDTO.userid = user.getId();
-        List<Game> halfGame = gameRepository.findByGameStatusAndFirst(GameStatus.HALF, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
-        halfGame.addAll(gameRepository.findByGameStatusAndFirst(GameStatus.HALF, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));
-        List<Game> fullGame = gameRepository.findByGameStatusAndSecond(GameStatus.FULL, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
-        fullGame.addAll(gameRepository.findByGameStatusAndSecond(GameStatus.FULL, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));
+    public ResponseEntity<?> refreshMoney() throws JsonProcessingException {
 
-
-        homeDTO.halfGame = new ArrayList<>();
-        for (Game game : halfGame) {
-            GameLowDTO gameLowDTO = new GameLowDTO();
-            gameLowDTO.status = GameStatus.HALF.name();
-            gameLowDTO.user = game.getFirst().getLogin();
-            homeDTO.halfGame.add(gameLowDTO);
-        }
-        homeDTO.fullGame = new ArrayList<>();
-        for (Game game : fullGame) {
-            GameLowDTO gameLowDTO = new GameLowDTO();
-            gameLowDTO.status = GameStatus.HALF.name();
-            gameLowDTO.user = game.getFirst().getLogin();
-            homeDTO.halfGame.add(gameLowDTO);
-        }
-        return ResponseEntity.ok(new ObjectMapper().writeValueAsString(homeDTO));
+        return ResponseEntity.ok(userService.refresh(false));
 
     }
 
@@ -284,10 +247,12 @@ public class FarzadUserService {
     public ResponseEntity<?> tempUser(HttpServletResponse response) throws JsonProcessingException {
         User user = new User();
         user.setLogin("DAGALA" + Constants.index.incrementAndGet());
+        user.setGuestId("DAGALA" + Constants.index.incrementAndGet());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setActivated(true);
         user.setCreatedBy("system");
-        List<Authority> authoritie = new ArrayList<>();
-        authoritie.add(authorityRepository.findOne(AuthoritiesConstants.USER));
+        List<Authority> authorities = new ArrayList<>();
+        authorities.add(authorityRepository.findOne(AuthoritiesConstants.USER));
 //        user.setAuthorities(authoritie);
 //        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 //        user.setFirstName(userDTO.getFirstName());
@@ -297,8 +262,23 @@ public class FarzadUserService {
 
         user.setAvatar("1.png");
         userRepository.save(user);
-        return ResponseEntity.ok(user.getLogin());
 
+        UsernamePasswordAuthenticationToken authenticationToken =
+            new UsernamePasswordAuthenticationToken(user.getLogin(), user.getLogin());
+        GuestDTO guestDTO = new GuestDTO();
+
+        Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
+        if (authentication.isAuthenticated()) {
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+//                boolean rememberMe = (loginDTO.isRememberMe() == null) ? false : loginDTO.isRememberMe();
+            String jwt = tokenProvider.createToken(authentication, true);
+            response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
+
+
+            guestDTO.token = jwt;
+            guestDTO.user = user.getLogin();
+        }
+        return ResponseEntity.ok(guestDTO);
     }
-
 }

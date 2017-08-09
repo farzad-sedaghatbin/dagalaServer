@@ -1,15 +1,21 @@
 package ir.company.app.service;
 
 import ir.company.app.domain.Authority;
+import ir.company.app.domain.entity.Game;
+import ir.company.app.domain.entity.GameStatus;
 import ir.company.app.domain.entity.User;
 import ir.company.app.repository.AuthorityRepository;
+import ir.company.app.repository.GameRepository;
 import ir.company.app.repository.UserRepository;
 import ir.company.app.security.AuthoritiesConstants;
 import ir.company.app.security.SecurityUtils;
+import ir.company.app.service.dto.GameLowDTO;
+import ir.company.app.service.dto.HomeDTO;
 import ir.company.app.service.util.RandomUtil;
 import ir.company.app.web.rest.vm.ManagedUserVM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,10 +43,122 @@ public class UserService {
 
     @Inject
     private UserRepository userRepository;
+    @Inject
+    private GameRepository gameRepository;
 
     @Inject
     private AuthorityRepository authorityRepository;
 
+
+    public HomeDTO refresh(boolean newLevel) {
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+        HomeDTO homeDTO = new HomeDTO();
+        homeDTO.score = user.getScore();
+        homeDTO.gem = user.getGem();
+        homeDTO.level = user.getLevel();
+        homeDTO.avatar = user.getAvatar();
+        homeDTO.rating = user.getRating();
+        homeDTO.coins = user.getCoin();
+        homeDTO.newLevel=newLevel;
+        homeDTO.perGameCoins = 200l;
+        homeDTO.userid = user.getId();
+        List<Game> halfGame = gameRepository.findByGameStatusAndFirst(GameStatus.HALF, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
+        List<Game> fullGame = gameRepository.findByGameStatusAndSecond(GameStatus.FINISHED, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
+        fullGame.addAll(gameRepository.findByGameStatusAndFirst(GameStatus.FINISHED, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));
+        halfGame.addAll(gameRepository.findByGameStatusAndSecond(GameStatus.HALF, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));
+
+
+        homeDTO.halfGame = new ArrayList<>();
+        for (Game game : halfGame) {
+            GameLowDTO gameLowDTO = new GameLowDTO();
+            GameLowDTO.User firstUser = new GameLowDTO.User();
+            GameLowDTO.User secondUser = new GameLowDTO.User();
+            gameLowDTO.second = secondUser;
+            gameLowDTO.first = firstUser;
+            gameLowDTO.gameId = game.getId();
+            if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                secondUser.user = game.getSecond().getLogin();
+                secondUser.avatar = game.getSecond().getAvatar();
+            } else {
+
+                secondUser.user = game.getFirst().getLogin();
+                secondUser.avatar = game.getFirst().getAvatar();
+            }
+            game.getChallenges().forEach(challenge -> {
+
+                if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                    gameLowDTO.status = "نوبت شماست";
+
+                }
+                if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && !game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                    gameLowDTO.status = "در انتظار حریف";
+                }
+
+
+                if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                    gameLowDTO.status = "نوبت شماست";
+
+                }
+                if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && !game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                    gameLowDTO.status = "در انتظار حریف";
+                }
+            });
+
+            if (game.getChallenges().size() == 1 && (gameLowDTO.status == null || gameLowDTO.status.isEmpty()) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                gameLowDTO.status = "نوبت شماست";
+
+            } else {
+                gameLowDTO.status = "در انتظار حریف";
+
+            }
+            if (game.getChallenges().size() == 2 && (gameLowDTO.status == null || gameLowDTO.status.isEmpty())) {
+                gameLowDTO.status = "نوبت شماست";
+            }
+            gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
+            homeDTO.halfGame.add(gameLowDTO);
+        }
+        homeDTO.fullGame = new ArrayList<>();
+        for (Game game : fullGame) {
+            GameLowDTO gameLowDTO = new GameLowDTO();
+            GameLowDTO.User firstUser = new GameLowDTO.User();
+            GameLowDTO.User secondUser = new GameLowDTO.User();
+            gameLowDTO.second = secondUser;
+            gameLowDTO.first = firstUser;
+            gameLowDTO.gameId = game.getId();
+            gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
+            if (SecurityUtils.getCurrentUserLogin().equalsIgnoreCase(game.getFirst().getLogin())) {
+                if (game.getWinner() == 1) {
+                    gameLowDTO.status = "برد";
+                } else if (game.getWinner() == 2) {
+                    gameLowDTO.status = "باخت";
+
+                } else {
+                    gameLowDTO.status = "مساوی";
+
+                }
+            } else {
+                if (game.getWinner() == 2) {
+                    gameLowDTO.status = "برد";
+                } else if (game.getWinner() == 1) {
+                    gameLowDTO.status = "باخت";
+
+                } else {
+                    gameLowDTO.status = "مساوی";
+
+                }
+            }
+            if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                secondUser.user = game.getSecond().getLogin();
+                secondUser.avatar = game.getSecond().getAvatar();
+            } else {
+
+                secondUser.user = game.getFirst().getLogin();
+                secondUser.avatar = game.getFirst().getAvatar();
+            }
+            homeDTO.fullGame.add(gameLowDTO);
+        }
+        return homeDTO;
+    }
 
     public static double distance(double lat1, double lon1, double lat2, double lon2) {
         double theta = lon1 - lon2;
@@ -54,6 +172,7 @@ public class UserService {
             .setScale(3, BigDecimal.ROUND_HALF_UP).stripTrailingZeros()
             .doubleValue();
     }
+
     private static double deg2rad(double deg) {
         return (deg * Math.PI / 180.0);
     }
@@ -79,20 +198,20 @@ public class UserService {
     }
 
     public Optional<User> completePasswordReset(String newPassword, String key) {
-       log.debug("Reset user password for reset key {}", key);
+        log.debug("Reset user password for reset key {}", key);
 
-       return userRepository.findOneByResetKey(key)
+        return userRepository.findOneByResetKey(key)
             .filter(user -> {
                 ZonedDateTime oneDayAgo = ZonedDateTime.now().minusHours(24);
                 return user.getResetDate().isAfter(oneDayAgo);
-           })
-           .map(user -> {
+            })
+            .map(user -> {
                 user.setPassword(passwordEncoder.encode(newPassword));
                 user.setResetKey(null);
                 user.setResetDate(null);
                 userRepository.save(user);
                 return user;
-           });
+            });
     }
 
     public Optional<User> requestPasswordReset(String mail) {
@@ -107,7 +226,7 @@ public class UserService {
     }
 
     public User createUser(String login, String password, String firstName, String lastName, String email,
-        String langKey) {
+                           String langKey) {
 
         User newUser = new User();
         Authority authority = authorityRepository.findOne(AuthoritiesConstants.USER);
@@ -171,7 +290,7 @@ public class UserService {
     }
 
     public void updateUser(Long id, String login, String firstName, String lastName, String email,
-        boolean activated, String langKey, Set<String> authorities) {
+                           boolean activated, String langKey, Set<String> authorities) {
 
         Optional.of(userRepository
             .findOne(id))
@@ -229,10 +348,10 @@ public class UserService {
         Optional<User> optionalUser = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin());
         User user = null;
         if (optionalUser.isPresent()) {
-          user = optionalUser.get();
+            user = optionalUser.get();
 //            user.getAuthorities().size(); // eagerly load the association
-         }
-         return user;
+        }
+        return user;
     }
 
 
@@ -242,13 +361,4 @@ public class UserService {
      * This is scheduled to get fired everyday, at 01:00 (am).
      * </p>
      */
-    @Scheduled(cron = "0 0 1 * * ?")
-    public void removeNotActivatedUsers() {
-        ZonedDateTime now = ZonedDateTime.now();
-        List<User> users = userRepository.findAllByActivatedIsFalseAndCreatedDateBefore(now.minusDays(3));
-        for (User user : users) {
-            log.debug("Deleting not activated user {}", user.getLogin());
-            userRepository.delete(user);
-        }
-    }
 }

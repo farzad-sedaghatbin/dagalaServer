@@ -5,6 +5,16 @@ package ir.company.app.service.dto;
  */
 public class GameLowDTO {
 
-   public String user;
+
     public String status;
+    public String score;
+    public Long gameId;
+
+    public User first;
+    public User second;
+
+    public static class User {
+        public String user;
+        public String avatar;
+    }
 }

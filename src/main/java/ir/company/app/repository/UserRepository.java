@@ -1,7 +1,10 @@
 package ir.company.app.repository;
 
 import ir.company.app.domain.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -16,11 +19,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findAllByActivatedIsFalseAndCreatedDateBefore(ZonedDateTime dateTime);
 
+    @Query("select u.avatar,u.score,u.login,u.id from User u " )
+    Page<Object[]> topPlayer(Pageable pageable);
+
     Optional<User> findOneByResetKey(String resetKey);
 
     Optional<User> findOneByEmail(String email);
 
     Optional<User> findOneByLogin(String login);
+
     User findOneByGuestId(String guestId);
 
     @Override

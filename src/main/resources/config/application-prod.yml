@@ -14,10 +14,10 @@
 ---
 spring:
   datasource:
-    url: jdbc:postgresql://stampy.db.elephantsql.com:5432/yxxtlpqs
+    url: jdbc:postgresql://babar.elephantsql.com:5432/qqyrxcgq
 
-    username: yxxtlpqs
-    password: kGtwqDC0i8SAZtQ1qPHuneIjy_Z0CO0F
+    username: qqyrxcgq
+    password: _-UqV9kD6o-hmB6eCfe2nXJ2kknkCPyl
     driverClassName: org.postgresql.Driver
     hikari:
            data-source-properties:
@@ -34,6 +34,8 @@ spring:
     show_sql: false
     properties:
          hibernate.cache.use_second_level_cache: false
+server:
+    port: 8080
 
 liquibase:
     contexts: prod

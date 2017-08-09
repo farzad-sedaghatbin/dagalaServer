@@ -23,7 +23,9 @@ public class Game {
     @OneToMany(fetch = FetchType.EAGER)
     List<Challenge> challenges;
     private ZonedDateTime dateTime;
-    private transient String leftTime;;
+    private int winner = -1;
+    private int firstScore = 0;
+    private int SecondScore = 0;
 
 
     public Long getId() {
@@ -74,11 +76,27 @@ public class Game {
         this.dateTime = dateTime;
     }
 
-    public String getLeftTime() {
-        return leftTime;
+    public int getWinner() {
+        return winner;
     }
 
-    public void setLeftTime(String leftTime) {
-        this.leftTime = leftTime;
+    public void setWinner(int winner) {
+        this.winner = winner;
+    }
+
+    public int getFirstScore() {
+        return firstScore;
+    }
+
+    public void setFirstScore(int firstScore) {
+        this.firstScore = firstScore;
+    }
+
+    public int getSecondScore() {
+        return SecondScore;
+    }
+
+    public void setSecondScore(int secondScore) {
+        SecondScore = secondScore;
     }
 }

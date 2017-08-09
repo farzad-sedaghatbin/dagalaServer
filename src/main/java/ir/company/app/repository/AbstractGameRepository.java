@@ -12,4 +12,5 @@ import java.util.List;
 public interface AbstractGameRepository extends JpaRepository<AbstractGame, Long> {
 
     List<AbstractGame> findByGameCategory(GameCategory gameCategory);
+    AbstractGame findByName(String name);
 }
