@@ -4,6 +4,7 @@ import ir.company.app.config.Constants;
 import ir.company.app.config.DefaultProfileUtil;
 import ir.company.app.config.JHipsterProperties;
 
+import ir.company.app.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -20,16 +21,20 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicLong;
 
 @ComponentScan
-@EnableAutoConfiguration(exclude = { MetricFilterAutoConfiguration.class, MetricRepositoryAutoConfiguration.class })
-@EnableConfigurationProperties({ JHipsterProperties.class, LiquibaseProperties.class })
+@EnableAutoConfiguration(exclude = {MetricFilterAutoConfiguration.class, MetricRepositoryAutoConfiguration.class})
+@EnableConfigurationProperties({JHipsterProperties.class, LiquibaseProperties.class})
 public class BaseApp {
 
     private static final Logger log = LoggerFactory.getLogger(BaseApp.class);
 
     @Inject
     private Environment env;
+
+    @Inject
+    private static UserRepository userRepository;
 
     /**
      * Initializes base.
@@ -70,6 +75,7 @@ public class BaseApp {
             env.getProperty("server.port"),
             InetAddress.getLocalHost().getHostAddress(),
             env.getProperty("server.port"));
+
 
     }
 }

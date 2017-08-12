@@ -27,6 +27,7 @@ public class DetailDTO {
         public String myScore;
         public String secondScore;
         public String icon;
+        public Long challengeId;
 
     }
 }

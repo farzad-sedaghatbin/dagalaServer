@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 @RestController
 @RequestMapping("/api")
@@ -53,6 +54,7 @@ public class FarzadUserService {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.userService = userService;
+        Constants.index = new AtomicLong(userRepository.count());
     }
 
     @RequestMapping(value = "/1/user_authenticate", method = RequestMethod.POST)
@@ -62,7 +64,7 @@ public class FarzadUserService {
     public ResponseEntity<?> authorize(@Valid @RequestBody LoginDTO loginDTO, HttpServletResponse response) {
 
         UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword());
+            new UsernamePasswordAuthenticationToken(loginDTO.getUsername().toLowerCase(), loginDTO.getPassword());
         try {
             Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
             if (authentication.isAuthenticated()) {
@@ -75,18 +77,11 @@ public class FarzadUserService {
                 User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
                 user.setPushSessionKey(loginDTO.getDeviceToken());
                 userRepository.save(user);
-                UserLoginDTO userLoginDTO = new UserLoginDTO();
+                HomeDTO userLoginDTO = userService.refresh(false);
                 userLoginDTO.token = jwt;
-                userLoginDTO.score = user.getScore();
-                userLoginDTO.gem = user.getGem();
-                userLoginDTO.level = user.getLevel();
-                userLoginDTO.avatar = user.getAvatar();
-                userLoginDTO.rating = user.getRating();
-                userLoginDTO.coins = user.getCoin();
-                userLoginDTO.userid = user.getId();
-                return ResponseEntity.ok(new ObjectMapper().writeValueAsString(userLoginDTO));
+                return ResponseEntity.ok(userLoginDTO);
             }
-        } catch (AuthenticationException | JsonProcessingException exception) {
+        } catch (AuthenticationException exception) {
             return new ResponseEntity<>(Collections.singletonMap("AuthenticationException", exception.getLocalizedMessage()), HttpStatus.UNAUTHORIZED);
         }
         return ResponseEntity.ok("401");
@@ -101,7 +96,7 @@ public class FarzadUserService {
 
         User user = userRepository.findOneByGuestId(userDTO.getTempUser());
 
-        user.setLogin(userDTO.getUsername());
+        user.setLogin(userDTO.getUsername().toLowerCase());
         user.setActivated(true);
         user.setCreatedBy("system");
         List<Authority> authorities = new ArrayList<>();
@@ -111,6 +106,19 @@ public class FarzadUserService {
         user.setFirstName(userDTO.getName());
         user.setMobile(userDTO.getMobile());
         user.setAvatar(userDTO.getAvatar());
+        userRepository.save(user);
+        return ResponseEntity.ok("200");
+    }
+
+    @RequestMapping(value = "/1/changeAvatar", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> changeAvatar(@Valid @RequestBody String data) {
+
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+
+        user.setAvatar(data);
         userRepository.save(user);
         return ResponseEntity.ok("200");
     }
@@ -246,8 +254,9 @@ public class FarzadUserService {
 
     public ResponseEntity<?> tempUser(HttpServletResponse response) throws JsonProcessingException {
         User user = new User();
-        user.setLogin("DAGALA" + Constants.index.incrementAndGet());
-        user.setGuestId("DAGALA" + Constants.index.incrementAndGet());
+        user.setLogin("dagala" + Constants.index.incrementAndGet());
+        user.setPassword(user.getLogin());
+        user.setGuestId(user.getLogin());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setActivated(true);
         user.setCreatedBy("system");
@@ -266,19 +275,24 @@ public class FarzadUserService {
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(user.getLogin(), user.getLogin());
         GuestDTO guestDTO = new GuestDTO();
+        try {
+            Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
+            if (authentication.isAuthenticated()) {
 
-        Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
-        if (authentication.isAuthenticated()) {
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 //                boolean rememberMe = (loginDTO.isRememberMe() == null) ? false : loginDTO.isRememberMe();
-            String jwt = tokenProvider.createToken(authentication, true);
-            response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
+                String jwt = tokenProvider.createToken(authentication, true);
+                response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
 
 
-            guestDTO.token = jwt;
-            guestDTO.user = user.getLogin();
+                guestDTO.token = jwt;
+                guestDTO.user = user.getLogin();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return ResponseEntity.ok(guestDTO);
     }
+
+
 }

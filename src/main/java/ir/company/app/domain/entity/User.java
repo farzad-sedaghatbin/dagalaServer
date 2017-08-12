@@ -70,16 +70,16 @@ public class User extends AbstractAuditingEntity implements Serializable {
     private ZonedDateTime resetDate = null;
 
     @Column(name = "rating", nullable = true)
-    private int rating;
+    private int rating=0;
 
     @Column(name = "mobile", nullable = true)
     private String mobile;
 
     @Column(name = "score", nullable = true)
-    private long score;
+    private long score=0;
 
     @Column(name = "coin", nullable = true)
-    private int coin;
+    private int coin=300;
 
 
     @Column(name = "avatar", nullable = true)

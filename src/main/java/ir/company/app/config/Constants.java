@@ -3,7 +3,7 @@ package ir.company.app.config;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Application constants.
@@ -28,7 +28,7 @@ public final class Constants {
 
     public static HashMap<Long, WebSocketSession> userHashMap = new HashMap<>();
 
-    public static AtomicInteger index = new AtomicInteger(0);
+    public static AtomicLong index = new AtomicLong(0l);
 
     private Constants() {
     }

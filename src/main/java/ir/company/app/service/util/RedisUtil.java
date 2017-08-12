@@ -36,6 +36,9 @@ public class RedisUtil {
 //        }
     }
 
+    public static void main(String[] args) {
+        jedis.flushDB();
+    }
     public static void addItem(String key, String value) {
         try {
 

@@ -16,7 +16,6 @@ import ir.company.app.web.rest.vm.ManagedUserVM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Service class for managing users.
@@ -59,13 +61,13 @@ public class UserService {
         homeDTO.avatar = user.getAvatar();
         homeDTO.rating = user.getRating();
         homeDTO.coins = user.getCoin();
-        homeDTO.newLevel=newLevel;
+        homeDTO.newLevel = newLevel;
         homeDTO.perGameCoins = 200l;
         homeDTO.userid = user.getId();
-        List<Game> halfGame = gameRepository.findByGameStatusAndFirst(GameStatus.HALF, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
+        List<Game> halfGame = gameRepository.findByGameStatusAndFirst(GameStatus.FULL, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
         List<Game> fullGame = gameRepository.findByGameStatusAndSecond(GameStatus.FINISHED, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
         fullGame.addAll(gameRepository.findByGameStatusAndFirst(GameStatus.FINISHED, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));
-        halfGame.addAll(gameRepository.findByGameStatusAndSecond(GameStatus.HALF, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));
+        halfGame.addAll(gameRepository.findByGameStatusAndSecond(GameStatus.FULL, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));
 
 
         homeDTO.halfGame = new ArrayList<>();
@@ -76,10 +78,10 @@ public class UserService {
             gameLowDTO.second = secondUser;
             gameLowDTO.first = firstUser;
             gameLowDTO.gameId = game.getId();
-            if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()) && game.getSecond() != null) {
                 secondUser.user = game.getSecond().getLogin();
                 secondUser.avatar = game.getSecond().getAvatar();
-            } else {
+            } else if (game.getSecond() != null && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
 
                 secondUser.user = game.getFirst().getLogin();
                 secondUser.avatar = game.getFirst().getAvatar();
