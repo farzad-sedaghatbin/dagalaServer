@@ -102,6 +102,24 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
 
 
+    @Column(name = "win", nullable = true)
+    private int win= 0;
+    @Column(name = "lose", nullable = true)
+    private int lose= 0;
+
+    @Column(name = "draw", nullable = true)
+    private int draw= 0;
+
+
+    @Column(name = "win_in_row", nullable = true)
+    private int winInRow= 0;
+
+    @Column(name = "max_win_in_row", nullable = true)
+    private int maxWinInRow= 0;
+
+
+
+
 
 //    @JsonIgnore
 //    @JoinTable(
@@ -112,6 +130,14 @@ public class User extends AbstractAuditingEntity implements Serializable {
 //
 //    private List<Authority> authorities = new ArrayList<>();
 
+
+    public int getMaxWinInRow() {
+        return maxWinInRow;
+    }
+
+    public void setMaxWinInRow(int maxWinInRow) {
+        this.maxWinInRow = maxWinInRow;
+    }
 
     public Long getId() {
         return id;
@@ -271,6 +297,38 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
     public long getScore() {
         return score;
+    }
+
+    public int getWin() {
+        return win;
+    }
+
+    public void setWin(int win) {
+        this.win = win;
+    }
+
+    public int getLose() {
+        return lose;
+    }
+
+    public void setLose(int lose) {
+        this.lose = lose;
+    }
+
+    public int getDraw() {
+        return draw;
+    }
+
+    public void setDraw(int draw) {
+        this.draw = draw;
+    }
+
+    public int getWinInRow() {
+        return winInRow;
+    }
+
+    public void setWinInRow(int winInRow) {
+        this.winInRow = winInRow;
     }
 
     @Override

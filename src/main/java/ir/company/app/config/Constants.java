@@ -30,6 +30,23 @@ public final class Constants {
 
     public static AtomicLong index = new AtomicLong(0l);
 
+    public static int perGame = 200;
+    public static int newUser = 2000;
+    public static int invite = 500;
+    public static int invited = 2000;
+    public static int video = 100;
+    public static int winEXP = 10;
+    public static int doubleWinEXP = 10;
+    public static int loseEXP = 2;
+    public static int doubleLoseEXP = 2;
+    public static int drawEXP = 8;
+    public static int drawPrize = 8;
+    public static int winPrize = 8;
+    public static int doubleWinPrize = 8;
+    public static int losePrize = 8;
+    public static int doubleLosePrize = 8;
+
+
     private Constants() {
     }
 }

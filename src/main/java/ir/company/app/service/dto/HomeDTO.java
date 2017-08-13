@@ -15,7 +15,7 @@ public class HomeDTO {
     public int rating;
     public Long userid;
     public String token;
-    public Long perGameCoins;
+    public int perGameCoins;
     public List<GameLowDTO> halfGame;
     public List<GameLowDTO> fullGame;
 

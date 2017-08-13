@@ -15,6 +15,9 @@ public class Challenge {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "url")
+    private String url;
+
     @Column(name = "icon")
     private String icon;
 
@@ -62,5 +65,14 @@ public class Challenge {
 
     public void setSecondScore(String secondScore) {
         this.secondScore = secondScore;
+    }
+
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

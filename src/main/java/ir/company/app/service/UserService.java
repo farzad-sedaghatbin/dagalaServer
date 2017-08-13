@@ -1,5 +1,6 @@
 package ir.company.app.service;
 
+import ir.company.app.config.Constants;
 import ir.company.app.domain.Authority;
 import ir.company.app.domain.entity.Game;
 import ir.company.app.domain.entity.GameStatus;
@@ -62,7 +63,7 @@ public class UserService {
         homeDTO.rating = user.getRating();
         homeDTO.coins = user.getCoin();
         homeDTO.newLevel = newLevel;
-        homeDTO.perGameCoins = 200l;
+        homeDTO.perGameCoins = Constants.perGame;
         homeDTO.userid = user.getId();
         List<Game> halfGame = gameRepository.findByGameStatusAndFirst(GameStatus.FULL, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
         List<Game> fullGame = gameRepository.findByGameStatusAndSecond(GameStatus.FINISHED, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));

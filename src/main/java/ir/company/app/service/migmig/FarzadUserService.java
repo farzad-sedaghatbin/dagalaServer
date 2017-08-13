@@ -94,6 +94,11 @@ public class FarzadUserService {
 
     public ResponseEntity<?> signUp(@Valid @RequestBody UserDTO userDTO) {
 
+
+        User exist = userRepository.findOneByLogin(userDTO.getUsername()).get();
+        if (exist != null) {
+            return ResponseEntity.ok("400");
+        }
         User user = userRepository.findOneByGuestId(userDTO.getTempUser());
 
         user.setLogin(userDTO.getUsername().toLowerCase());
@@ -120,6 +125,39 @@ public class FarzadUserService {
 
         user.setAvatar(data);
         userRepository.save(user);
+        return ResponseEntity.ok("200");
+    }
+
+
+    @RequestMapping(value = "/1/rouletteWheel", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> rouletteWheel(@Valid @RequestBody Long data) {
+
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+
+        user.setCoin(Math.toIntExact(user.getCoin() + data));
+        userRepository.save(user);
+        return ResponseEntity.ok("200");
+    }
+
+    @RequestMapping(value = "/1/inviteFriend", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> inviteFriend(@Valid @RequestBody String data) {
+
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+        User friend = userRepository.findOneByLogin(data).get();
+        if (friend == null) {
+            return ResponseEntity.ok("404");
+
+        }
+        user.setCoin((user.getCoin() + Constants.invite));
+        friend.setCoin((user.getCoin() + Constants.invited));
+        userRepository.save(user);
+        userRepository.save(friend);
         return ResponseEntity.ok("200");
     }
 
@@ -200,7 +238,7 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 //todo testy
-    public ResponseEntity<?> deviceToken() {
+    public ResponseEntity<?> userInfo() {
         User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
         UserDTO userDTO = new UserDTO();
         userDTO.setName(user.getFirstName());
@@ -241,7 +279,7 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> refreshMoney() throws JsonProcessingException {
+    public ResponseEntity<?> refresh() throws JsonProcessingException {
 
         return ResponseEntity.ok(userService.refresh(false));
 
@@ -259,6 +297,7 @@ public class FarzadUserService {
         user.setGuestId(user.getLogin());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setActivated(true);
+        user.setCoin(Constants.newUser);
         user.setCreatedBy("system");
         List<Authority> authorities = new ArrayList<>();
         authorities.add(authorityRepository.findOne(AuthoritiesConstants.USER));
