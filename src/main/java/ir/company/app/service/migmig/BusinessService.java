@@ -220,6 +220,7 @@ public class BusinessService {
 
         } else
             RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
+        game.setGameStatus(GameStatus.FULL);
 
         gameRepository.save(game);
 
@@ -307,7 +308,6 @@ public class BusinessService {
             gameRedisDTO.gameId = game.getId();
             gameRedisDTO.challengeList = challengeList;
             game.setDateTime(ZonedDateTime.now().plusDays(1));
-            game.setGameStatus(GameStatus.FULL);
             gameRepository.save(game);
             RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
 
@@ -610,14 +610,15 @@ public class BusinessService {
                         record.setScore(Long.parseLong(s[2]));
                         recordRepository.save(record);
                     }
-                    if (record != null && record.getScore() < Long.valueOf(challenge.getFirstScore())) {
+                    if (record != null && record.getScore() < Long.valueOf(challenge.getSecondScore())) {
                         record.setScore(Long.valueOf(challenge.getSecondScore()));
                         record.setUser(game.getSecond());
                         record.setAbstractGame(abstractGame);
                         recordRepository.save(record);
                     }
-                    challengeRepository.save(challenge);
                 }
+                challengeRepository.save(challenge);
+
             }
             if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
                 if (Long.valueOf(challenge.getFirstScore()) > Long.valueOf(challenge.getSecondScore())) {

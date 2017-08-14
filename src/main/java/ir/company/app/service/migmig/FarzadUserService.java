@@ -108,7 +108,6 @@ public class FarzadUserService {
         authorities.add(authorityRepository.findOne(AuthoritiesConstants.USER));
 //        user.setAuthorities(authoritie);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        user.setFirstName(userDTO.getName());
         user.setMobile(userDTO.getMobile());
         user.setAvatar(userDTO.getAvatar());
         userRepository.save(user);
@@ -252,7 +251,6 @@ public class FarzadUserService {
     public ResponseEntity<?> userInfo() {
         User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
         UserDTO userDTO = new UserDTO();
-        userDTO.setName(user.getFirstName());
         userDTO.setAvatar("");
         userDTO.setMobile("09128626242");
         try {

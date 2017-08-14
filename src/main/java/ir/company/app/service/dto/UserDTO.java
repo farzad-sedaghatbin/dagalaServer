@@ -8,18 +8,9 @@ public class UserDTO {
 
     private String username;
     private String password;
-    private String name;
     private String tempUser;
     private String mobile;
     private String avatar;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getUsername() {
         return username;
