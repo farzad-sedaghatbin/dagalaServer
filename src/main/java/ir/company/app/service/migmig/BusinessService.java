@@ -442,7 +442,12 @@ public class BusinessService {
 
         });
         if (game.getChallenges().size() == 1 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
-            detailDTO.status = "2";
+            if (game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()))
+                detailDTO.status = "1";
+            else {
+                detailDTO.status = "2";
+
+            }
         }
         if (game.getChallenges().size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             detailDTO.status = "3";

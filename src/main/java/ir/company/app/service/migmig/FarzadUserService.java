@@ -92,7 +92,7 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> signUp(@Valid @RequestBody UserDTO userDTO) {
+    public ResponseEntity<?> signUp(@Valid @RequestBody UserDTO userDTO, HttpServletResponse response) {
 
 
         User exist = userRepository.findOneByLogin(userDTO.getUsername()).get();
@@ -112,7 +112,18 @@ public class FarzadUserService {
         user.setMobile(userDTO.getMobile());
         user.setAvatar(userDTO.getAvatar());
         userRepository.save(user);
-        return ResponseEntity.ok("200");
+
+
+        UsernamePasswordAuthenticationToken authenticationToken =
+            new UsernamePasswordAuthenticationToken(userDTO.getUsername().toLowerCase(), userDTO.getPassword());
+            Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                String jwt = tokenProvider.createToken(authentication, true);
+                response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
+
+
+        return ResponseEntity.ok(jwt);
     }
 
     @RequestMapping(value = "/1/changeAvatar", method = RequestMethod.POST)
