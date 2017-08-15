@@ -3,15 +3,18 @@ package ir.company.app.service;
 import ir.company.app.config.Constants;
 import ir.company.app.domain.Authority;
 import ir.company.app.domain.entity.Game;
+import ir.company.app.domain.entity.GameCategory;
 import ir.company.app.domain.entity.GameStatus;
 import ir.company.app.domain.entity.User;
 import ir.company.app.repository.AuthorityRepository;
+import ir.company.app.repository.CategoryRepository;
 import ir.company.app.repository.GameRepository;
 import ir.company.app.repository.UserRepository;
 import ir.company.app.security.AuthoritiesConstants;
 import ir.company.app.security.SecurityUtils;
 import ir.company.app.service.dto.GameLowDTO;
 import ir.company.app.service.dto.HomeDTO;
+import ir.company.app.service.migmig.MenuDTO;
 import ir.company.app.service.util.RandomUtil;
 import ir.company.app.web.rest.vm.ManagedUserVM;
 import org.slf4j.Logger;
@@ -50,6 +53,9 @@ public class UserService {
     private GameRepository gameRepository;
 
     @Inject
+    private CategoryRepository categoryRepository;
+
+    @Inject
     private AuthorityRepository authorityRepository;
 
 
@@ -69,7 +75,18 @@ public class UserService {
         List<Game> fullGame = gameRepository.findByGameStatusAndSecond(GameStatus.FINISHED, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
         fullGame.addAll(gameRepository.findByGameStatusAndFirst(GameStatus.FINISHED, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));
         halfGame.addAll(gameRepository.findByGameStatusAndSecond(GameStatus.FULL, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));
+        homeDTO.category = new ArrayList<>();
+        List<GameCategory> menus = categoryRepository.findAll();
+        menus.forEach(menu -> {
+            MenuDTO menuDTO = new MenuDTO();
+            menuDTO.adr = "javascript:;";
+            menuDTO.id = menu.getId();
+            menuDTO.menuicon = "";
+            menuDTO.style = "{\"font-size\": \"large\"}";
+            menuDTO.text = menu.getName();
+            homeDTO.category.add(menuDTO);
 
+        });
 
         homeDTO.halfGame = new ArrayList<>();
         for (Game game : halfGame) {
@@ -89,20 +106,25 @@ public class UserService {
             }
             game.getChallenges().forEach(challenge -> {
 
-                if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                if (game.getSecond() == null) {
+                    gameLowDTO.status = "در انتظار حریف";
+                    return;
+                }
+
+                if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                     gameLowDTO.status = "نوبت شماست";
 
                 }
-                if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && !game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && !game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                     gameLowDTO.status = "در انتظار حریف";
                 }
 
 
-                if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                     gameLowDTO.status = "نوبت شماست";
 
                 }
-                if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && !game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && !game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                     gameLowDTO.status = "در انتظار حریف";
                 }
             });

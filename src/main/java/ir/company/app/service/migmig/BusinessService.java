@@ -134,6 +134,16 @@ public class BusinessService {
         return ResponseEntity.ok(recordDTO);
     }
 
+
+    @RequestMapping(value = "/1/cancelRequest", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> cancelRequest(@RequestBody Long data) throws JsonProcessingException {
+        gameRepository.delete(data);
+        return ResponseEntity.ok("200");
+    }
+
     @RequestMapping(value = "/1/requestGame", method = RequestMethod.POST)
     @Timed
     @CrossOrigin(origins = "*")
@@ -352,9 +362,20 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
 
     public ResponseEntity<?> games(@RequestBody long catId) throws JsonProcessingException {
+        List<MenuDTO> menuDTOS = new ArrayList<>();
+        List<AbstractGame> menus = abstractGameRepository.findByGameCategory(categoryRepository.findOne(catId));
+        menus.forEach(menu -> {
+            MenuDTO menuDTO = new MenuDTO();
+            menuDTO.adr = menu.getUrl();
+            menuDTO.id = menu.getId();
+            menuDTO.menuicon = menu.getIcon();
+            menuDTO.style = "{\"font-size\": \"large\"}";
+            menuDTO.text = "";
+            menuDTOS.add(menuDTO);
 
+        });
+        return ResponseEntity.ok(menuDTOS);
 
-        return ResponseEntity.ok(abstractGameRepository.findByGameCategory(categoryRepository.findOne(catId)));
     }
 
 
@@ -393,15 +414,17 @@ public class BusinessService {
     public ResponseEntity<?> detailGame(@RequestBody long gameId) throws JsonProcessingException {
         Game game = gameRepository.findOne(gameId);
         DetailDTO detailDTO = new DetailDTO();
-
+        detailDTO.gameId = game.getId();
         DetailDTO.User secondUser = new DetailDTO.User();
         detailDTO.user = secondUser;
         if (SecurityUtils.getCurrentUserLogin().equalsIgnoreCase(game.getFirst().getLogin())) {
+            if (game.getSecond() != null) {
+                secondUser.user = game.getSecond().getLogin();
+                secondUser.avatar = game.getSecond().getAvatar();
+            }
+        } else {
             secondUser.user = game.getFirst().getLogin();
             secondUser.avatar = game.getFirst().getAvatar();
-        } else {
-            secondUser.user = game.getSecond().getLogin();
-            secondUser.avatar = game.getSecond().getAvatar();
         }
         final int[] first = {0};
         final int[] second = {0};
@@ -430,19 +453,19 @@ public class BusinessService {
                 detailDTO.status = "2";
             }
 
-            if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                 detailDTO.status = "1";
                 if (game.getChallenges().size() == 1) {
                     detailDTO.url = challenge.getUrl();
                 }
             }
-            if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && !game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && !game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                 detailDTO.status = "2";
             }
 
         });
         if (game.getChallenges().size() == 1 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
-            if (game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()))
+            if ((game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()))
                 detailDTO.status = "1";
             else {
                 detailDTO.status = "2";
@@ -454,9 +477,15 @@ public class BusinessService {
             detailDTO.url = thirdGame(gameId);
 
         }
-        detailDTO.score = first[0];
+        if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            detailDTO.score = first[0];
 
-        secondUser.score = second[0];
+            secondUser.score = second[0];
+        } else {
+            detailDTO.score = second[0];
+
+            secondUser.score = first[0];
+        }
 
         return ResponseEntity.ok(detailDTO);
     }
@@ -602,7 +631,7 @@ public class BusinessService {
                     challenge.setSecondScore(s[2]);
                     AbstractGame abstractGame = abstractGameRepository.findByName(challenge.getName());
                     Record record;
-                    record = recordRepository.findByAbstractGameAndUser(abstractGame, game.getFirst());
+                    record = recordRepository.findByAbstractGameAndUser(abstractGame, game.getSecond());
                     if (record == null) {
                         record = new Record();
                         record.setUser(game.getSecond());
@@ -732,7 +761,7 @@ public class BusinessService {
     }
 
     private void calculateScore(int[] first, int[] second, Challenge challenge) {
-        if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty()) {
+        if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty()) {
             if (Long.valueOf(challenge.getFirstScore()) > Long.valueOf(challenge.getSecondScore())) {
                 first[0]++;
             } else if (Long.valueOf(challenge.getFirstScore()) < Long.valueOf(challenge.getSecondScore())) {

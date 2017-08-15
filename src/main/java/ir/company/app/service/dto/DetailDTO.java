@@ -12,6 +12,7 @@ public class DetailDTO {
     public int score;
     public String url;
     public long timeLeft;
+    public long gameId;
 
     public List<GameDTO> gameDTOS = new ArrayList<>();
     public DetailDTO.User user;
