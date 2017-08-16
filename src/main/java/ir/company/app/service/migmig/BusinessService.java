@@ -259,14 +259,8 @@ public class BusinessService {
             gameRedisDTO.second.user = game.getSecond().getAvatar();
             Challenge challenge;
             if (challengeList.size() == 2) {
-                AbstractGame abstractGame = abstractGameRepository.findByUrl(s[1]);
+                challenge = game.getChallenges().get(1);
 
-                challenge = new Challenge();
-                challenge.setIcon(abstractGame.getIcon());
-                challenge.setName(abstractGame.getName());
-                challenge.setUrl(abstractGame.getUrl());
-
-                game.getChallenges().add(challenge);
 
                 if (SecurityUtils.getCurrentUserLogin().equalsIgnoreCase(game.getFirst().getLogin())) {
                     challenge.setFirstScore("-1");
@@ -274,7 +268,7 @@ public class BusinessService {
                     challenge.setSecondScore("-1");
                 }
             } else {
-                challenge = game.getChallenges().get(3);
+                challenge = game.getChallenges().get(2);
 
                 if (SecurityUtils.getCurrentUserLogin().equalsIgnoreCase(game.getFirst().getLogin())) {
                     challenge.setFirstScore("-1");
@@ -428,16 +422,37 @@ public class BusinessService {
         }
         final int[] first = {0};
         final int[] second = {0};
-        detailDTO.timeLeft = (game.getDateTime().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli());
+        if (game.getDateTime() != null)
+            detailDTO.timeLeft = (game.getDateTime().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 1000;
+
         game.getChallenges().forEach(challenge -> {
             DetailDTO.GameDTO gameDTO = new DetailDTO.GameDTO();
             gameDTO.icon = challenge.getIcon();
             if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
-                gameDTO.myScore = challenge.getFirstScore();
-                gameDTO.secondScore = challenge.getSecondScore();
+                if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
+                    gameDTO.myScore = challenge.getFirstScore();
+                    gameDTO.secondScore = challenge.getSecondScore();
+                } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
+                    gameDTO.myScore = challenge.getFirstScore();
+                    gameDTO.secondScore = "???";
+                } else {
+                    gameDTO.secondScore = "???";
+                    gameDTO.myScore = "???";
+                }
+
             } else {
-                gameDTO.myScore = challenge.getSecondScore();
-                gameDTO.secondScore = challenge.getFirstScore();
+
+                if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
+                    gameDTO.myScore = challenge.getSecondScore();
+                    gameDTO.secondScore = challenge.getFirstScore();
+
+                } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
+                    gameDTO.secondScore = "???";
+                    gameDTO.myScore = "???";
+                } else {
+                    gameDTO.secondScore = "???";
+                    gameDTO.myScore = challenge.getSecondScore();
+                }
 
             }
             detailDTO.gameDTOS.add(gameDTO);
@@ -625,8 +640,6 @@ public class BusinessService {
                         record.setAbstractGame(abstractGame);
                         recordRepository.save(record);
                     }
-
-
                 } else {
                     challenge.setSecondScore(s[2]);
                     AbstractGame abstractGame = abstractGameRepository.findByName(challenge.getName());
@@ -649,7 +662,7 @@ public class BusinessService {
                 challengeRepository.save(challenge);
 
             }
-            if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
+            if (challenge.getFirstScore() != null && challenge.getSecondScore() != null && index == game.getChallenges().size()) {
                 if (Long.valueOf(challenge.getFirstScore()) > Long.valueOf(challenge.getSecondScore())) {
                     game.setFirstScore(game.getFirstScore() + 1);
                 } else if (Long.valueOf(challenge.getFirstScore()) < Long.valueOf(challenge.getSecondScore())) {

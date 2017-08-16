@@ -2,10 +2,7 @@ package ir.company.app.service;
 
 import ir.company.app.config.Constants;
 import ir.company.app.domain.Authority;
-import ir.company.app.domain.entity.Game;
-import ir.company.app.domain.entity.GameCategory;
-import ir.company.app.domain.entity.GameStatus;
-import ir.company.app.domain.entity.User;
+import ir.company.app.domain.entity.*;
 import ir.company.app.repository.AuthorityRepository;
 import ir.company.app.repository.CategoryRepository;
 import ir.company.app.repository.GameRepository;
@@ -104,46 +101,35 @@ public class UserService {
                 secondUser.user = game.getFirst().getLogin();
                 secondUser.avatar = game.getFirst().getAvatar();
             }
-            game.getChallenges().forEach(challenge -> {
+            Challenge challenge = game.getChallenges().get(game.getChallenges().size() - 1);
 
-                if (game.getSecond() == null) {
-                    gameLowDTO.status = "در انتظار حریف";
-                    return;
-                }
-
-                if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
-                    gameLowDTO.status = "نوبت شماست";
-
-                }
-                if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && !game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
-                    gameLowDTO.status = "در انتظار حریف";
-                }
-
-
-                if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
-                    gameLowDTO.status = "نوبت شماست";
-
-                }
-                if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && !game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
-                    gameLowDTO.status = "در انتظار حریف";
-                }
-            });
-
-            if (game.getChallenges().size() == 1 && (gameLowDTO.status == null || gameLowDTO.status.isEmpty()) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            if (game.getSecond() == null) {
+                gameLowDTO.status = "در انتظار حریف";
+            } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                 gameLowDTO.status = "نوبت شماست";
 
-            } else {
+            } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && !game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                 gameLowDTO.status = "در انتظار حریف";
+            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                gameLowDTO.status = "نوبت شماست";
 
+            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && !game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                gameLowDTO.status = "در انتظار حریف";
             }
+
+
             if (game.getChallenges().size() == 2 && (gameLowDTO.status == null || gameLowDTO.status.isEmpty())) {
                 gameLowDTO.status = "نوبت شماست";
             }
             gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
             homeDTO.halfGame.add(gameLowDTO);
         }
+
         homeDTO.fullGame = new ArrayList<>();
-        for (Game game : fullGame) {
+        for (
+            Game game : fullGame)
+
+        {
             GameLowDTO gameLowDTO = new GameLowDTO();
             GameLowDTO.User firstUser = new GameLowDTO.User();
             GameLowDTO.User secondUser = new GameLowDTO.User();

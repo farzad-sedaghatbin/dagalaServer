@@ -1,11 +1,14 @@
 package ir.company.app.domain.entity;
 
+import org.hibernate.annotations.DynamicUpdate;
+
 import javax.persistence.*;
 
 /**
  * Created by farzad on 7/18/17.
  */
 @Entity
+@DynamicUpdate
 @Table(name = "Challenge")
 public class Challenge {
     @Id

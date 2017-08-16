@@ -1,5 +1,7 @@
 package ir.company.app.domain.entity;
 
+import org.hibernate.annotations.DynamicUpdate;
+
 import javax.persistence.*;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -8,6 +10,7 @@ import java.util.List;
  * Created by farzad on 7/18/17.
  */
 @Entity
+@DynamicUpdate
 @Table(name = "Game")
 public class Game {
     @Id

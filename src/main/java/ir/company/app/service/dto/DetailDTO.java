@@ -11,7 +11,7 @@ public class DetailDTO {
     public String status;
     public int score;
     public String url;
-    public long timeLeft;
+    public Long timeLeft=null;
     public long gameId;
 
     public List<GameDTO> gameDTOS = new ArrayList<>();
