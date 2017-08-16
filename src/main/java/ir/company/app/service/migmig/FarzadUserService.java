@@ -95,8 +95,8 @@ public class FarzadUserService {
     public ResponseEntity<?> signUp(@Valid @RequestBody UserDTO userDTO, HttpServletResponse response) {
 
 
-        User exist = userRepository.findOneByLogin(userDTO.getUsername()).get();
-        if (exist != null) {
+        Optional<User> exist = userRepository.findOneByLogin(userDTO.getUsername());
+        if (exist.isPresent()) {
             return ResponseEntity.ok("400");
         }
         User user = userRepository.findOneByGuestId(userDTO.getTempUser());
@@ -115,11 +115,11 @@ public class FarzadUserService {
 
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(userDTO.getUsername().toLowerCase(), userDTO.getPassword());
-            Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
+        Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                String jwt = tokenProvider.createToken(authentication, true);
-                response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = tokenProvider.createToken(authentication, true);
+        response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
 
 
         return ResponseEntity.ok(jwt);
@@ -322,7 +322,7 @@ public class FarzadUserService {
 
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(user.getLogin(), user.getLogin());
-        GuestDTO guestDTO = new GuestDTO();
+        HomeDTO guestDTO = new HomeDTO();
         try {
             Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
             if (authentication.isAuthenticated()) {
@@ -333,8 +333,8 @@ public class FarzadUserService {
                 response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
 
 
+                guestDTO = userService.refresh(false);
                 guestDTO.token = jwt;
-                guestDTO.user = user.getLogin();
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -384,7 +384,7 @@ public class BusinessService {
     }
 
 
-    public String thirdGame(long gameId) throws JsonProcessingException {
+    public AbstractGame thirdGame(long gameId) throws JsonProcessingException {
         List<AbstractGame> abstractGames = abstractGameRepository.findAll();
         Game game = gameRepository.findOne(gameId);
         List<AbstractGame> longSet = new ArrayList<>();
@@ -399,7 +399,7 @@ public class BusinessService {
             }
         }
         Random r = new Random();
-        return abstractGames.get(r.nextInt(abstractGames.size() + 1)).getUrl();
+        return abstractGames.get(r.nextInt(abstractGames.size() + 1));
     }
 
     @RequestMapping(value = "/1/detailGame", method = RequestMethod.POST)
@@ -489,7 +489,21 @@ public class BusinessService {
         }
         if (game.getChallenges().size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             detailDTO.status = "3";
-            detailDTO.url = thirdGame(gameId);
+            AbstractGame abstractGame = thirdGame(gameId);
+            detailDTO.url = abstractGame.getUrl();
+            List<Challenge> challengeList = game.getChallenges();
+            Challenge challenge = new Challenge();
+            challenge.setIcon(abstractGame.getIcon());
+            challenge.setName(abstractGame.getName());
+            challenge.setUrl(abstractGame.getUrl());
+            challengeRepository.save(challenge);
+            challengeList.add(challenge);
+            gameRepository.save(game);
+
+        }
+        if (game.getChallenges().size() == 3 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+            detailDTO.url = game.getChallenges().get(2).getUrl();
+            detailDTO.status = "3";
 
         }
         if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
