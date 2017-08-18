@@ -9,4 +9,5 @@ public class MenuDTO {
     public String text;
     public String style;
     public long id;
+    public boolean style2;
 }

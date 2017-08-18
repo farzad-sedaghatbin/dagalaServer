@@ -139,8 +139,9 @@ public class BusinessService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> cancelRequest(@RequestBody Long data) throws JsonProcessingException {
-        gameRepository.delete(data);
+    public ResponseEntity<?> cancelRequest(@RequestBody String data) throws JsonProcessingException {
+        gameRepository.delete(Long.valueOf(data));
+        RedisUtil.removeItem("invisible", data);
         return ResponseEntity.ok("200");
     }
 
@@ -355,15 +356,30 @@ public class BusinessService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> games(@RequestBody long catId) throws JsonProcessingException {
+    public ResponseEntity<?> games(@RequestBody String data) throws JsonProcessingException {
         List<MenuDTO> menuDTOS = new ArrayList<>();
-        List<AbstractGame> menus = abstractGameRepository.findByGameCategory(categoryRepository.findOne(catId));
+        String[] s = data.split(",");
+        List<AbstractGame> menus = abstractGameRepository.findByGameCategory(categoryRepository.findOne(Long.valueOf(s[1])));
+        List<Challenge> challenges;
+        if (s[0].equalsIgnoreCase("train")) {
+            challenges = new ArrayList<>();
+        } else {
+            challenges = gameRepository.findOne(Long.valueOf(s[0])).getChallenges();
+        }
         menus.forEach(menu -> {
+            boolean[] flag = {false};
+            challenges.forEach(c -> {
+                if (c.getName().equalsIgnoreCase(menu.getName())) {
+                    flag[0] = true;
+                }
+            });
             MenuDTO menuDTO = new MenuDTO();
             menuDTO.adr = menu.getUrl();
             menuDTO.id = menu.getId();
             menuDTO.menuicon = menu.getIcon();
             menuDTO.style = "{\"font-size\": \"large\"}";
+            menuDTO.style2 = flag[0];
+
             menuDTO.text = "";
             menuDTOS.add(menuDTO);
 
@@ -456,7 +472,6 @@ public class BusinessService {
 
             }
             detailDTO.gameDTOS.add(gameDTO);
-            calculateScore(first, second, challenge);
 
             gameDTO.challengeId = challenge.getId();
 
@@ -468,7 +483,7 @@ public class BusinessService {
                 detailDTO.status = "2";
             }
 
-            if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            if (game.getChallenges().size() != 3 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                 detailDTO.status = "1";
                 if (game.getChallenges().size() == 1) {
                     detailDTO.url = challenge.getUrl();
@@ -507,13 +522,13 @@ public class BusinessService {
 
         }
         if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
-            detailDTO.score = first[0];
+            detailDTO.score = game.getFirstScore();
 
-            secondUser.score = second[0];
+            secondUser.score = game.getSecondScore();
         } else {
-            detailDTO.score = second[0];
+            detailDTO.score = game.getSecondScore();
 
-            secondUser.score = first[0];
+            secondUser.score = game.getFirstScore();
         }
 
         return ResponseEntity.ok(detailDTO);
@@ -681,6 +696,10 @@ public class BusinessService {
                     game.setFirstScore(game.getFirstScore() + 1);
                 } else if (Long.valueOf(challenge.getFirstScore()) < Long.valueOf(challenge.getSecondScore())) {
                     game.setSecondScore(game.getSecondScore() + 1);
+                } else {
+                    game.setSecondScore(game.getSecondScore() + 1);
+                    game.setFirstScore(game.getFirstScore() + 1);
+
                 }
             }
             index++;
@@ -702,21 +721,15 @@ public class BusinessService {
 
             User firstUser = game.getFirst();
             User secondUser = game.getSecond();
-            int[] first = new int[0];
-            int[] second = new int[0];
-            game.getChallenges().forEach(challenge -> calculateScore(first, second, challenge));
-            if (first[0] > second[0]) {
+            if (game.getFirstScore() > game.getSecondScore()) {
                 game.setWinner(1);
 
-            } else if (first[0] < second[0]) {
+            } else if (game.getFirstScore() < game.getSecondScore()) {
                 game.setWinner(2);
 
             } else {
                 game.setWinner(0);
-
-
             }
-
             if (game.getWinner() == 1) {
                 firstUser.setWin(firstUser.getWin() + 1);
                 firstUser.setWinInRow(firstUser.getWinInRow() + 1);
@@ -785,19 +798,6 @@ public class BusinessService {
         }
 
         return ResponseEntity.ok(userService.refresh(newLevel));
-    }
-
-    private void calculateScore(int[] first, int[] second, Challenge challenge) {
-        if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty()) {
-            if (Long.valueOf(challenge.getFirstScore()) > Long.valueOf(challenge.getSecondScore())) {
-                first[0]++;
-            } else if (Long.valueOf(challenge.getFirstScore()) < Long.valueOf(challenge.getSecondScore())) {
-                second[0]++;
-            } else {
-                first[0]++;
-                second[0]++;
-            }
-        }
     }
 
 

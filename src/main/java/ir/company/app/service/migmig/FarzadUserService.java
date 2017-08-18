@@ -16,7 +16,10 @@ import ir.company.app.security.SecurityUtils;
 import ir.company.app.security.jwt.JWTConfigurer;
 import ir.company.app.security.jwt.TokenProvider;
 import ir.company.app.service.UserService;
-import ir.company.app.service.dto.*;
+import ir.company.app.service.dto.ForgetPasswordDTO;
+import ir.company.app.service.dto.HomeDTO;
+import ir.company.app.service.dto.LoginDTO;
+import ir.company.app.service.dto.UserDTO;
 import ir.company.app.service.util.CalendarUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -79,6 +82,8 @@ public class FarzadUserService {
                 userRepository.save(user);
                 HomeDTO userLoginDTO = userService.refresh(false);
                 userLoginDTO.token = jwt;
+                userLoginDTO.user = user.getLogin();
+
                 return ResponseEntity.ok(userLoginDTO);
             }
         } catch (AuthenticationException exception) {
@@ -146,10 +151,14 @@ public class FarzadUserService {
     public ResponseEntity<?> rouletteWheel(@Valid @RequestBody Long data) {
 
         User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
-
-        user.setCoin(Math.toIntExact(user.getCoin() + data));
-        userRepository.save(user);
-        return ResponseEntity.ok("200");
+        if (user.getLastRoulette() == null || ((user.getLastRoulette().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 86400000) >= 1) {
+            user.setCoin(Math.toIntExact(user.getCoin() + data));
+            user.setLastRoulette(ZonedDateTime.now());
+            userRepository.save(user);
+            return ResponseEntity.ok("200");
+        } else {
+            return ResponseEntity.ok("201");
+        }
     }
 
     @RequestMapping(value = "/1/inviteFriend", method = RequestMethod.POST)
@@ -335,6 +344,8 @@ public class FarzadUserService {
 
                 guestDTO = userService.refresh(false);
                 guestDTO.token = jwt;
+                guestDTO.guest = true;
+                guestDTO.user = user.getLogin();
             }
         } catch (Exception e) {
             e.printStackTrace();

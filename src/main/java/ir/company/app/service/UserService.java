@@ -2,7 +2,10 @@ package ir.company.app.service;
 
 import ir.company.app.config.Constants;
 import ir.company.app.domain.Authority;
-import ir.company.app.domain.entity.*;
+import ir.company.app.domain.entity.Challenge;
+import ir.company.app.domain.entity.Game;
+import ir.company.app.domain.entity.GameStatus;
+import ir.company.app.domain.entity.User;
 import ir.company.app.repository.AuthorityRepository;
 import ir.company.app.repository.CategoryRepository;
 import ir.company.app.repository.GameRepository;
@@ -11,7 +14,6 @@ import ir.company.app.security.AuthoritiesConstants;
 import ir.company.app.security.SecurityUtils;
 import ir.company.app.service.dto.GameLowDTO;
 import ir.company.app.service.dto.HomeDTO;
-import ir.company.app.service.migmig.MenuDTO;
 import ir.company.app.service.util.RandomUtil;
 import ir.company.app.web.rest.vm.ManagedUserVM;
 import org.slf4j.Logger;
@@ -66,6 +68,7 @@ public class UserService {
         homeDTO.rating = user.getRating();
         homeDTO.coins = user.getCoin();
         homeDTO.newLevel = newLevel;
+        homeDTO.user = user.getLogin();
         homeDTO.perGameCoins = Constants.perGame;
         homeDTO.userid = user.getId();
         List<Game> halfGame = gameRepository.findByGameStatusAndFirst(GameStatus.FULL, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
@@ -81,13 +84,31 @@ public class UserService {
             gameLowDTO.second = secondUser;
             gameLowDTO.first = firstUser;
             gameLowDTO.gameId = game.getId();
+
+
             if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()) && game.getSecond() != null) {
                 secondUser.user = game.getSecond().getLogin();
                 secondUser.avatar = game.getSecond().getAvatar();
+                if (game.getFirstScore() > game.getSecondScore()) {
+                    gameLowDTO.scoreStatus = "فعلا برنده";
+                } else if (game.getFirstScore() < game.getSecondScore()) {
+                    gameLowDTO.scoreStatus = "فعلا بازنده";
+
+                } else {
+                    gameLowDTO.scoreStatus = "فعلا مساوی";
+                }
             } else if (game.getSecond() != null && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
 
                 secondUser.user = game.getFirst().getLogin();
                 secondUser.avatar = game.getFirst().getAvatar();
+                if (game.getFirstScore() < game.getSecondScore()) {
+                    gameLowDTO.scoreStatus = "فعلا برنده";
+                } else if (game.getFirstScore() > game.getSecondScore()) {
+                    gameLowDTO.scoreStatus = "فعلا بازنده";
+
+                } else {
+                    gameLowDTO.scoreStatus = "فعلا مساوی";
+                }
             }
             Challenge challenge = game.getChallenges().get(game.getChallenges().size() - 1);
 
@@ -106,6 +127,8 @@ public class UserService {
             } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()) && game.getChallenges().size() == 1) {
                 gameLowDTO.status = "نوبت شماست";
 
+            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()) && game.getChallenges().size() == 1) {
+                gameLowDTO.status = "در انتظار حریف";
             }
 
 

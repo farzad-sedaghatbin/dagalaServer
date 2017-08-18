@@ -49,7 +49,7 @@ public class LoginVM {
     public String toString() {
         return "LoginVM{" +
             "password='*****'" +
-            ", username='" + username + '\'' +
+            ", user='" + username + '\'' +
             ", rememberMe=" + rememberMe +
             '}';
     }

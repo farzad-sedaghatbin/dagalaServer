@@ -70,16 +70,16 @@ public class User extends AbstractAuditingEntity implements Serializable {
     private ZonedDateTime resetDate = null;
 
     @Column(name = "rating", nullable = true)
-    private int rating=0;
+    private int rating = 0;
 
     @Column(name = "mobile", nullable = true)
     private String mobile;
 
     @Column(name = "score", nullable = true)
-    private long score=0;
+    private long score = 0;
 
     @Column(name = "coin", nullable = true)
-    private int coin=300;
+    private int coin = 300;
 
 
     @Column(name = "avatar", nullable = true)
@@ -89,7 +89,7 @@ public class User extends AbstractAuditingEntity implements Serializable {
     private int gem = 0;
 
     @Column(name = "level", nullable = true)
-    private int level= 0;
+    private int level = 0;
 
     @Size(max = 50)
     @Column(name = "push_session_key", length = 50)
@@ -101,24 +101,22 @@ public class User extends AbstractAuditingEntity implements Serializable {
     private Boolean gender;
 
 
-
     @Column(name = "win", nullable = true)
-    private int win= 0;
+    private int win = 0;
     @Column(name = "lose", nullable = true)
-    private int lose= 0;
+    private int lose = 0;
 
     @Column(name = "draw", nullable = true)
-    private int draw= 0;
+    private int draw = 0;
 
 
     @Column(name = "win_in_row", nullable = true)
-    private int winInRow= 0;
+    private int winInRow = 0;
 
     @Column(name = "max_win_in_row", nullable = true)
-    private int maxWinInRow= 0;
+    private int maxWinInRow = 0;
 
-
-
+    private ZonedDateTime lastRoulette;
 
 
 //    @JsonIgnore
@@ -375,5 +373,11 @@ public class User extends AbstractAuditingEntity implements Serializable {
             "}";
     }
 
+    public ZonedDateTime getLastRoulette() {
+        return lastRoulette;
+    }
 
+    public void setLastRoulette(ZonedDateTime lastRoulette) {
+        this.lastRoulette = lastRoulette;
+    }
 }

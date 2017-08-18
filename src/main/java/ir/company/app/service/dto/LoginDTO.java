@@ -52,7 +52,7 @@ public class LoginDTO {
     public String toString() {
         return "LoginDTO{" +
             "password='" + password + '\'' +
-            ", username='" + username + '\'' +
+            ", user='" + username + '\'' +
             ", rememberMe=" + rememberMe +
             '}';
     }

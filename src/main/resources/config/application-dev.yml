@@ -1,11 +1,22 @@
-spring:
-  profiles:
-          active: dev
-  datasource:
-    url: jdbc:postgresql://stampy.db.elephantsql.com:5432/yxxtlpqs
+# ===================================================================
+# Spring Boot configuration for the "dev" profile.
+#
+# This configuration overrides the application.yml file.
+# ===================================================================
 
-    username: yxxtlpqs
-    password: kGtwqDC0i8SAZtQ1qPHuneIjy_Z0CO0F
+# ===================================================================
+# Standard Spring Boot properties.
+# Full reference is available at:
+# http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+# ===================================================================
+
+
+spring:
+  datasource:
+    url: jdbc:postgresql://babar.elephantsql.com:5432/qqyrxcgq
+
+    username: qqyrxcgq
+    password: _-UqV9kD6o-hmB6eCfe2nXJ2kknkCPyl
     driverClassName: org.postgresql.Driver
     hikari:
            data-source-properties:
@@ -26,5 +37,4 @@ server:
     port: 8080
 
 liquibase:
-    contexts: dev
-
+    contexts: prod

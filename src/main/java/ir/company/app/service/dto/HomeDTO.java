@@ -1,7 +1,5 @@
 package ir.company.app.service.dto;
 
-import ir.company.app.service.migmig.MenuDTO;
-
 import java.util.List;
 
 /**
@@ -10,10 +8,12 @@ import java.util.List;
 public class HomeDTO {
     public int coins;
     public int level;
-    public boolean newLevel=false;
+    public boolean newLevel = false;
+    public boolean guest = false;
     public int gem;
     public long score;
     public String avatar;
+    public String user;
     public int rating;
     public Long userid;
     public String token;
