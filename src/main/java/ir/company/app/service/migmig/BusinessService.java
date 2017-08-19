@@ -409,13 +409,13 @@ public class BusinessService {
         }
         for (AbstractGame abstractGame : longSet) {
             for (Challenge game1 : game.getChallenges()) {
-                if (game1.getId() == abstractGame.getId()) {
+                if (game1.getName().equalsIgnoreCase(abstractGame.getName())) {
                     abstractGames.remove(abstractGame);
                 }
             }
         }
         Random r = new Random();
-        return abstractGames.get(r.nextInt(abstractGames.size() + 1));
+        return abstractGames.get(r.nextInt(abstractGames.size()));
     }
 
     @RequestMapping(value = "/1/detailGame", method = RequestMethod.POST)
@@ -645,159 +645,164 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
 
 
-    public ResponseEntity<?> endGame(@RequestBody String data) throws JsonProcessingException {
-        String[] s = data.split(",");
-        Game game = gameRepository.findOne(Long.valueOf(s[0]));
-        int index = 1;
-        for (Challenge challenge : game.getChallenges()) {
-            if (challenge.getId().equals(Long.valueOf(s[1]))) {
-                if (SecurityUtils.getCurrentUserLogin().equalsIgnoreCase(game.getFirst().getLogin())) {
-                    challenge.setFirstScore(s[2]);
-                    AbstractGame abstractGame = abstractGameRepository.findByName(challenge.getName());
-                    Record record = recordRepository.findByAbstractGameAndUser(abstractGame, game.getFirst());
-                    if (record == null) {
-                        record = new Record();
-                        record.setUser(game.getFirst());
-                        record.setAbstractGame(abstractGame);
-                        record.setScore(Long.parseLong(s[2]));
-                        recordRepository.save(record);
+    public ResponseEntity<?> endGame(@RequestBody String data) {
+        try {
+            String[] s = data.split(",");
+            Game game = gameRepository.findOne(Long.valueOf(s[0]));
+            int index = 1;
+            for (Challenge challenge : game.getChallenges()) {
+                if (challenge.getId().equals(Long.valueOf(s[1]))) {
+                    if (SecurityUtils.getCurrentUserLogin().equalsIgnoreCase(game.getFirst().getLogin())) {
+                        challenge.setFirstScore(s[2]);
+                        AbstractGame abstractGame = abstractGameRepository.findByName(challenge.getName());
+                        Record record = recordRepository.findByAbstractGameAndUser(abstractGame, game.getFirst());
+                        if (record == null) {
+                            record = new Record();
+                            record.setUser(game.getFirst());
+                            record.setAbstractGame(abstractGame);
+                            record.setScore(Long.parseLong(s[2]));
+                            recordRepository.save(record);
+
+                        }
+                        if ((record != null) && (record.getScore() < Long.valueOf(challenge.getFirstScore()))) {
+                            record.setScore(Long.valueOf(challenge.getFirstScore()));
+                            record.setUser(game.getFirst());
+                            record.setAbstractGame(abstractGame);
+                            recordRepository.save(record);
+                        }
+                    } else {
+                        challenge.setSecondScore(s[2]);
+                        AbstractGame abstractGame = abstractGameRepository.findByName(challenge.getName());
+                        Record record;
+                        record = recordRepository.findByAbstractGameAndUser(abstractGame, game.getSecond());
+                        if (record == null) {
+                            record = new Record();
+                            record.setUser(game.getSecond());
+                            record.setAbstractGame(abstractGame);
+                            record.setScore(Long.parseLong(s[2]));
+                            recordRepository.save(record);
+                        }
+                        if (record != null && record.getScore() < Long.valueOf(challenge.getSecondScore())) {
+                            record.setScore(Long.valueOf(challenge.getSecondScore()));
+                            record.setUser(game.getSecond());
+                            record.setAbstractGame(abstractGame);
+                            recordRepository.save(record);
+                        }
+                    }
+                    challengeRepository.save(challenge);
+
+                }
+                if (challenge.getFirstScore() != null && challenge.getSecondScore() != null && index == game.getChallenges().size()) {
+                    if (Long.valueOf(challenge.getFirstScore()) > Long.valueOf(challenge.getSecondScore())) {
+                        game.setFirstScore(game.getFirstScore() + 1);
+                    } else if (Long.valueOf(challenge.getFirstScore()) < Long.valueOf(challenge.getSecondScore())) {
+                        game.setSecondScore(game.getSecondScore() + 1);
+                    } else {
+                        game.setSecondScore(game.getSecondScore() + 1);
+                        game.setFirstScore(game.getFirstScore() + 1);
 
                     }
-                    if ((record != null) && (record.getScore() < Long.valueOf(challenge.getFirstScore()))) {
-                        record.setScore(Long.valueOf(challenge.getFirstScore()));
-                        record.setUser(game.getFirst());
-                        record.setAbstractGame(abstractGame);
-                        recordRepository.save(record);
-                    }
-                } else {
-                    challenge.setSecondScore(s[2]);
-                    AbstractGame abstractGame = abstractGameRepository.findByName(challenge.getName());
-                    Record record;
-                    record = recordRepository.findByAbstractGameAndUser(abstractGame, game.getSecond());
-                    if (record == null) {
-                        record = new Record();
-                        record.setUser(game.getSecond());
-                        record.setAbstractGame(abstractGame);
-                        record.setScore(Long.parseLong(s[2]));
-                        recordRepository.save(record);
-                    }
-                    if (record != null && record.getScore() < Long.valueOf(challenge.getSecondScore())) {
-                        record.setScore(Long.valueOf(challenge.getSecondScore()));
-                        record.setUser(game.getSecond());
-                        record.setAbstractGame(abstractGame);
-                        recordRepository.save(record);
-                    }
                 }
-                challengeRepository.save(challenge);
-
+                index++;
             }
-            if (challenge.getFirstScore() != null && challenge.getSecondScore() != null && index == game.getChallenges().size()) {
-                if (Long.valueOf(challenge.getFirstScore()) > Long.valueOf(challenge.getSecondScore())) {
-                    game.setFirstScore(game.getFirstScore() + 1);
-                } else if (Long.valueOf(challenge.getFirstScore()) < Long.valueOf(challenge.getSecondScore())) {
-                    game.setSecondScore(game.getSecondScore() + 1);
-                } else {
-                    game.setSecondScore(game.getSecondScore() + 1);
-                    game.setFirstScore(game.getFirstScore() + 1);
-
-                }
-            }
-            index++;
-        }
-        gameRepository.save(game);
-        GameRedisDTO gameRedisDTO = new GameRedisDTO();
-        gameRedisDTO.first = new GameRedisDTO.User();
-        gameRedisDTO.first.user = game.getFirst().getLogin();
-        gameRedisDTO.first.avatar = game.getFirst().getAvatar();
-        if (game.getSecond() != null) {
-            gameRedisDTO.second = new GameRedisDTO.User();
-            gameRedisDTO.second.user = game.getSecond().getLogin();
-            gameRedisDTO.second.avatar = game.getSecond().getAvatar();
-        }
-        boolean newLevel = false;
-        gameRedisDTO.gameId = game.getId();
-        gameRedisDTO.challengeList = game.getChallenges();
-        if (game.getChallenges().size() == 3 && game.getChallenges().get(2).getFirstScore() != null && !game.getChallenges().get(2).getFirstScore().isEmpty() && game.getChallenges().get(2).getSecondScore() != null && !game.getChallenges().get(2).getSecondScore().isEmpty()) {
-
-            User firstUser = game.getFirst();
-            User secondUser = game.getSecond();
-            if (game.getFirstScore() > game.getSecondScore()) {
-                game.setWinner(1);
-
-            } else if (game.getFirstScore() < game.getSecondScore()) {
-                game.setWinner(2);
-
-            } else {
-                game.setWinner(0);
-            }
-            if (game.getWinner() == 1) {
-                firstUser.setWin(firstUser.getWin() + 1);
-                firstUser.setWinInRow(firstUser.getWinInRow() + 1);
-                if (firstUser.getWinInRow() > firstUser.getMaxWinInRow()) {
-                    firstUser.setMaxWinInRow(firstUser.getWinInRow());
-                }
-
-                secondUser.setLose(secondUser.getLose() + 1);
-                secondUser.setWinInRow(0);
-
-                if (game.getFirstScore() - game.getSecondScore() > 1) {
-                    firstUser.setScore(firstUser.getScore() + Constants.doubleWinEXP);
-                    firstUser.setCoin(firstUser.getCoin() + Constants.doubleWinPrize);
-                } else {
-                    firstUser.setScore(firstUser.getScore() + Constants.winEXP);
-                    secondUser.setScore(secondUser.getScore() + Constants.loseEXP);
-                    firstUser.setCoin(firstUser.getCoin() + Constants.winPrize);
-                    secondUser.setCoin(secondUser.getCoin() + Constants.losePrize);
-                }
-            } else if (game.getWinner() == 2) {
-                secondUser.setWin(secondUser.getWin() + 1);
-                secondUser.setWinInRow(secondUser.getWinInRow() + 1);
-                if (secondUser.getWinInRow() > secondUser.getMaxWinInRow()) {
-                    secondUser.setMaxWinInRow(secondUser.getWinInRow());
-                }
-
-                firstUser.setLose(firstUser.getLose() + 1);
-                firstUser.setWinInRow(0);
-
-                if (game.getSecondScore() - game.getFirstScore() > 1) {
-                    secondUser.setScore(secondUser.getScore() + Constants.doubleLoseEXP);
-                    secondUser.setCoin(secondUser.getCoin() + Constants.doubleWinPrize);
-                } else {
-                    firstUser.setScore(firstUser.getScore() + Constants.loseEXP);
-                    secondUser.setScore(secondUser.getScore() + Constants.winEXP);
-                    firstUser.setCoin(firstUser.getCoin() + Constants.losePrize);
-                    secondUser.setCoin(secondUser.getCoin() + Constants.winPrize);
-                }
-            } else {
-
-                secondUser.setDraw(secondUser.getDraw() + 1);
-                secondUser.setWinInRow(0);
-                firstUser.setDraw(firstUser.getDraw() + 1);
-                firstUser.setWinInRow(0);
-                firstUser.setScore(firstUser.getScore() + Constants.drawEXP);
-                secondUser.setScore(secondUser.getScore() + Constants.drawEXP);
-                firstUser.setCoin(firstUser.getCoin() + Constants.drawPrize);
-                secondUser.setCoin(secondUser.getCoin() + Constants.drawPrize);
-            }
-
-            userRepository.save(firstUser);
-            userRepository.save(secondUser);
-            newLevel = isNewLevel(firstUser, secondUser);
-
-            game.setGameStatus(GameStatus.FINISHED);
             gameRepository.save(game);
+            GameRedisDTO gameRedisDTO = new GameRedisDTO();
+            gameRedisDTO.first = new GameRedisDTO.User();
+            gameRedisDTO.first.user = game.getFirst().getLogin();
+            gameRedisDTO.first.avatar = game.getFirst().getAvatar();
+            if (game.getSecond() != null) {
+                gameRedisDTO.second = new GameRedisDTO.User();
+                gameRedisDTO.second.user = game.getSecond().getLogin();
+                gameRedisDTO.second.avatar = game.getSecond().getAvatar();
+            }
+            boolean newLevel = false;
+            gameRedisDTO.gameId = game.getId();
+            gameRedisDTO.challengeList = game.getChallenges();
+            if (game.getChallenges().size() == 3 && game.getChallenges().get(2).getFirstScore() != null && !game.getChallenges().get(2).getFirstScore().isEmpty() && game.getChallenges().get(2).getSecondScore() != null && !game.getChallenges().get(2).getSecondScore().isEmpty()) {
 
-            RedisUtil.removeItem("full", game.getId().toString());
+                User firstUser = game.getFirst();
+                User secondUser = game.getSecond();
+                if (game.getFirstScore() > game.getSecondScore()) {
+                    game.setWinner(1);
 
+                } else if (game.getFirstScore() < game.getSecondScore()) {
+                    game.setWinner(2);
+
+                } else {
+                    game.setWinner(0);
+                }
+                if (game.getWinner() == 1) {
+                    firstUser.setWin(firstUser.getWin() + 1);
+                    firstUser.setWinInRow(firstUser.getWinInRow() + 1);
+                    if (firstUser.getWinInRow() > firstUser.getMaxWinInRow()) {
+                        firstUser.setMaxWinInRow(firstUser.getWinInRow());
+                    }
+
+                    secondUser.setLose(secondUser.getLose() + 1);
+                    secondUser.setWinInRow(0);
+
+                    if (game.getFirstScore() - game.getSecondScore() > 1) {
+                        firstUser.setScore(firstUser.getScore() + Constants.doubleWinEXP);
+                        firstUser.setCoin(firstUser.getCoin() + Constants.doubleWinPrize);
+                    } else {
+                        firstUser.setScore(firstUser.getScore() + Constants.winEXP);
+                        secondUser.setScore(secondUser.getScore() + Constants.loseEXP);
+                        firstUser.setCoin(firstUser.getCoin() + Constants.winPrize);
+                        secondUser.setCoin(secondUser.getCoin() + Constants.losePrize);
+                    }
+                } else if (game.getWinner() == 2) {
+                    secondUser.setWin(secondUser.getWin() + 1);
+                    secondUser.setWinInRow(secondUser.getWinInRow() + 1);
+                    if (secondUser.getWinInRow() > secondUser.getMaxWinInRow()) {
+                        secondUser.setMaxWinInRow(secondUser.getWinInRow());
+                    }
+
+                    firstUser.setLose(firstUser.getLose() + 1);
+                    firstUser.setWinInRow(0);
+
+                    if (game.getSecondScore() - game.getFirstScore() > 1) {
+                        secondUser.setScore(secondUser.getScore() + Constants.doubleLoseEXP);
+                        secondUser.setCoin(secondUser.getCoin() + Constants.doubleWinPrize);
+                    } else {
+                        firstUser.setScore(firstUser.getScore() + Constants.loseEXP);
+                        secondUser.setScore(secondUser.getScore() + Constants.winEXP);
+                        firstUser.setCoin(firstUser.getCoin() + Constants.losePrize);
+                        secondUser.setCoin(secondUser.getCoin() + Constants.winPrize);
+                    }
+                } else {
+
+                    secondUser.setDraw(secondUser.getDraw() + 1);
+                    secondUser.setWinInRow(0);
+                    firstUser.setDraw(firstUser.getDraw() + 1);
+                    firstUser.setWinInRow(0);
+                    firstUser.setScore(firstUser.getScore() + Constants.drawEXP);
+                    secondUser.setScore(secondUser.getScore() + Constants.drawEXP);
+                    firstUser.setCoin(firstUser.getCoin() + Constants.drawPrize);
+                    secondUser.setCoin(secondUser.getCoin() + Constants.drawPrize);
+                }
+
+                userRepository.save(firstUser);
+                userRepository.save(secondUser);
+                newLevel = isNewLevel(firstUser, secondUser);
+
+                game.setGameStatus(GameStatus.FINISHED);
+                gameRepository.save(game);
+
+                RedisUtil.removeItem("full", game.getId().toString());
+
+            }
+
+            if (game.getChallenges().size() == 1 && game.getChallenges().get(0).getSecondScore() == null) {
+                RedisUtil.addHashItem("half", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
+            } else if (!game.getGameStatus().equals(GameStatus.FINISHED)) {
+                RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
+            }
+
+            return ResponseEntity.ok(userService.refresh(newLevel));
+        } catch (Exception e1) {
+            e1.printStackTrace();
         }
-
-        if (game.getChallenges().size() == 1 && game.getChallenges().get(0).getSecondScore() == null) {
-            RedisUtil.addHashItem("half", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
-        } else {
-            RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
-        }
-
-        return ResponseEntity.ok(userService.refresh(newLevel));
+        return ResponseEntity.ok("201");
     }
 
 
