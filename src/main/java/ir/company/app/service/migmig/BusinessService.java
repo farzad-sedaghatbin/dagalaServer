@@ -87,8 +87,9 @@ public class BusinessService {
             recordDTO.score = record.getScore();
 
 
-            Query q = em.createNativeQuery("SELECT * FROM (SELECT id,rank() OVER (ORDER BY score DESC) FROM tb_record ) as gr WHERE  id =?");
+            Query q = em.createNativeQuery("SELECT * FROM (SELECT id,user_id,abstarct_game_id,rank() OVER (ORDER BY score DESC) FROM tb_record ) as gr WHERE  user_id =? and abstract_game_id = ? ");
             q.setParameter(1, u.getId());
+            q.setParameter(2, Long.valueOf(data));
             Object[] o = (Object[]) q.getSingleResult();
             recordDTO.rank = valueOf(o[1]);
             recordDTO.users = recordDTOS;
