@@ -1,5 +1,6 @@
 package ir.company.app.repository;
 
+import ir.company.app.domain.entity.League;
 import ir.company.app.domain.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findAllByActivatedIsFalseAndCreatedDateBefore(ZonedDateTime dateTime);
 
-    @Query("select u.avatar,u.score,u.login,u.id from User u " )
+    @Query("select u.avatar,u.score,u.login,u.id from User u ")
     Page<Object[]> topPlayer(Pageable pageable);
 
     Optional<User> findOneByResetKey(String resetKey);
@@ -29,6 +30,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findOneByLogin(String login);
 
     User findOneByGuestId(String guestId);
+
+    User findByLeagues(League league);
 
     @Override
     void delete(User t);

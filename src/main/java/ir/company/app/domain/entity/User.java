@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 /**
  * A user.
@@ -118,6 +119,9 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
     private ZonedDateTime lastRoulette;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    private  List<League> leagues;
+
 
 //    @JsonIgnore
 //    @JoinTable(
@@ -128,6 +132,14 @@ public class User extends AbstractAuditingEntity implements Serializable {
 //
 //    private List<Authority> authorities = new ArrayList<>();
 
+
+    public List<League> getLeagues() {
+        return leagues;
+    }
+
+    public void setLeagues(List<League> leagues) {
+        this.leagues = leagues;
+    }
 
     public int getMaxWinInRow() {
         return maxWinInRow;

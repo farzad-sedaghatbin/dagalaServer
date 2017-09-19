@@ -199,7 +199,7 @@ public class FarzadUserService {
             String s = String.valueOf(randomNumber);
             User user1 = user.get();
             user1.setResetKey(s);
-            user1.setResetDate(CalendarUtil.getNowDateTimeOfIran());
+//            user1.setResetDate();
             userRepository.save(user1);
             try {
                 String tel = user1.getMobile();

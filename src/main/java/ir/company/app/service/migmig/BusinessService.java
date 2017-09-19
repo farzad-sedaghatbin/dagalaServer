@@ -7,9 +7,11 @@ import ir.company.app.config.Constants;
 import ir.company.app.domain.entity.*;
 import ir.company.app.repository.*;
 import ir.company.app.security.SecurityUtils;
+import ir.company.app.service.GameService;
 import ir.company.app.service.UserService;
 import ir.company.app.service.dto.DetailDTO;
 import ir.company.app.service.dto.GameRedisDTO;
+import ir.company.app.service.util.CalendarUtil;
 import ir.company.app.service.util.RedisUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +26,7 @@ import javax.persistence.Query;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 import static java.lang.String.valueOf;
@@ -31,6 +34,9 @@ import static java.lang.String.valueOf;
 @RestController
 @RequestMapping("/api")
 public class BusinessService {
+
+    @Inject
+    GameService gameService;
     private final UserRepository userRepository;
     private final ChallengeRepository challengeRepository;
     private final RecordRepository recordRepository;
@@ -40,12 +46,13 @@ public class BusinessService {
     private final GameRepository gameRepository;
     private final CategoryUserRepository categoryUserRepository;
     private final PolicyRepository policyRepository;
+    private final LeagueRepository leagueRepository;
     private final AbstractGameRepository abstractGameRepository;
     @PersistenceContext
     private EntityManager em;
 
     @Inject
-    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, PolicyRepository policyRepository) {
+    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, PolicyRepository policyRepository, LeagueRepository leagueRepository) {
         this.categoryUserRepository = categoryUserRepository;
         this.policyRepository = policyRepository;
         this.levelRepository = levelRepository;
@@ -56,6 +63,7 @@ public class BusinessService {
         this.categoryRepository = categoryRepository;
         this.gameRepository = gameRepository;
         this.abstractGameRepository = abstractGameRepository;
+        this.leagueRepository = leagueRepository;
     }
 
 
@@ -87,7 +95,7 @@ public class BusinessService {
             recordDTO.score = record.getScore();
 
 
-            Query q = em.createNativeQuery("SELECT * FROM (SELECT id,user_id,abstarct_game_id,rank() OVER (ORDER BY score DESC) FROM tb_record ) as gr WHERE  user_id =? and abstract_game_id = ? ");
+            Query q = em.createNativeQuery("SELECT * FROM (SELECT id,user_id,abstract_game_id,rank() OVER (ORDER BY score DESC) FROM tb_record ) as gr WHERE  user_id =? and abstract_game_id = ? ");
             q.setParameter(1, u.getId());
             q.setParameter(2, Long.valueOf(data));
             Object[] o = (Object[]) q.getSingleResult();
@@ -329,19 +337,82 @@ public class BusinessService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> requestLeague() {
+    public ResponseEntity<?> requestLeague(@RequestBody long id) {
 
-        //join game
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
 
-        return ResponseEntity.ok("200");
+        League league = leagueRepository.findOne(id);
+        if (league.getCapacity() - league.getFill() != 0) {
+            league.getUserList().add(user);
+            user.getLeagues().add(league);
+            userRepository.save(user);
+            leagueRepository.save(league);
+           return ResponseEntity.ok("200");
+        } else if (league.getStatus().equals(StatusEnum.STARTED)) {
+            return ResponseEntity.ok("202");
+
+        }
+
+
+        return ResponseEntity.ok("201");
     }
+
 
     @RequestMapping(value = "/1/availableLeague", method = RequestMethod.POST)
     @Timed
     @CrossOrigin(origins = "*")
     public ResponseEntity<?> availableLeague() {
-        //true false
-        return ResponseEntity.ok("true");
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+
+        List<League> list = leagueRepository.findAll();
+        List<LeagueDTO> leagueDTOS = new ArrayList<>();
+        int i = 0;
+        for (League league : list) {
+            LeagueDTO leagueDTO = new LeagueDTO();
+
+            leagueDTO.capacity = league.getCapacity();
+            leagueDTO.size = league.getFill();
+            leagueDTO.left = league.getCapacity() - league.getFill();
+            leagueDTO.index = i % 4;
+            leagueDTO.cost = league.getCost();
+            leagueDTO.id = league.getId();
+            switch (league.getStatus()) {
+                case INIT:
+                    boolean b = false;
+                    for (League league1 : user.getLeagues()) {
+                        if (league.getId() == league1.getId()) {
+                            leagueDTO.status = 1;
+                            b = true;
+                        }
+                    }
+                    if (!b) {
+                        leagueDTO.status = 0;
+                    }
+                    break;
+                case STARTED:
+                    boolean c = false;
+                    for (League league1 : user.getLeagues()) {
+                        if (league.getId() == league1.getId()) {
+                            leagueDTO.status = 3;
+                            c = true;
+                        }
+                    }
+                    if (!c) {
+                        leagueDTO.status = 2;
+                    }
+                    break;
+                case FINISHED:
+                    leagueDTO.status = 4;
+                    break;
+            }
+            leagueDTO.startDate = CalendarUtil.getFormattedDate(league.getStartDate().toLocalDate(), "yyyy/MM/dd");
+            leagueDTO.timeLeft = (league.getStartDate().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 1000;
+            leagueDTOS.add(leagueDTO);
+            i++;
+
+        }
+
+        return ResponseEntity.ok(leagueDTOS);
     }
 
     @RequestMapping(value = "/1/category", method = RequestMethod.POST)
@@ -539,9 +610,20 @@ public class BusinessService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> detailLeague(@RequestBody long league) {
-        //returnGame
-        return ResponseEntity.ok("true");
+    public ResponseEntity<?> detailLeague(@RequestBody long id) {
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+        League league = leagueRepository.findOne(id);
+        Game game = gameRepository.findByFirstAndLeagueAndGameStatus(user, league, GameStatus.FULL);
+        if (game == null)
+            game = gameRepository.findBySecondAndLeagueAndGameStatus(user, league, GameStatus.FULL);
+
+        try {
+            return ResponseEntity.ok(gameService.detailGame(game));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return ResponseEntity.ok("200");
+
     }
 
 

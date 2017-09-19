@@ -26,6 +26,9 @@ public class Game {
     @OneToMany(fetch = FetchType.EAGER)
     List<Challenge> challenges;
     private ZonedDateTime dateTime;
+    @OneToOne
+    private League league;
+
     private int winner = -1;
     private int firstScore = 0;
     private int SecondScore = 0;
@@ -101,5 +104,13 @@ public class Game {
 
     public void setSecondScore(int secondScore) {
         SecondScore = secondScore;
+    }
+
+    public League getLeague() {
+        return league;
+    }
+
+    public void setLeague(League league) {
+        this.league = league;
     }
 }
