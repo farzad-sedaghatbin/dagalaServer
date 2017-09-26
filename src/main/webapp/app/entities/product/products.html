@@ -20,7 +20,7 @@
                 <tr jh-sort="vm.predicate" ascending="vm.reverse" callback="vm.transition()">
                     <th jh-sort-by="id"><span data-translate="global.field.id">ID</span> <span class="glyphicon glyphicon-sort"></span></th>
                     <th jh-sort-by="name"><span data-translate="baseApp.product.name">Name</span> <span class="glyphicon glyphicon-sort"></span></th>
-                    <th jh-sort-by="price"><span data-translate="baseApp.product.price">Price</span> <span class="glyphicon glyphicon-sort"></span></th>
+                    <th jh-sort-by="amount"><span data-translate="baseApp.product.amount">Price</span> <span class="glyphicon glyphicon-sort"></span></th>
                     <th jh-sort-by="statusName"><span data-translate="baseApp.product.status">Status</span> <span class="glyphicon glyphicon-sort"></span></th>
                     <th></th>
                 </tr>
@@ -29,7 +29,7 @@
                 <tr ng-repeat="product in vm.products track by product.id">
                     <td><a ui-sref="product-detail({id:product.id})">{{product.id}}</a></td>
                     <td>{{product.name}}</td>
-                    <td>{{product.price}}</td>
+                    <td>{{product.amount}}</td>
                     <td>
                         <a ui-sref="status-detail({id:product.statusId})">{{product.statusName}}</a>
                     </td>

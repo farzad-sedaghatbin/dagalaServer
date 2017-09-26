@@ -119,7 +119,7 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
     private ZonedDateTime lastRoulette;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER,mappedBy = "userList")
     private  List<League> leagues;
 
 

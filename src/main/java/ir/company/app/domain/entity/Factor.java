@@ -23,14 +23,50 @@ public class Factor implements Serializable {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "price")
-    private String price;
+    @Column(name = "amount")
+    private Long amount;
 
     @OneToOne
     MarketObject marketObject;
 
     @OneToOne
     User user;
+
+    @Column(name = "UID")
+    private String uID;
+
+
+    public String getuID() {
+        return uID;
+    }
+
+    public void setuID(String uID) {
+        this.uID = uID;
+    }
+
+    public Long getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Long amount) {
+        this.amount = amount;
+    }
+
+    public MarketObject getMarketObject() {
+        return marketObject;
+    }
+
+    public void setMarketObject(MarketObject marketObject) {
+        this.marketObject = marketObject;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     public Long getId() {
         return id;

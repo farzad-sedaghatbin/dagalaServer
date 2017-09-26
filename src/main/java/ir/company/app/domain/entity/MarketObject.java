@@ -18,8 +18,12 @@ public class MarketObject {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "icon")
+    private String icon;
+
     @Column(name = "price")
     private String price;
+    private int amount;
 
     public Long getId() {
         return id;
@@ -51,5 +55,21 @@ public class MarketObject {
 
     public void setPrice(String price) {
         this.price = price;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    public int getAmount() {
+        return amount;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
     }
 }

@@ -326,7 +326,7 @@ public class FarzadUserService {
 //        user.setMobile(userDTO.getMobile());
 //        user.setGender(userDTO.getGender());
 
-        user.setAvatar("1.png");
+        user.setAvatar("img/default.png");
         userRepository.save(user);
 
         UsernamePasswordAuthenticationToken authenticationToken =

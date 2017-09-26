@@ -13,6 +13,8 @@ import ir.company.app.service.dto.DetailDTO;
 import ir.company.app.service.dto.GameRedisDTO;
 import ir.company.app.service.util.CalendarUtil;
 import ir.company.app.service.util.RedisUtil;
+import ir.company.app.service.wsdl.PaymentIFBindingLocator;
+import ir.company.app.service.wsdl.PaymentIFBindingSoap;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,6 +25,12 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import javax.xml.rpc.ServiceException;
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,11 +56,13 @@ public class BusinessService {
     private final PolicyRepository policyRepository;
     private final LeagueRepository leagueRepository;
     private final AbstractGameRepository abstractGameRepository;
+    private final FactorRepository factorRepository;
+    private final MarketRepository marketRepository;
     @PersistenceContext
     private EntityManager em;
 
     @Inject
-    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, PolicyRepository policyRepository, LeagueRepository leagueRepository) {
+    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, PolicyRepository policyRepository, LeagueRepository leagueRepository, FactorRepository factorRepository, MarketRepository marketRepository) {
         this.categoryUserRepository = categoryUserRepository;
         this.policyRepository = policyRepository;
         this.levelRepository = levelRepository;
@@ -64,6 +74,8 @@ public class BusinessService {
         this.gameRepository = gameRepository;
         this.abstractGameRepository = abstractGameRepository;
         this.leagueRepository = leagueRepository;
+        this.factorRepository = factorRepository;
+        this.marketRepository = marketRepository;
     }
 
 
@@ -248,6 +260,45 @@ public class BusinessService {
     }
 
 
+    @RequestMapping(value = "/1/createLeagueGame", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> createLeagueGame(@RequestBody String data) throws JsonProcessingException {
+
+        String[] s = data.split(",");
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+        League league = leagueRepository.findOne(Long.valueOf(s[0]));
+        Game game = gameRepository.findByFirstAndLeagueAndGameStatus(user, league, GameStatus.FULL);
+        if (game == null)
+            game = gameRepository.findBySecondAndLeagueAndGameStatus(user, league, GameStatus.FULL);
+
+        AbstractGame abstractGame = abstractGameRepository.findOne(Long.valueOf(s[1]));
+        List<Challenge> challengeList = game.getChallenges();
+        Challenge challenge = new Challenge();
+        challenge.setIcon(abstractGame.getIcon());
+        challenge.setName(abstractGame.getName());
+        challenge.setUrl(abstractGame.getUrl());
+        if (challengeList.size() == 0) {
+            challenge.setFirstScore("-1");
+
+        } else if (challengeList.size() == 1) {
+            challenge.setSecondScore("-1");
+
+        }
+        if (challengeList == null) {
+            challengeList = new ArrayList<>();
+        }
+        challengeList.add(challenge);
+        challengeRepository.save(challenge);
+        game.setChallenges(challengeList);
+
+        gameRepository.save(game);
+
+        return ResponseEntity.ok(challenge.getId());
+    }
+
+
     @RequestMapping(value = "/1/joinGame", method = RequestMethod.POST)
     @Timed
     @CrossOrigin(origins = "*")
@@ -347,7 +398,7 @@ public class BusinessService {
             user.getLeagues().add(league);
             userRepository.save(user);
             leagueRepository.save(league);
-           return ResponseEntity.ok("200");
+            return ResponseEntity.ok("200");
         } else if (league.getStatus().equals(StatusEnum.STARTED)) {
             return ResponseEntity.ok("202");
 
@@ -407,6 +458,10 @@ public class BusinessService {
             }
             leagueDTO.startDate = CalendarUtil.getFormattedDate(league.getStartDate().toLocalDate(), "yyyy/MM/dd");
             leagueDTO.timeLeft = (league.getStartDate().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 1000;
+            for (PrizeLeague prizeLeague : league.getPrizeLeagues()) {
+                leagueDTO.prizes.add(new LeagueDTO.Prize(prizeLeague.getIndex(), prizeLeague.getDescription()));
+            }
+
             leagueDTOS.add(leagueDTO);
             i++;
 
@@ -422,6 +477,112 @@ public class BusinessService {
     public ResponseEntity<?> category() throws JsonProcessingException {
         //true false
         return ResponseEntity.ok(categoryRepository.findAll());
+    }
+
+
+    @RequestMapping(value = "/1/factor", method = RequestMethod.POST, produces = "text/plain")
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> factor(@Valid @RequestBody Long amount, HttpServletResponse response) {
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+        Factor factor = new Factor();
+        factor.setUser(user);
+        factor.setAmount(amount);
+        factorRepository.save(factor);
+        factor.setuID("DAG" + Integer.toHexString((System.identityHashCode(factor.getId()))).toUpperCase());
+        factorRepository.save(factor);
+        return ResponseEntity.ok(factor.getuID());
+    }
+
+
+    @RequestMapping(value = "/1/donePeyment", method = RequestMethod.POST, consumes = "application/x-www-form-urlencoded;charset=UTF-8")
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public void donePeyment(@Valid @RequestBody String data, HttpServletResponse response) {
+
+        try {
+            String[] s = URLDecoder.decode(data, StandardCharsets.UTF_8.toString()).split("\\&");
+            if (s[1].split("=")[1].equalsIgnoreCase("ok")) {
+                String ss = s[6].split("=")[1];
+                PaymentIFBindingLocator paymentIFBindingSoapStub = new PaymentIFBindingLocator();
+                PaymentIFBindingSoap paymentIFBinding = null;
+                try {
+                    paymentIFBinding = (PaymentIFBindingSoap) paymentIFBindingSoapStub.getPort(PaymentIFBindingSoap.class);
+                } catch (ServiceException e) {
+                    e.printStackTrace();
+                }
+                double d = paymentIFBinding.verifyTransaction(ss, "10822833");
+                if (d < 0) {
+                    response.sendRedirect("http://uniroo.ir/error.html?code=" + d);
+
+                } else {
+
+                    response.sendRedirect("http://uniroo.ir/payment.html?code=" + ss);
+
+                }
+
+            } else {
+                response.sendRedirect("http://uniroo.ir/error.html?code=" + s[1].split("=")[1]);
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @RequestMapping(value = "/1/inventory", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> category(@RequestBody String data) throws JsonProcessingException {
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+
+
+        MarketObject marketObject = marketRepository.findByName(data);
+        if (data.contains("gem")) {
+            user.setGem(user.getGem() + marketObject.getAmount());
+        } else {
+            user.setCoin(user.getCoin() +marketObject.getAmount());
+        }
+        userRepository.save(user);
+        return ResponseEntity.ok("200");
+    }
+
+    @RequestMapping(value = "/1/videoWatch", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> videoWatch() throws JsonProcessingException {
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+
+
+        user.setCoin(user.getCoin() + Constants.video);
+        return ResponseEntity.ok("200");
+    }
+
+
+
+    @RequestMapping(value = "/1/expandMenu", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> expandMenu() throws JsonProcessingException {
+        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+
+
+        user.setCoin(user.getCoin() - Constants.ExpandMenu);
+        return ResponseEntity.ok("200");
+    }
+
+    @RequestMapping(value = "/1/marketObjects", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> marketObjects() throws JsonProcessingException {
+        return ResponseEntity.ok(marketRepository.findAll());
     }
 
     @RequestMapping(value = "/1/games", method = RequestMethod.POST)
@@ -618,11 +779,38 @@ public class BusinessService {
             game = gameRepository.findBySecondAndLeagueAndGameStatus(user, league, GameStatus.FULL);
 
         try {
-            return ResponseEntity.ok(gameService.detailGame(game));
+
+            DetailDTO d = gameService.detailGame(game);
+            if (game.getChallenges().size() == 0) {
+                if (user.getId().equals(game.getFirst().getId()))
+                    d.status = "10";
+            }
+            return ResponseEntity.ok(d);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
         return ResponseEntity.ok("200");
+
+    }
+
+
+    @RequestMapping(value = "/1/finishedLeague", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> finishedLeague(@RequestBody long id) {
+        Page<Object[]> topPlayers = userRepository.topPlayer(new PageRequest(0, 20, new Sort(Sort.Direction.DESC, "score")));
+        List<RecordDTO.User> recordDTOS = new ArrayList<>();
+        final int[] i = {0};
+        for (Object[] topPlayer : topPlayers.getContent()) {
+
+            RecordDTO.User recordDTO = new RecordDTO.User();
+            recordDTO.avatar = valueOf(topPlayer[0]);
+            recordDTO.index = i[0]++ % 4;
+            recordDTO.user = valueOf(topPlayer[2]);
+            recordDTOS.add(recordDTO);
+        }
+        return ResponseEntity.ok(recordDTOS);
 
     }
 
