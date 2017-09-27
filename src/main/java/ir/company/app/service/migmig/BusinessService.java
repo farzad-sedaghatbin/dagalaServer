@@ -188,7 +188,29 @@ public class BusinessService {
             RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
 
         } else {
-            gameRedisDTO = RedisUtil.getHashItem("half", RedisUtil.getFields("half"));
+            int i = 0;
+            gameRedisDTO = RedisUtil.getHashItem("half", RedisUtil.getFields("half", i));
+            while (gameRedisDTO.first.user.equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+                gameRedisDTO = RedisUtil.getHashItem("half", RedisUtil.getFields("half", ++i));
+                if (gameRedisDTO == null){
+                    Game game = new Game();
+                    GameRedisDTO.User first = new GameRedisDTO.User();
+                    gameRedisDTO.first = first;
+                    game.setGameStatus(GameStatus.INVISIBLE);
+                    game.setFirst(userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get());
+                    gameRepository.save(game);
+                    first.user = game.getFirst().getLogin();
+                    first.avatar = game.getFirst().getAvatar();
+                    User u = game.getFirst();
+                    u.setCoin(u.getCoin() - Constants.perGame);
+                    userRepository.save(u);
+                    gameRedisDTO.gameId = game.getId();
+                    RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
+                    return ResponseEntity.ok(gameRedisDTO);
+
+                }
+            }
+
             GameRedisDTO.User second = new GameRedisDTO.User();
             gameRedisDTO.second = second;
             Game game = gameRepository.findOne(gameRedisDTO.gameId);
@@ -426,6 +448,7 @@ public class BusinessService {
             leagueDTO.left = league.getCapacity() - league.getFill();
             leagueDTO.index = i % 4;
             leagueDTO.cost = league.getCost();
+            leagueDTO.name = league.getName();
             leagueDTO.id = league.getId();
             switch (league.getStatus()) {
                 case INIT:
@@ -545,7 +568,7 @@ public class BusinessService {
         if (data.contains("gem")) {
             user.setGem(user.getGem() + marketObject.getAmount());
         } else {
-            user.setCoin(user.getCoin() +marketObject.getAmount());
+            user.setCoin(user.getCoin() + marketObject.getAmount());
         }
         userRepository.save(user);
         return ResponseEntity.ok("200");
@@ -562,7 +585,6 @@ public class BusinessService {
         user.setCoin(user.getCoin() + Constants.video);
         return ResponseEntity.ok("200");
     }
-
 
 
     @RequestMapping(value = "/1/expandMenu", method = RequestMethod.POST)

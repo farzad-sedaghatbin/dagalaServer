@@ -24,12 +24,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import static java.lang.String.valueOf;
 
 /**
  * Service class for managing users.
@@ -57,6 +62,8 @@ public class UserService {
     @Inject
     private AuthorityRepository authorityRepository;
 
+    @PersistenceContext
+    private EntityManager em;
 
     public HomeDTO refresh(boolean newLevel) {
         User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
@@ -71,6 +78,10 @@ public class UserService {
         homeDTO.user = user.getLogin();
         homeDTO.perGameCoins = Constants.perGame;
         homeDTO.userid = user.getId();
+        Query q = em.createNativeQuery("SELECT * FROM (SELECT id,rank() OVER (ORDER BY score DESC) FROM jhi_user ) as gr WHERE  id =?");
+        q.setParameter(1, user.getId());
+        Object[] o = (Object[]) q.getSingleResult();
+        homeDTO.rating = Integer.valueOf(String.valueOf(o[1]));
         List<Game> halfGame = gameRepository.findByGameStatusAndFirst(GameStatus.FULL, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
         List<Game> fullGame = gameRepository.findByGameStatusAndSecond(GameStatus.FINISHED, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
         fullGame.addAll(gameRepository.findByGameStatusAndFirst(GameStatus.FINISHED, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));

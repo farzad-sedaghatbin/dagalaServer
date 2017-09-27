@@ -8,7 +8,11 @@ import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Protocol;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+
+import static net.sf.ehcache.util.Timestamper.next;
 
 /**
  * Created by farzad on 12/13/16.
@@ -36,7 +40,7 @@ public class RedisUtil {
 //        }
     }
 
-//    public static void main(String[] args) {
+    //    public static void main(String[] args) {
 //        jedis.flushDB();
 //    }
     public static void addItem(String key, String value) {
@@ -71,9 +75,11 @@ public class RedisUtil {
         }
     }
 
-    public static String getFields(String key) {
-
-        return jedis.hkeys(key).iterator().next();
+    public static String getFields(String key, int index) {
+        List<String> l = new ArrayList(jedis.hkeys(key));
+        if (l.size() > index)
+            return l.get(index);
+        else return null;
     }
 
     public static GameRedisDTO getHashItem(String key, String field) {

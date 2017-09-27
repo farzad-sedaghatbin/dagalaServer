@@ -17,6 +17,7 @@ public class League {
     private int capacity=0;
     private int fill=0;
     private int cost=0;
+    private String name;
     private StatusEnum status;
     private ZonedDateTime startDate;
     @ManyToMany(fetch = FetchType.EAGER)
@@ -25,6 +26,13 @@ public class League {
     @OneToMany(mappedBy = "league",fetch = FetchType.EAGER)
     List<PrizeLeague> prizeLeagues;
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public List<PrizeLeague> getPrizeLeagues() {
         return prizeLeagues;
