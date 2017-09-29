@@ -6,4 +6,5 @@ package ir.company.app.service.migmig;
 public class InputDTO {
     public String gameId;
     public Long score;
+    public String user;
 }

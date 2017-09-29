@@ -34,8 +34,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.lang.String.valueOf;
-
 /**
  * Service class for managing users.
  */
@@ -65,8 +63,8 @@ public class UserService {
     @PersistenceContext
     private EntityManager em;
 
-    public HomeDTO refresh(boolean newLevel) {
-        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+    public HomeDTO refresh(boolean newLevel,String username) {
+        User user = userRepository.findOneByLogin(username).get();
         HomeDTO homeDTO = new HomeDTO();
         homeDTO.score = user.getScore();
         homeDTO.gem = user.getGem();
@@ -82,10 +80,10 @@ public class UserService {
         q.setParameter(1, user.getId());
         Object[] o = (Object[]) q.getSingleResult();
         homeDTO.rating = Integer.valueOf(String.valueOf(o[1]));
-        List<Game> halfGame = gameRepository.findByGameStatusAndFirst(GameStatus.FULL, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
-        List<Game> fullGame = gameRepository.findByGameStatusAndSecond(GameStatus.FINISHED, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5));
-        fullGame.addAll(gameRepository.findByGameStatusAndFirst(GameStatus.FINISHED, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));
-        halfGame.addAll(gameRepository.findByGameStatusAndSecond(GameStatus.FULL, userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get(), new PageRequest(0, 5)));
+        List<Game> halfGame = gameRepository.findByGameStatusAndFirst(GameStatus.FULL, userRepository.findOneByLogin(username).get(), new PageRequest(0, 5));
+        List<Game> fullGame = gameRepository.findByGameStatusAndSecond(GameStatus.FINISHED, userRepository.findOneByLogin(username).get(), new PageRequest(0, 5));
+        fullGame.addAll(gameRepository.findByGameStatusAndFirst(GameStatus.FINISHED, userRepository.findOneByLogin(username).get(), new PageRequest(0, 5)));
+        halfGame.addAll(gameRepository.findByGameStatusAndSecond(GameStatus.FULL, userRepository.findOneByLogin(username).get(), new PageRequest(0, 5)));
 
         homeDTO.halfGame = new ArrayList<>();
         for (Game game : halfGame) {
@@ -97,7 +95,7 @@ public class UserService {
             gameLowDTO.gameId = game.getId();
 
 
-            if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()) && game.getSecond() != null) {
+            if (game.getFirst().getLogin().equalsIgnoreCase(username) && game.getSecond() != null) {
                 secondUser.user = game.getSecond().getLogin();
                 secondUser.avatar = game.getSecond().getAvatar();
                 if (game.getFirstScore() > game.getSecondScore()) {
@@ -108,7 +106,7 @@ public class UserService {
                 } else {
                     gameLowDTO.scoreStatus = "فعلا مساوی";
                 }
-            } else if (game.getSecond() != null && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            } else if (game.getSecond() != null && game.getSecond().getLogin().equalsIgnoreCase(username)) {
 
                 secondUser.user = game.getFirst().getLogin();
                 secondUser.avatar = game.getFirst().getAvatar();
@@ -125,20 +123,20 @@ public class UserService {
 
             if (game.getSecond() == null) {
                 gameLowDTO.status = "در انتظار حریف";
-            } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && game.getFirst().getLogin().equalsIgnoreCase(username)) {
                 gameLowDTO.status = "نوبت شماست";
 
-            } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && !game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && !game.getFirst().getLogin().equalsIgnoreCase(username)) {
                 gameLowDTO.status = "در انتظار حریف";
-            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && game.getSecond().getLogin().equalsIgnoreCase(username)) {
                 gameLowDTO.status = "نوبت شماست";
 
-            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && !game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && !game.getSecond().getLogin().equalsIgnoreCase(username)) {
                 gameLowDTO.status = "در انتظار حریف";
-            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()) && game.getChallenges().size() == 1) {
+            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getSecond().getLogin().equalsIgnoreCase(username) && game.getChallenges().size() == 1) {
                 gameLowDTO.status = "نوبت شماست";
 
-            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()) && game.getChallenges().size() == 1) {
+            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getFirst().getLogin().equalsIgnoreCase(username) && game.getChallenges().size() == 1) {
                 gameLowDTO.status = "در انتظار حریف";
             }
 
@@ -162,7 +160,7 @@ public class UserService {
             gameLowDTO.first = firstUser;
             gameLowDTO.gameId = game.getId();
             gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
-            if (SecurityUtils.getCurrentUserLogin().equalsIgnoreCase(game.getFirst().getLogin())) {
+            if (username.equalsIgnoreCase(game.getFirst().getLogin())) {
                 if (game.getWinner() == 1) {
                     gameLowDTO.status = "برد";
                 } else if (game.getWinner() == 2) {
@@ -183,7 +181,7 @@ public class UserService {
 
                 }
             }
-            if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            if (game.getFirst().getLogin().equalsIgnoreCase(username)) {
                 secondUser.user = game.getSecond().getLogin();
                 secondUser.avatar = game.getSecond().getAvatar();
             } else {

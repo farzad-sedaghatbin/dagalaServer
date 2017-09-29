@@ -118,9 +118,10 @@ public class User extends AbstractAuditingEntity implements Serializable {
     private int maxWinInRow = 0;
 
     private ZonedDateTime lastRoulette;
+    private ZonedDateTime lastVideo;
 
-    @ManyToMany(fetch = FetchType.EAGER,mappedBy = "userList")
-    private  List<League> leagues;
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "userList")
+    private List<League> leagues;
 
 
 //    @JsonIgnore
@@ -132,6 +133,14 @@ public class User extends AbstractAuditingEntity implements Serializable {
 //
 //    private List<Authority> authorities = new ArrayList<>();
 
+
+    public ZonedDateTime getLastVideo() {
+        return lastVideo;
+    }
+
+    public void setLastVideo(ZonedDateTime lastVideo) {
+        this.lastVideo = lastVideo;
+    }
 
     public List<League> getLeagues() {
         return leagues;

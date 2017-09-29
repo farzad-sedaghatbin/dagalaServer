@@ -2,7 +2,6 @@ package ir.company.app.service.migmig;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kavenegar.sdk.KavenegarApi;
 import com.kavenegar.sdk.excepctions.ApiException;
 import com.kavenegar.sdk.excepctions.HttpException;
@@ -12,7 +11,6 @@ import ir.company.app.domain.entity.User;
 import ir.company.app.repository.AuthorityRepository;
 import ir.company.app.repository.UserRepository;
 import ir.company.app.security.AuthoritiesConstants;
-import ir.company.app.security.SecurityUtils;
 import ir.company.app.security.jwt.JWTConfigurer;
 import ir.company.app.security.jwt.TokenProvider;
 import ir.company.app.service.UserService;
@@ -20,7 +18,6 @@ import ir.company.app.service.dto.ForgetPasswordDTO;
 import ir.company.app.service.dto.HomeDTO;
 import ir.company.app.service.dto.LoginDTO;
 import ir.company.app.service.dto.UserDTO;
-import ir.company.app.service.util.CalendarUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -77,10 +74,10 @@ public class FarzadUserService {
 //                boolean rememberMe = (loginDTO.isRememberMe() == null) ? false : loginDTO.isRememberMe();
                 String jwt = tokenProvider.createToken(authentication, true);
                 response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
-                User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+                User user = userRepository.findOneByLogin(loginDTO.getUsername()).get();
                 user.setPushSessionKey(loginDTO.getDeviceToken());
                 userRepository.save(user);
-                HomeDTO userLoginDTO = userService.refresh(false);
+                HomeDTO userLoginDTO = userService.refresh(false, loginDTO.getUsername());
                 userLoginDTO.token = jwt;
                 userLoginDTO.user = user.getLogin();
 
@@ -136,9 +133,10 @@ public class FarzadUserService {
 
     public ResponseEntity<?> changeAvatar(@Valid @RequestBody String data) {
 
-        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+        String[] s = data.split(",");
+        User user = userRepository.findOneByLogin(s[1]).get();
 
-        user.setAvatar(data);
+        user.setAvatar(s[0]);
         userRepository.save(user);
         return ResponseEntity.ok("200");
     }
@@ -148,12 +146,30 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> rouletteWheel(@Valid @RequestBody Long data) {
+    public ResponseEntity<?> rouletteWheel(@Valid @RequestBody String data) {
+        String[] s = data.split(",");
 
-        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
-        if (user.getLastRoulette() == null || ((user.getLastRoulette().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 86400000) >= 1) {
-            user.setCoin(Math.toIntExact(user.getCoin() + data));
+        User user = userRepository.findOneByLogin(s[1]).get();
+        if (user.getLastRoulette() == null || ((ZonedDateTime.now().toInstant().toEpochMilli() - user.getLastRoulette().toInstant().toEpochMilli() ) / 86400000) >= 1) {
+            user.setCoin(Math.toIntExact(user.getCoin() + Long.valueOf(s[0])));
             user.setLastRoulette(ZonedDateTime.now());
+            userRepository.save(user);
+            return ResponseEntity.ok("200");
+        } else {
+            return ResponseEntity.ok("201");
+        }
+    }
+
+
+    @RequestMapping(value = "/1/videoLimit", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> videoLimit(@Valid @RequestBody String data) {
+
+        User user = userRepository.findOneByLogin(data).get();
+        if (user.getLastVideo() == null || ((ZonedDateTime.now().toInstant().toEpochMilli() -user.getLastVideo().toInstant().toEpochMilli() ) / 360000) >= 1) {
+            user.setLastVideo(ZonedDateTime.now());
             userRepository.save(user);
             return ResponseEntity.ok("200");
         } else {
@@ -166,9 +182,9 @@ public class FarzadUserService {
     @CrossOrigin(origins = "*")
 
     public ResponseEntity<?> inviteFriend(@Valid @RequestBody String data) {
-
-        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
-        User friend = userRepository.findOneByLogin(data).get();
+        String[] s = data.split(",");
+        User user = userRepository.findOneByLogin(s[1]).get();
+        User friend = userRepository.findOneByLogin(s[0]).get();
         if (friend == null) {
             return ResponseEntity.ok("404");
 
@@ -246,50 +262,12 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> changePassword(@Valid @RequestBody String password) {
-        User user1 = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
-        user1.setPassword(passwordEncoder.encode(password));
+    public ResponseEntity<?> changePassword(@Valid @RequestBody String data) {
+        String[] s = data.split(",");
+        User user1 = userRepository.findOneByLogin(s[1]).get();
+        user1.setPassword(passwordEncoder.encode(s[0]));
         userRepository.save(user1);
         return ResponseEntity.ok("200");
-    }
-
-    @RequestMapping(value = "/1/userInfo", method = RequestMethod.POST)
-    @Timed
-    @CrossOrigin(origins = "*")
-//todo testy
-    public ResponseEntity<?> userInfo() {
-        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
-        UserDTO userDTO = new UserDTO();
-        userDTO.setAvatar("");
-        userDTO.setMobile("09128626242");
-        try {
-            return ResponseEntity.ok(new ObjectMapper().writeValueAsString(userDTO));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return ResponseEntity.ok("200");
-
-    }
-
-    @RequestMapping(value = "/1/deviceToken", method = RequestMethod.POST)
-    @Timed
-    @CrossOrigin(origins = "*")
-
-    public ResponseEntity<?> deviceToken(@Valid @RequestBody String token) {
-        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
-        user.setPushSessionKey(token);
-        userRepository.save(user);
-        return ResponseEntity.ok("200");
-    }
-
-    @RequestMapping(value = "/1/rating", method = RequestMethod.POST)
-    @Timed
-    @CrossOrigin(origins = "*")
-    public ResponseEntity<?> rating(@Valid @RequestBody String param) {
-        String[] s = param.split(",");
-
-        return ResponseEntity.ok("200");
-
     }
 
 
@@ -297,9 +275,9 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> refresh() throws JsonProcessingException {
+    public ResponseEntity<?> refresh(@RequestBody String username) throws JsonProcessingException {
 
-        return ResponseEntity.ok(userService.refresh(false));
+        return ResponseEntity.ok(userService.refresh(false, username));
 
     }
 
@@ -342,7 +320,7 @@ public class FarzadUserService {
                 response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
 
 
-                guestDTO = userService.refresh(false);
+                guestDTO = userService.refresh(false, user.getLogin());
                 guestDTO.token = jwt;
                 guestDTO.guest = true;
                 guestDTO.user = user.getLogin();
