@@ -110,7 +110,7 @@ public class BusinessService {
             q.setParameter(1, u.getId());
             q.setParameter(2, Long.valueOf(s[0]));
             Object[] o = (Object[]) q.getSingleResult();
-            recordDTO.rank = valueOf(o[1]);
+            recordDTO.rank = valueOf(o[3]);
             recordDTO.users = recordDTOS;
         } else {
             recordDTO.score = 0l;
@@ -125,7 +125,7 @@ public class BusinessService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> topPlayer(String user) throws JsonProcessingException {
+    public ResponseEntity<?> topPlayer(@RequestBody String user) throws JsonProcessingException {
 
 
         Page<Object[]> topPlayers = userRepository.topPlayer(new PageRequest(0, 20, new Sort(Sort.Direction.DESC, "score")));
@@ -154,6 +154,53 @@ public class BusinessService {
         return ResponseEntity.ok(recordDTO);
     }
 
+    @RequestMapping(value = "/1/invited", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> invited(@RequestBody InviteUserDTO code, HttpServletResponse response) {
+        User user = userRepository.findOneByLogin(code.user).get();
+        InviteUserDTO returnCode = new InviteUserDTO();
+        if ((code.key != "null") && user.getInvitedUser1() == null) {
+            User invited = userRepository.findOneByLogin(code.key).get();
+            if (invited != null) {
+                invited.setRating(invited.getRating() + 1000);
+                userRepository.save(invited);
+                user.setRating(user.getRating() + 500);
+                user.setInvitedUser1(invited);
+                returnCode.key = code.key;
+            } else {
+                returnCode.key = "0";
+            }
+        } else if ((code.key != "null" && code.key != "") && user.getInvitedUser2() == null) {
+            User invited = userRepository.findOneByLogin(code.key).get();
+            if (invited != null) {
+                invited.setRating(invited.getRating() + 1000);
+                user.setRating(user.getRating() + 500);
+                userRepository.save(invited);
+                user.setInvitedUser2(invited);
+                returnCode.key = code.key;
+            } else {
+                returnCode.key = "0";
+            }
+        } else if ((code.key != "null" && code.key != "") && user.getInvitedUser3() == null) {
+            User invited = userRepository.findOneByLogin(code.key).get();
+            if (invited != null) {
+
+                invited.setRating(invited.getRating() + 1000);
+                user.setRating(user.getRating() + 500);
+                user.setInvitedUser3(invited);
+                userRepository.save(invited);
+                returnCode.key = code.key;
+            } else {
+                returnCode.key = "0";
+            }
+        } else {
+            returnCode.key = null;
+        }
+        userRepository.save(user);
+        return ResponseEntity.ok(returnCode.key);
+    }
 
     @RequestMapping(value = "/1/cancelRequest", method = RequestMethod.POST)
     @Timed
@@ -169,7 +216,7 @@ public class BusinessService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> requestGame(String user) throws JsonProcessingException {
+    public ResponseEntity<?> requestGame(@RequestBody String user) throws JsonProcessingException {
         GameRedisDTO gameRedisDTO = new GameRedisDTO();
         if (RedisUtil.sizeOfMap("half") == 0) {
             Game game = new Game();
@@ -188,10 +235,12 @@ public class BusinessService {
 
         } else {
             int i = 0;
-            gameRedisDTO = RedisUtil.getHashItem("half", RedisUtil.getFields("half", i));
+            String field = RedisUtil.getFields("half", i);
+            gameRedisDTO = RedisUtil.getHashItem("half", field);
             while (gameRedisDTO.first.user.equalsIgnoreCase(user)) {
-                gameRedisDTO = RedisUtil.getHashItem("half", RedisUtil.getFields("half", ++i));
-                if (gameRedisDTO == null) {
+                field = RedisUtil.getFields("half", ++i);
+
+                if (field == null) {
                     Game game = new Game();
                     GameRedisDTO.User first = new GameRedisDTO.User();
                     gameRedisDTO.first = first;
@@ -209,7 +258,7 @@ public class BusinessService {
 
                 }
             }
-
+            gameRedisDTO = RedisUtil.getHashItem("half", field);
             GameRedisDTO.User second = new GameRedisDTO.User();
             gameRedisDTO.second = second;
             Game game = gameRepository.findOne(gameRedisDTO.gameId);
@@ -443,6 +492,7 @@ public class BusinessService {
 
             leagueDTO.capacity = league.getCapacity();
             leagueDTO.size = league.getFill();
+            leagueDTO.minLevel = league.getMinLevel();
             leagueDTO.left = league.getCapacity() - league.getFill();
             leagueDTO.index = i % 4;
             leagueDTO.cost = league.getCost();

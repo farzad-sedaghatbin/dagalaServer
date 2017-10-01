@@ -122,6 +122,12 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
     @ManyToMany(fetch = FetchType.EAGER, mappedBy = "userList")
     private List<League> leagues;
+    @ManyToOne
+    private User invitedUser2;
+    @ManyToOne
+    private User invitedUser3;
+    @ManyToOne
+    private User invitedUser1;
 
 
 //    @JsonIgnore
@@ -133,6 +139,30 @@ public class User extends AbstractAuditingEntity implements Serializable {
 //
 //    private List<Authority> authorities = new ArrayList<>();
 
+
+    public User getInvitedUser2() {
+        return invitedUser2;
+    }
+
+    public void setInvitedUser2(User invitedUser2) {
+        this.invitedUser2 = invitedUser2;
+    }
+
+    public User getInvitedUser3() {
+        return invitedUser3;
+    }
+
+    public void setInvitedUser3(User invitedUser3) {
+        this.invitedUser3 = invitedUser3;
+    }
+
+    public User getInvitedUser1() {
+        return invitedUser1;
+    }
+
+    public void setInvitedUser1(User invitedUser1) {
+        this.invitedUser1 = invitedUser1;
+    }
 
     public ZonedDateTime getLastVideo() {
         return lastVideo;

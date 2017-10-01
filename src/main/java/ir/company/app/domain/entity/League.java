@@ -17,6 +17,7 @@ public class League {
     private int capacity=0;
     private int fill=0;
     private int cost=0;
+    private int minLevel=0;
     private String name;
     private StatusEnum status;
     private ZonedDateTime startDate;
@@ -25,6 +26,15 @@ public class League {
     List<User> userList;
     @OneToMany(mappedBy = "league",fetch = FetchType.EAGER)
     List<PrizeLeague> prizeLeagues;
+
+
+    public int getMinLevel() {
+        return minLevel;
+    }
+
+    public void setMinLevel(int minLevel) {
+        this.minLevel = minLevel;
+    }
 
     public String getName() {
         return name;

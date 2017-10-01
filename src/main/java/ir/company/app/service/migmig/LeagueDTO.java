@@ -20,6 +20,7 @@ public List<Prize> prizes = new ArrayList<>();
 
     public int index;
     public String name;
+    public int minLevel;
 
     public static class Prize {
         public Prize(int index, String desc) {
