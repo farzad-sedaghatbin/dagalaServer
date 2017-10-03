@@ -106,7 +106,7 @@ public class BusinessService {
             recordDTO.score = record.getScore();
 
 
-            Query q = em.createNativeQuery("SELECT * FROM (SELECT id,user_id,abstract_game_id,rank() OVER (ORDER BY score DESC) FROM tb_record ) as gr WHERE  user_id =? and abstract_game_id = ? ");
+            Query q = em.createNativeQuery("SELECT * FROM (SELECT id,user_id,abstract_game_id,rank() OVER (ORDER BY score DESC) FROM tb_record WHERE  abstract_game_id = ?) as gr WHERE  user_id =? ");
             q.setParameter(1, u.getId());
             q.setParameter(2, Long.valueOf(s[0]));
             Object[] o = (Object[]) q.getSingleResult();
@@ -154,53 +154,6 @@ public class BusinessService {
         return ResponseEntity.ok(recordDTO);
     }
 
-    @RequestMapping(value = "/1/invited", method = RequestMethod.POST)
-    @Timed
-    @CrossOrigin(origins = "*")
-
-    public ResponseEntity<?> invited(@RequestBody InviteUserDTO code, HttpServletResponse response) {
-        User user = userRepository.findOneByLogin(code.user).get();
-        InviteUserDTO returnCode = new InviteUserDTO();
-        if ((code.key != "null") && user.getInvitedUser1() == null) {
-            User invited = userRepository.findOneByLogin(code.key).get();
-            if (invited != null) {
-                invited.setRating(invited.getRating() + 1000);
-                userRepository.save(invited);
-                user.setRating(user.getRating() + 500);
-                user.setInvitedUser1(invited);
-                returnCode.key = code.key;
-            } else {
-                returnCode.key = "0";
-            }
-        } else if ((code.key != "null" && code.key != "") && user.getInvitedUser2() == null) {
-            User invited = userRepository.findOneByLogin(code.key).get();
-            if (invited != null) {
-                invited.setRating(invited.getRating() + 1000);
-                user.setRating(user.getRating() + 500);
-                userRepository.save(invited);
-                user.setInvitedUser2(invited);
-                returnCode.key = code.key;
-            } else {
-                returnCode.key = "0";
-            }
-        } else if ((code.key != "null" && code.key != "") && user.getInvitedUser3() == null) {
-            User invited = userRepository.findOneByLogin(code.key).get();
-            if (invited != null) {
-
-                invited.setRating(invited.getRating() + 1000);
-                user.setRating(user.getRating() + 500);
-                user.setInvitedUser3(invited);
-                userRepository.save(invited);
-                returnCode.key = code.key;
-            } else {
-                returnCode.key = "0";
-            }
-        } else {
-            returnCode.key = null;
-        }
-        userRepository.save(user);
-        return ResponseEntity.ok(returnCode.key);
-    }
 
     @RequestMapping(value = "/1/cancelRequest", method = RequestMethod.POST)
     @Timed
@@ -407,6 +360,12 @@ public class BusinessService {
                     challenge.setSecondScore("-1");
                 }
             }
+            if (challengeList.size() == 3 && challengeList.get(2).getFirstScore() != null && challengeList.get(2).getSecondScore() != null) {
+                JoinResult joinResult = new JoinResult();
+                joinResult.lastUrl = "";
+                joinResult.challengeId = null;
+                return ResponseEntity.ok(joinResult);
+            }
 
             challengeRepository.save(challenge);
             gameRepository.save(game);
@@ -609,16 +568,19 @@ public class BusinessService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> category(@RequestBody String data) throws JsonProcessingException {
+    public ResponseEntity<?> inventory(@RequestBody String data) throws JsonProcessingException {
         String[] s = data.split(",");
         User user = userRepository.findOneByLogin(s[1]).get();
 
 
         MarketObject marketObject = marketRepository.findByName(s[0]);
         if (s[0].contains("gem")) {
-            user.setGem(user.getGem() + marketObject.getAmount());
+            user.setGem(user.getGem() + (int) marketObject.getAmount());
+        } else if (s[0].contains("exp")) {
+            user.setExpireExp(ZonedDateTime.now().plusDays((int) marketObject.getAmount()));
+            user.setExpRatio(Double.parseDouble(marketObject.getDescription()));
         } else {
-            user.setCoin(user.getCoin() + marketObject.getAmount());
+            user.setCoin(user.getCoin() + (int) marketObject.getAmount());
         }
         userRepository.save(user);
         return ResponseEntity.ok("200");
@@ -654,7 +616,13 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
 
     public ResponseEntity<?> marketObjects() throws JsonProcessingException {
-        return ResponseEntity.ok(marketRepository.findAll());
+        List<MarketObject> list = marketRepository.findAll();
+        list.forEach(l -> {
+            if (l.getName().contains("exp")) {
+                l.setDescription("ضریب " + l.getAmount() + " برابری " + l.getDescription() + " روزه");
+            }
+        });
+        return ResponseEntity.ok(list);
     }
 
     @RequestMapping(value = "/1/games", method = RequestMethod.POST)
@@ -737,6 +705,7 @@ public class BusinessService {
             if (game.getSecond() != null) {
                 secondUser.user = game.getSecond().getLogin();
                 secondUser.avatar = game.getSecond().getAvatar();
+                secondUser.level = game.getSecond().getLevel();
             }
         } else {
             secondUser.user = game.getFirst().getLogin();
@@ -853,8 +822,12 @@ public class BusinessService {
             game = gameRepository.findBySecondAndLeagueAndGameStatus(user, league, GameStatus.FULL);
 
         try {
-
-            DetailDTO d = gameService.detailGame(game);
+            DetailDTO d = new DetailDTO();
+            if (!game.getGameStatus().equals(GameStatus.FINISHED)) {
+                d = gameService.detailGame(game);
+            } else {
+                d.timeLeft = null;
+            }
             if (game.getChallenges().size() == 0) {
                 if (user.getId().equals(game.getFirst().getId()))
                     d.status = "10";
@@ -960,6 +933,7 @@ public class BusinessService {
         userRepository.save(firsUser);
         userRepository.save(secondUser);
         boolean newLevel = isNewLevel(firsUser, secondUser, s[1]);
+
         game.setGameStatus(GameStatus.FINISHED);
 
         RedisUtil.removeItem("full", game.getId().toString());
@@ -974,11 +948,15 @@ public class BusinessService {
         if (username.equalsIgnoreCase(firsUser.getLogin())) {
             Level level = levelRepository.findByLevel(firsUser.getLevel());
             if (firsUser.getScore() > level.getThreshold()) {
+                firsUser.setLevel(firsUser.getLevel() + 1);
+                userRepository.save(firsUser);
                 return true;
             }
         } else {
             Level level = levelRepository.findByLevel(secondUser.getLevel());
             if (secondUser.getScore() > level.getThreshold()) {
+                secondUser.setLevel(secondUser.getLevel() + 1);
+                userRepository.save(secondUser);
                 return true;
             }
         }
@@ -1087,11 +1065,20 @@ public class BusinessService {
                     secondUser.setWinInRow(0);
 
                     if (game.getFirstScore() - game.getSecondScore() > 1) {
-                        firstUser.setScore(firstUser.getScore() + Constants.doubleWinEXP);
+                        if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                            firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
+                        else
+                            firstUser.setScore(firstUser.getScore() + Constants.doubleWinEXP);
                         firstUser.setCoin(firstUser.getCoin() + Constants.doubleWinPrize);
                     } else {
-                        firstUser.setScore(firstUser.getScore() + Constants.winEXP);
-                        secondUser.setScore(secondUser.getScore() + Constants.loseEXP);
+                        if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                            firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
+                        else
+                            firstUser.setScore(firstUser.getScore() + Constants.winEXP);
+                        if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                            secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
+                        else
+                            secondUser.setScore(secondUser.getScore() + Constants.loseEXP);
                         firstUser.setCoin(firstUser.getCoin() + Constants.winPrize);
                         secondUser.setCoin(secondUser.getCoin() + Constants.losePrize);
                     }
@@ -1106,11 +1093,20 @@ public class BusinessService {
                     firstUser.setWinInRow(0);
 
                     if (game.getSecondScore() - game.getFirstScore() > 1) {
-                        secondUser.setScore(secondUser.getScore() + Constants.doubleLoseEXP);
+                        if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                            secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
+                        else
+                            secondUser.setScore(secondUser.getScore() + Constants.doubleLoseEXP);
                         secondUser.setCoin(secondUser.getCoin() + Constants.doubleWinPrize);
                     } else {
-                        firstUser.setScore(firstUser.getScore() + Constants.loseEXP);
-                        secondUser.setScore(secondUser.getScore() + Constants.winEXP);
+                        if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                            firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
+                        else
+                            firstUser.setScore(firstUser.getScore() + Constants.loseEXP);
+                        if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                            secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
+                        else
+                            secondUser.setScore(secondUser.getScore() + Constants.winEXP);
                         firstUser.setCoin(firstUser.getCoin() + Constants.losePrize);
                         secondUser.setCoin(secondUser.getCoin() + Constants.winPrize);
                     }
@@ -1120,8 +1116,14 @@ public class BusinessService {
                     secondUser.setWinInRow(0);
                     firstUser.setDraw(firstUser.getDraw() + 1);
                     firstUser.setWinInRow(0);
-                    firstUser.setScore(firstUser.getScore() + Constants.drawEXP);
-                    secondUser.setScore(secondUser.getScore() + Constants.drawEXP);
+                    if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                        firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
+                    else
+                        firstUser.setScore(firstUser.getScore() + Constants.drawEXP);
+                    if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                        secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
+                    else
+                        secondUser.setScore(secondUser.getScore() + Constants.drawEXP);
                     firstUser.setCoin(firstUser.getCoin() + Constants.drawPrize);
                     secondUser.setCoin(secondUser.getCoin() + Constants.drawPrize);
                 }

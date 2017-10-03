@@ -101,6 +101,10 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
     private Boolean gender;
 
+    @Column(name = "guest", nullable = true)
+
+    private Boolean guest;
+
 
     @Column(name = "win", nullable = true)
     private int win = 0;
@@ -129,6 +133,16 @@ public class User extends AbstractAuditingEntity implements Serializable {
     @ManyToOne
     private User invitedUser1;
 
+    private ZonedDateTime expireExp;
+    private double expRatio = 0d;
+
+    public Boolean getGuest() {
+        return guest;
+    }
+
+    public void setGuest(Boolean guest) {
+        this.guest = guest;
+    }
 
 //    @JsonIgnore
 //    @JoinTable(
@@ -139,6 +153,22 @@ public class User extends AbstractAuditingEntity implements Serializable {
 //
 //    private List<Authority> authorities = new ArrayList<>();
 
+
+    public ZonedDateTime getExpireExp() {
+        return expireExp;
+    }
+
+    public void setExpireExp(ZonedDateTime expireExp) {
+        this.expireExp = expireExp;
+    }
+
+    public double getExpRatio() {
+        return expRatio;
+    }
+
+    public void setExpRatio(double expRatio) {
+        this.expRatio = expRatio;
+    }
 
     public User getInvitedUser2() {
         return invitedUser2;

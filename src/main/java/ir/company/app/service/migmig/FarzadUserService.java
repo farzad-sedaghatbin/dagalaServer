@@ -94,10 +94,10 @@ public class FarzadUserService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> signUp(@Valid @RequestBody UserDTO userDTO, HttpServletResponse response) {
+    public ResponseEntity<?> signUp(@Valid @RequestBody UserDTO userDTO, HttpServletResponse response) throws JsonProcessingException {
 
 
-        Optional<User> exist = userRepository.findOneByLogin(userDTO.getUsername());
+        Optional<User> exist = userRepository.findOneByLogin(userDTO.getUsername().toLowerCase());
         if (exist.isPresent()) {
             return ResponseEntity.ok("400");
         }
@@ -111,6 +111,7 @@ public class FarzadUserService {
 //        user.setAuthorities(authoritie);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setMobile(userDTO.getMobile());
+        user.setGuest(false);
         user.setAvatar(userDTO.getAvatar());
         userRepository.save(user);
 
@@ -123,8 +124,11 @@ public class FarzadUserService {
         String jwt = tokenProvider.createToken(authentication, true);
         response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
 
+        HomeDTO userLoginDTO = userService.refresh(false, user.getLogin());
+        userLoginDTO.token = jwt;
+        userLoginDTO.user = user.getLogin();
 
-        return ResponseEntity.ok(jwt);
+        return ResponseEntity.ok(userLoginDTO);
     }
 
     @RequestMapping(value = "/1/changeAvatar", method = RequestMethod.POST)
@@ -150,13 +154,28 @@ public class FarzadUserService {
         String[] s = data.split(",");
 
         User user = userRepository.findOneByLogin(s[1]).get();
-        if (user.getLastRoulette() == null || ((ZonedDateTime.now().toInstant().toEpochMilli() - user.getLastRoulette().toInstant().toEpochMilli() ) / 86400000) >= 1) {
-            user.setCoin(Math.toIntExact(user.getCoin() + Long.valueOf(s[0])));
+        if (user.getLastRoulette() == null || ((ZonedDateTime.now().toInstant().toEpochMilli() - user.getLastRoulette().toInstant().toEpochMilli()) / 86400000) >= 1) {
+            int add = 1;
+            if (s[0].equalsIgnoreCase("0")) add = -10;
+
+            else if (s[0].equalsIgnoreCase("1"))
+                add = 20;
+            else if (s[0].equalsIgnoreCase("2")) add = 0;
+            else if (s[0].equalsIgnoreCase("3")) add = 5;
+            else if (s[0].equalsIgnoreCase("4")) add = 15;
+            else if (s[0].equalsIgnoreCase("5")) add = 40;
+            else if (s[0].equalsIgnoreCase("6")) add = 25;
+            else if (s[0].equalsIgnoreCase("7")) add = -5;
+            else if (s[0].equalsIgnoreCase("8")) add = 30;
+            else if (s[0].equalsIgnoreCase("9")) add = 10;
+            else if (s[0].equalsIgnoreCase("10")) add = 35;
+            else if (s[0].equalsIgnoreCase("11")) add = 45;
+            user.setCoin(Math.toIntExact(user.getCoin() + add));
             user.setLastRoulette(ZonedDateTime.now());
             userRepository.save(user);
-            return ResponseEntity.ok("200");
+            return ResponseEntity.ok(add);
         } else {
-            return ResponseEntity.ok("201");
+            return ResponseEntity.ok(null);
         }
     }
 
@@ -168,7 +187,7 @@ public class FarzadUserService {
     public ResponseEntity<?> videoLimit(@Valid @RequestBody String data) {
 
         User user = userRepository.findOneByLogin(data).get();
-        if (user.getLastVideo() == null || ((ZonedDateTime.now().toInstant().toEpochMilli() -user.getLastVideo().toInstant().toEpochMilli() ) / 360000) >= 1) {
+        if (user.getLastVideo() == null || (user.getLastVideo() != null && ((ZonedDateTime.now().toInstant().toEpochMilli() - user.getLastVideo().toInstant().toEpochMilli()) / 360000) >= 1)) {
             user.setLastVideo(ZonedDateTime.now());
             userRepository.save(user);
             return ResponseEntity.ok("200");
@@ -184,16 +203,48 @@ public class FarzadUserService {
     public ResponseEntity<?> inviteFriend(@Valid @RequestBody String data) {
         String[] s = data.split(",");
         User user = userRepository.findOneByLogin(s[1]).get();
-        User friend = userRepository.findOneByLogin(s[0]).get();
-        if (friend == null) {
-            return ResponseEntity.ok("404");
+        String returns;
+        if ((s[1] != "null") && user.getInvitedUser1() == null) {
+            User invited = userRepository.findOneByLogin(s[1]).get();
+            if (invited != null) {
+                invited.setRating(invited.getRating() + Constants.invited);
+                userRepository.save(invited);
+                user.setRating(user.getRating() + +Constants.invite);
+                user.setInvitedUser1(invited);
+                returns = "200";
+            } else {
+                returns = "404";
+            }
+        } else if ((s[1] != "null" && s[1] != "") && user.getInvitedUser2() == null) {
+            User invited = userRepository.findOneByLogin(s[1]).get();
+            if (invited != null) {
+                invited.setRating(invited.getRating() + Constants.invited);
+                user.setRating(user.getRating() + +Constants.invite);
+                userRepository.save(invited);
+                user.setInvitedUser2(invited);
+                returns = "200";
+            } else {
+                returns = "404";
+            }
+        } else if ((s[1] != "null" && s[1] != "") && user.getInvitedUser3() == null) {
+            User invited = userRepository.findOneByLogin(s[1]).get();
+            if (invited != null) {
 
+                invited.setRating(invited.getRating() + Constants.invited);
+                user.setRating(user.getRating() + +Constants.invite);
+                user.setInvitedUser3(invited);
+                userRepository.save(invited);
+                returns = "200";
+            } else {
+                returns = "404";
+            }
+        } else {
+            returns = "333";
         }
-        user.setCoin((user.getCoin() + Constants.invite));
-        friend.setCoin((user.getCoin() + Constants.invited));
         userRepository.save(user);
-        userRepository.save(friend);
-        return ResponseEntity.ok("200");
+
+
+        return ResponseEntity.ok(returns);
     }
 
     @RequestMapping(value = "/1/forget", method = RequestMethod.POST)
@@ -295,6 +346,7 @@ public class FarzadUserService {
         user.setActivated(true);
         user.setCoin(Constants.newUser);
         user.setCreatedBy("system");
+        user.setGuest(true);
         List<Authority> authorities = new ArrayList<>();
         authorities.add(authorityRepository.findOne(AuthoritiesConstants.USER));
 //        user.setAuthorities(authoritie);

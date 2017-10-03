@@ -21,6 +21,7 @@ public class DetailDTO {
         public String user;
         public String avatar;
         public int score;
+        public int level;
 
     }
 

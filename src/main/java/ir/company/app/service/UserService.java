@@ -63,7 +63,7 @@ public class UserService {
     @PersistenceContext
     private EntityManager em;
 
-    public HomeDTO refresh(boolean newLevel,String username) {
+    public HomeDTO refresh(boolean newLevel, String username) {
         User user = userRepository.findOneByLogin(username).get();
         HomeDTO homeDTO = new HomeDTO();
         homeDTO.score = user.getScore();
@@ -74,16 +74,19 @@ public class UserService {
         homeDTO.coins = user.getCoin();
         homeDTO.newLevel = newLevel;
         homeDTO.user = user.getLogin();
+        homeDTO.guest = user.getGuest();
         homeDTO.perGameCoins = Constants.perGame;
         homeDTO.userid = user.getId();
+        if (user.getExpireExp() != null && user.getExpireExp().isAfter(ZonedDateTime.now()))
+            homeDTO.exp = (user.getExpireExp().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 3600000;
         Query q = em.createNativeQuery("SELECT * FROM (SELECT id,rank() OVER (ORDER BY score DESC) FROM jhi_user ) as gr WHERE  id =?");
         q.setParameter(1, user.getId());
         Object[] o = (Object[]) q.getSingleResult();
         homeDTO.rating = Integer.valueOf(String.valueOf(o[1]));
-        List<Game> halfGame = gameRepository.findByGameStatusAndFirst(GameStatus.FULL, userRepository.findOneByLogin(username).get(), new PageRequest(0, 5));
-        List<Game> fullGame = gameRepository.findByGameStatusAndSecond(GameStatus.FINISHED, userRepository.findOneByLogin(username).get(), new PageRequest(0, 5));
-        fullGame.addAll(gameRepository.findByGameStatusAndFirst(GameStatus.FINISHED, userRepository.findOneByLogin(username).get(), new PageRequest(0, 5)));
-        halfGame.addAll(gameRepository.findByGameStatusAndSecond(GameStatus.FULL, userRepository.findOneByLogin(username).get(), new PageRequest(0, 5)));
+        List<Game> halfGame = gameRepository.findByGameStatusAndFirstAndLeague(GameStatus.FULL, userRepository.findOneByLogin(username).get(), null, new PageRequest(0, 5));
+        List<Game> fullGame = gameRepository.findByGameStatusAndSecondAndLeague(GameStatus.FINISHED, userRepository.findOneByLogin(username).get(), null, new PageRequest(0, 5));
+        fullGame.addAll(gameRepository.findByGameStatusAndFirstAndLeague(GameStatus.FINISHED, userRepository.findOneByLogin(username).get(), null, new PageRequest(0, 5)));
+        halfGame.addAll(gameRepository.findByGameStatusAndSecondAndLeague(GameStatus.FULL, userRepository.findOneByLogin(username).get(), null, new PageRequest(0, 5)));
 
         homeDTO.halfGame = new ArrayList<>();
         for (Game game : halfGame) {

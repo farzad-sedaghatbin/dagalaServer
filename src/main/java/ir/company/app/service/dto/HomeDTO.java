@@ -22,4 +22,5 @@ public class HomeDTO {
     public List<GameLowDTO> fullGame;
 
 
+    public long exp;
 }

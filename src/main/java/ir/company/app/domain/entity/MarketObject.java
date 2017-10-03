@@ -23,7 +23,7 @@ public class MarketObject {
 
     @Column(name = "price")
     private String price;
-    private int amount;
+    private double amount;
 
     public Long getId() {
         return id;
@@ -65,11 +65,11 @@ public class MarketObject {
         this.icon = icon;
     }
 
-    public int getAmount() {
+    public double getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 }

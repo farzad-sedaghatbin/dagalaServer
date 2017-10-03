@@ -14,10 +14,13 @@ import java.util.List;
  */
 public interface GameRepository extends JpaRepository<Game, Long> {
 
-    List<Game> findByGameStatusAndFirst(GameStatus gameStatus, User user, Pageable pageable);
-    List<Game> findByGameStatusAndSecond(GameStatus gameStatus, User user, Pageable pageable);
-    Game findByFirstAndLeagueAndGameStatus(User user, League league,GameStatus gameStatus);
-    Game findBySecondAndLeagueAndGameStatus(User user, League league,GameStatus gameStatus);
+    List<Game> findByGameStatusAndFirstAndLeague(GameStatus gameStatus, User user, League league, Pageable pageable);
+
+    List<Game> findByGameStatusAndSecondAndLeague(GameStatus gameStatus, User user,League league, Pageable pageable);
+
+    Game findByFirstAndLeagueAndGameStatus(User user, League league, GameStatus gameStatus);
+
+    Game findBySecondAndLeagueAndGameStatus(User user, League league, GameStatus gameStatus);
 
 
 }

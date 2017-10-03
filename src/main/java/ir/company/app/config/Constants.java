@@ -36,11 +36,11 @@ public final class Constants {
     public static int invited = 150;
     public static int video = 20;
     public static int ExpandMenu = 60;
-    public static int winEXP = 10;
-    public static int doubleWinEXP = 10;
-    public static int loseEXP = 2;
+    public static int winEXP = 5;
+    public static int doubleWinEXP = 6;
+    public static int loseEXP = 1;
     public static int doubleLoseEXP = 0;
-    public static int drawEXP = 8;
+    public static int drawEXP = 2;
     public static int drawPrize =40 ;
     public static int winPrize = 70;
     public static int doubleWinPrize = 80;

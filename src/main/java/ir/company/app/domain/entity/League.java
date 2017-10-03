@@ -22,7 +22,7 @@ public class League {
     private StatusEnum status;
     private ZonedDateTime startDate;
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_league", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "league", referencedColumnName = "id"))
+    @JoinTable(name = "user_league", joinColumns = @JoinColumn(name = "league_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     List<User> userList;
     @OneToMany(mappedBy = "league",fetch = FetchType.EAGER)
     List<PrizeLeague> prizeLeagues;
