@@ -32,8 +32,10 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static java.lang.String.valueOf;
 
@@ -106,17 +108,17 @@ public class BusinessService {
             recordDTO.score = record.getScore();
 
 
-            Query q = em.createNativeQuery("SELECT * FROM (SELECT id,user_id,abstract_game_id,rank() OVER (ORDER BY score DESC) FROM tb_record WHERE  abstract_game_id = ?) as gr WHERE  user_id =? ");
-            q.setParameter(1, u.getId());
-            q.setParameter(2, Long.valueOf(s[0]));
+            Query q = em.createNativeQuery("SELECT * FROM (SELECT id,user_id,abstract_game_id,rank() OVER (ORDER BY score DESC) FROM tb_record WHERE  abstract_game_id = ?) AS gr WHERE  user_id =? ");
+            q.setParameter(2, u.getId());
+            q.setParameter(1, Long.valueOf(s[0]));
             Object[] o = (Object[]) q.getSingleResult();
             recordDTO.rank = valueOf(o[3]);
-            recordDTO.users = recordDTOS;
         } else {
             recordDTO.score = 0l;
             recordDTO.rank = "-";
 
         }
+        recordDTO.users = recordDTOS;
         return ResponseEntity.ok(recordDTO);
     }
 
@@ -146,7 +148,7 @@ public class BusinessService {
         recordDTO.score = u.getScore();
 
 
-        Query q = em.createNativeQuery("SELECT * FROM (SELECT id,rank() OVER (ORDER BY score DESC) FROM jhi_user ) as gr WHERE  id =?");
+        Query q = em.createNativeQuery("SELECT * FROM (SELECT id,rank() OVER (ORDER BY score DESC) FROM jhi_user ) AS gr WHERE  id =?");
         q.setParameter(1, u.getId());
         Object[] o = (Object[]) q.getSingleResult();
         recordDTO.rank = valueOf(o[1]);
@@ -169,14 +171,15 @@ public class BusinessService {
     @Timed
     @CrossOrigin(origins = "*")
 
-    public ResponseEntity<?> requestGame(@RequestBody String user) throws JsonProcessingException {
+    public ResponseEntity<?> requestGame(@RequestBody String username) throws JsonProcessingException {
         GameRedisDTO gameRedisDTO = new GameRedisDTO();
+        User user = userRepository.findOneByLogin(username).get();
         if (RedisUtil.sizeOfMap("half") == 0) {
             Game game = new Game();
             GameRedisDTO.User first = new GameRedisDTO.User();
             gameRedisDTO.first = first;
             game.setGameStatus(GameStatus.INVISIBLE);
-            game.setFirst(userRepository.findOneByLogin(user).get());
+            game.setFirst(user);
             gameRepository.save(game);
             first.user = game.getFirst().getLogin();
             first.avatar = game.getFirst().getAvatar();
@@ -187,43 +190,34 @@ public class BusinessService {
             RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
 
         } else {
-            int i = 0;
-            String field = RedisUtil.getFields("half", i);
-            gameRedisDTO = RedisUtil.getHashItem("half", field);
-            while (gameRedisDTO.first.user.equalsIgnoreCase(user)) {
-                field = RedisUtil.getFields("half", ++i);
-
-                if (field == null) {
-                    Game game = new Game();
-                    GameRedisDTO.User first = new GameRedisDTO.User();
-                    gameRedisDTO.first = first;
-                    game.setGameStatus(GameStatus.INVISIBLE);
-                    game.setFirst(userRepository.findOneByLogin(user).get());
-                    gameRepository.save(game);
-                    first.user = game.getFirst().getLogin();
-                    first.avatar = game.getFirst().getAvatar();
-                    User u = game.getFirst();
-                    u.setCoin(u.getCoin() - Constants.perGame);
-                    userRepository.save(u);
-                    gameRedisDTO.gameId = game.getId();
-                    RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
-                    return ResponseEntity.ok(gameRedisDTO);
-
-                }
+            gameRedisDTO = gameService.requestGame(user);
+            if (gameRedisDTO == null) {
+                Game game = new Game();
+                GameRedisDTO.User first = new GameRedisDTO.User();
+                gameRedisDTO.first = first;
+                game.setGameStatus(GameStatus.INVISIBLE);
+                game.setFirst(user);
+                gameRepository.save(game);
+                first.user = game.getFirst().getLogin();
+                first.avatar = game.getFirst().getAvatar();
+                User u = game.getFirst();
+                u.setCoin(u.getCoin() - Constants.perGame);
+                userRepository.save(u);
+                gameRedisDTO.gameId = game.getId();
+                RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
+                return ResponseEntity.ok(gameRedisDTO);
+            }else {
+                GameRedisDTO.User second = new GameRedisDTO.User();
+                gameRedisDTO.second = second;
+                Game game = gameRepository.findOne(gameRedisDTO.gameId);
+                game.setSecond(user);
+                second.user = user.getLogin();
+                second.avatar = game.getSecond().getAvatar();
+                gameRepository.save(game);
+                RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
+                user.setCoin(user.getCoin() - Constants.perGame);
+                userRepository.save(user);
             }
-            gameRedisDTO = RedisUtil.getHashItem("half", field);
-            GameRedisDTO.User second = new GameRedisDTO.User();
-            gameRedisDTO.second = second;
-            Game game = gameRepository.findOne(gameRedisDTO.gameId);
-            game.setSecond(userRepository.findOneByLogin(user).get());
-            second.user = user;
-            second.avatar = game.getSecond().getAvatar();
-            gameRepository.save(game);
-            User u = game.getSecond();
-            u.setCoin(u.getCoin() - Constants.perGame);
-            userRepository.save(u);
-            RedisUtil.removeItem("half", game.getId().toString());
-            RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
 
         }
 
@@ -595,6 +589,7 @@ public class BusinessService {
 
 
         user.setCoin(user.getCoin() + Constants.video);
+        userRepository.save(user);
         return ResponseEntity.ok("200");
     }
 
@@ -973,7 +968,7 @@ public class BusinessService {
             String[] s = data.split(",");
             Game game = gameRepository.findOne(Long.valueOf(s[0]));
             int index = 1;
-            for (Challenge challenge : game.getChallenges()) {
+            for (Challenge challenge : game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList())) {
                 if (challenge.getId().equals(Long.valueOf(s[1]))) {
                     if (s[3].equalsIgnoreCase(game.getFirst().getLogin())) {
                         challenge.setFirstScore(s[2]);

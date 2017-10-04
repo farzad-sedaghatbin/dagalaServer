@@ -102,9 +102,9 @@ public class UserService {
                 secondUser.user = game.getSecond().getLogin();
                 secondUser.avatar = game.getSecond().getAvatar();
                 if (game.getFirstScore() > game.getSecondScore()) {
-                    gameLowDTO.scoreStatus = "فعلا برنده";
+                    gameLowDTO.scoreStatus = "فعلا برنده ای";
                 } else if (game.getFirstScore() < game.getSecondScore()) {
-                    gameLowDTO.scoreStatus = "فعلا بازنده";
+                    gameLowDTO.scoreStatus = "فعلا بازنده ای ";
 
                 } else {
                     gameLowDTO.scoreStatus = "فعلا مساوی";
@@ -114,9 +114,9 @@ public class UserService {
                 secondUser.user = game.getFirst().getLogin();
                 secondUser.avatar = game.getFirst().getAvatar();
                 if (game.getFirstScore() < game.getSecondScore()) {
-                    gameLowDTO.scoreStatus = "فعلا برنده";
+                    gameLowDTO.scoreStatus = "فعلا برنده ای";
                 } else if (game.getFirstScore() > game.getSecondScore()) {
-                    gameLowDTO.scoreStatus = "فعلا بازنده";
+                    gameLowDTO.scoreStatus = "فعلا بازنده ای";
 
                 } else {
                     gameLowDTO.scoreStatus = "فعلا مساوی";
@@ -162,12 +162,16 @@ public class UserService {
             gameLowDTO.second = secondUser;
             gameLowDTO.first = firstUser;
             gameLowDTO.gameId = game.getId();
-            gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
+            if (gameLowDTO.first.user.equalsIgnoreCase(username))
+                gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
+            else
+                gameLowDTO.score = game.getSecondScore() + "-" + game.getFirstScore();
+
             if (username.equalsIgnoreCase(game.getFirst().getLogin())) {
                 if (game.getWinner() == 1) {
-                    gameLowDTO.status = "برد";
+                    gameLowDTO.status = "باختی";
                 } else if (game.getWinner() == 2) {
-                    gameLowDTO.status = "باخت";
+                    gameLowDTO.status = "بردی";
 
                 } else {
                     gameLowDTO.status = "مساوی";
@@ -175,9 +179,9 @@ public class UserService {
                 }
             } else {
                 if (game.getWinner() == 2) {
-                    gameLowDTO.status = "برد";
+                    gameLowDTO.status = "باختی";
                 } else if (game.getWinner() == 1) {
-                    gameLowDTO.status = "باخت";
+                    gameLowDTO.status = "بردی";
 
                 } else {
                     gameLowDTO.status = "مساوی";

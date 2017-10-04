@@ -1,6 +1,7 @@
 package ir.company.app.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ir.company.app.config.Constants;
 import ir.company.app.domain.Authority;
 import ir.company.app.domain.entity.*;
@@ -9,8 +10,10 @@ import ir.company.app.security.AuthoritiesConstants;
 import ir.company.app.security.SecurityUtils;
 import ir.company.app.service.dto.DetailDTO;
 import ir.company.app.service.dto.GameLowDTO;
+import ir.company.app.service.dto.GameRedisDTO;
 import ir.company.app.service.dto.HomeDTO;
 import ir.company.app.service.util.RandomUtil;
+import ir.company.app.service.util.RedisUtil;
 import ir.company.app.web.rest.vm.ManagedUserVM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +42,8 @@ public class GameService {
     private AbstractGameRepository abstractGameRepository;
     @Inject
     private ChallengeRepository challengeRepository;
+    @Inject
+    private UserRepository userRepository;
 
 
     public DetailDTO detailGame(Game game) throws JsonProcessingException {
@@ -152,6 +157,7 @@ public class GameService {
 
         return detailDTO;
     }
+
     public AbstractGame thirdGame(long gameId) throws JsonProcessingException {
         List<AbstractGame> abstractGames = abstractGameRepository.findAll();
         Game game = gameRepository.findOne(gameId);
@@ -168,5 +174,23 @@ public class GameService {
         }
         Random r = new Random();
         return abstractGames.get(r.nextInt(abstractGames.size()));
+    }
+
+
+    public synchronized GameRedisDTO requestGame(User user) throws JsonProcessingException {
+        GameRedisDTO gameRedisDTO;
+        int i = 0;
+        String field = RedisUtil.getFields("half", i);
+        gameRedisDTO = RedisUtil.getHashItem("half", field);
+        while (gameRedisDTO.first.user.equalsIgnoreCase(user.getLogin())) {
+            field = RedisUtil.getFields("half", ++i);
+
+            if (field == null) {
+                return null;
+            }
+        }
+        gameRedisDTO = RedisUtil.getHashItem("half", field);
+        RedisUtil.removeItem("half", field);
+        return gameRedisDTO;
     }
 }

@@ -54,7 +54,7 @@ public class FarzadUserService {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.userService = userService;
-        Constants.index = new AtomicLong(userRepository.count());
+        Constants.index = new AtomicLong(userRepository.count()+100);
     }
 
     @RequestMapping(value = "/1/user_authenticate", method = RequestMethod.POST)

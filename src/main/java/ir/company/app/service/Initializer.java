@@ -23,6 +23,6 @@ public class Initializer {
     private UserRepository userRepository;
 
     public Initializer() {
-        Constants.index = new AtomicLong(userRepository.count());
+        Constants.index = new AtomicLong(userRepository.count()*100);
     }
 }

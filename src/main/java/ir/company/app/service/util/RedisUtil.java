@@ -1,6 +1,7 @@
 package ir.company.app.service.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import ir.company.app.domain.entity.Challenge;
 import ir.company.app.service.dto.GameRedisDTO;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -9,8 +10,10 @@ import redis.clients.jedis.Protocol;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static net.sf.ehcache.util.Timestamper.next;
 
@@ -31,8 +34,8 @@ public class RedisUtil {
 //                JsonNode rediscloudNode = root.getNode("rediscloud");
 //                JsonNode credentials = rediscloudNode.getNode(0).getNode("credentials");
 
-        pool = new JedisPool(new JedisPoolConfig(), "redis-19464.c10.us-east-1-4.ec2.cloud.redislabs.com", 19464,
-            Protocol.DEFAULT_TIMEOUT, "rBw9v85ccI6C97Jh");
+        pool = new JedisPool(new JedisPoolConfig(), "redis-15875.c8.us-east-1-4.ec2.cloud.redislabs.com", 15875,
+            Protocol.DEFAULT_TIMEOUT, "7qLcSQ0ig4svCwkl");
         jedis = pool.getResource();
 //            }
 //        } catch (InvalidSyntaxException ex) {
@@ -40,7 +43,7 @@ public class RedisUtil {
 //        }
     }
 
-    //    public static void main(String[] args) {
+//        public static void main(String[] args) {
 //        jedis.flushDB();
 //    }
     public static void addItem(String key, String value) {
@@ -133,4 +136,7 @@ public class RedisUtil {
 //// return the instance to the pool when you're done
 //        pool.returnResource(jedis);
 //    }
+
+
+
 }
