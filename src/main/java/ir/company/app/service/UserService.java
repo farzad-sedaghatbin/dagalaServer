@@ -176,9 +176,9 @@ public class UserService {
 
             if (username.equalsIgnoreCase(game.getFirst().getLogin())) {
                 if (game.getWinner() == 1) {
-                    gameLowDTO.status = "باختی";
-                } else if (game.getWinner() == 2) {
                     gameLowDTO.status = "بردی";
+                } else if (game.getWinner() == 2) {
+                    gameLowDTO.status = "باختی";
 
                 } else {
                     gameLowDTO.status = "مساوی";
@@ -186,9 +186,9 @@ public class UserService {
                 }
             } else {
                 if (game.getWinner() == 2) {
-                    gameLowDTO.status = "باختی";
-                } else if (game.getWinner() == 1) {
                     gameLowDTO.status = "بردی";
+                } else if (game.getWinner() == 1) {
+                    gameLowDTO.status = "باختی";
 
                 } else {
                     gameLowDTO.status = "مساوی";
