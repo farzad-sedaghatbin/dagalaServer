@@ -206,7 +206,7 @@ public class BusinessService {
                 gameRedisDTO.gameId = game.getId();
                 RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
                 return ResponseEntity.ok(gameRedisDTO);
-            }else {
+            } else {
                 GameRedisDTO.User second = new GameRedisDTO.User();
                 gameRedisDTO.second = second;
                 Game game = gameRepository.findOne(gameRedisDTO.gameId);
@@ -326,7 +326,7 @@ public class BusinessService {
         Game game = gameRepository.findOne(Long.valueOf(s[0]));
 
 
-        List<Challenge> challengeList = game.getChallenges();
+        List<Challenge> challengeList = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
         if (challengeList.size() > 1) {
             GameRedisDTO gameRedisDTO = new GameRedisDTO();
             gameRedisDTO.first = new GameRedisDTO.User();

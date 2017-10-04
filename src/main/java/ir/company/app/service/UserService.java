@@ -147,7 +147,10 @@ public class UserService {
             if (game.getChallenges().size() == 2 && (gameLowDTO.status == null || gameLowDTO.status.isEmpty())) {
                 gameLowDTO.status = "نوبت شماست";
             }
-            gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
+            if (game.getFirst().getLogin().equalsIgnoreCase(username))
+                gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
+            else
+                gameLowDTO.score = game.getSecondScore() + "-" + game.getFirstScore();
             homeDTO.halfGame.add(gameLowDTO);
         }
 
@@ -162,7 +165,7 @@ public class UserService {
             gameLowDTO.second = secondUser;
             gameLowDTO.first = firstUser;
             gameLowDTO.gameId = game.getId();
-            if (gameLowDTO.first.user.equalsIgnoreCase(username))
+            if (game.getFirst().getLogin().equalsIgnoreCase(username))
                 gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
             else
                 gameLowDTO.score = game.getSecondScore() + "-" + game.getFirstScore();
