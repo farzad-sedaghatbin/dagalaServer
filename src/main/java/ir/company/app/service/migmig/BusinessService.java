@@ -192,6 +192,7 @@ public class BusinessService {
         } else {
             gameRedisDTO = gameService.requestGame(user);
             if (gameRedisDTO == null) {
+                gameRedisDTO = new GameRedisDTO();
                 Game game = new Game();
                 GameRedisDTO.User first = new GameRedisDTO.User();
                 gameRedisDTO.first = first;
@@ -337,7 +338,7 @@ public class BusinessService {
             gameRedisDTO.second.user = game.getSecond().getAvatar();
             Challenge challenge;
             if (challengeList.size() == 2) {
-                challenge = game.getChallenges().get(1);
+                challenge = challengeList.get(1);
 
 
                 if (s[2].equalsIgnoreCase(game.getFirst().getLogin())) {
@@ -346,7 +347,14 @@ public class BusinessService {
                     challenge.setSecondScore("-1");
                 }
             } else {
-                challenge = game.getChallenges().get(2);
+
+                if (challengeList.size() == 3 && challengeList.get(2).getFirstScore() != null && challengeList.get(2).getSecondScore() != null) {
+                    JoinResult joinResult = new JoinResult();
+                    joinResult.lastUrl = "";
+                    joinResult.challengeId = null;
+                    return ResponseEntity.ok(joinResult);
+                }
+                challenge = challengeList.get(2);
 
                 if (s[2].equalsIgnoreCase(game.getFirst().getLogin())) {
                     challenge.setFirstScore("-1");
@@ -354,12 +362,7 @@ public class BusinessService {
                     challenge.setSecondScore("-1");
                 }
             }
-            if (challengeList.size() == 3 && challengeList.get(2).getFirstScore() != null && challengeList.get(2).getSecondScore() != null) {
-                JoinResult joinResult = new JoinResult();
-                joinResult.lastUrl = "";
-                joinResult.challengeId = null;
-                return ResponseEntity.ok(joinResult);
-            }
+
 
             challengeRepository.save(challenge);
             gameRepository.save(game);
@@ -692,6 +695,8 @@ public class BusinessService {
     public ResponseEntity<?> detailGame(@RequestBody String data) throws JsonProcessingException {
         String[] s = data.split(",");
         Game game = gameRepository.findOne(Long.valueOf(s[0]));
+        List<Challenge> l = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
+
         DetailDTO detailDTO = new DetailDTO();
         detailDTO.gameId = game.getId();
         DetailDTO.User secondUser = new DetailDTO.User();
@@ -711,7 +716,7 @@ public class BusinessService {
         if (game.getDateTime() != null)
             detailDTO.timeLeft = (game.getDateTime().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 1000;
 
-        game.getChallenges().forEach(challenge -> {
+        l.forEach(challenge -> {
             DetailDTO.GameDTO gameDTO = new DetailDTO.GameDTO();
             gameDTO.icon = challenge.getIcon();
             if (game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
@@ -753,9 +758,9 @@ public class BusinessService {
                 detailDTO.status = "2";
             }
 
-            if (game.getChallenges().size() != 3 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
+            if (l.size() != 3 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
                 detailDTO.status = "1";
-                if (game.getChallenges().size() == 1) {
+                if (l.size() == 1) {
                     detailDTO.url = challenge.getUrl();
                 }
             }
@@ -764,7 +769,7 @@ public class BusinessService {
             }
 
         });
-        if (game.getChallenges().size() == 1 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+        if (l.size() == 1 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             if ((game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1]))
                 detailDTO.status = "1";
             else {
@@ -772,7 +777,7 @@ public class BusinessService {
 
             }
         }
-        if (game.getChallenges().size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+        if (l.size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             detailDTO.status = "3";
             AbstractGame abstractGame = thirdGame(Long.parseLong(s[0]));
             detailDTO.url = abstractGame.getUrl();
@@ -786,8 +791,8 @@ public class BusinessService {
             gameRepository.save(game);
 
         }
-        if (game.getChallenges().size() == 3 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
-            detailDTO.url = game.getChallenges().get(2).getUrl();
+        if (l.size() == 3 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+            detailDTO.url = l.get(2).getUrl();
             detailDTO.status = "3";
 
         }
@@ -871,12 +876,12 @@ public class BusinessService {
 
         if (s[1].equalsIgnoreCase(game.getFirst().getLogin())) {
             game.setWinner(2);
-            secondUser.setScore(secondUser.getScore() + 10);
-            secondUser.setCoin(secondUser.getCoin() + 200);
+            secondUser.setScore(secondUser.getScore() + Constants.doubleWinEXP);
+            secondUser.setCoin(secondUser.getCoin() + Constants.doubleWinPrize);
         } else {
             game.setWinner(1);
-            firsUser.setScore(firsUser.getScore() + 10);
-            firsUser.setCoin(firsUser.getCoin() + 200);
+            firsUser.setScore(firsUser.getScore() + Constants.doubleWinEXP);
+            firsUser.setCoin(firsUser.getCoin() + Constants.doubleWinPrize);
 
         }
 
@@ -967,8 +972,10 @@ public class BusinessService {
         try {
             String[] s = data.split(",");
             Game game = gameRepository.findOne(Long.valueOf(s[0]));
+            List<Challenge> l = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
+
             int index = 1;
-            for (Challenge challenge : game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList())) {
+            for (Challenge challenge : l) {
                 if (challenge.getId().equals(Long.valueOf(s[1]))) {
                     if (s[3].equalsIgnoreCase(game.getFirst().getLogin())) {
                         challenge.setFirstScore(s[2]);
@@ -1010,7 +1017,7 @@ public class BusinessService {
                     challengeRepository.save(challenge);
 
                 }
-                if (challenge.getFirstScore() != null && challenge.getSecondScore() != null && index == game.getChallenges().size()) {
+                if (challenge.getFirstScore() != null && challenge.getSecondScore() != null && index == l.size()) {
                     if (Long.valueOf(challenge.getFirstScore()) > Long.valueOf(challenge.getSecondScore())) {
                         game.setFirstScore(game.getFirstScore() + 1);
                     } else if (Long.valueOf(challenge.getFirstScore()) < Long.valueOf(challenge.getSecondScore())) {
@@ -1035,8 +1042,8 @@ public class BusinessService {
             }
             boolean newLevel = false;
             gameRedisDTO.gameId = game.getId();
-            gameRedisDTO.challengeList = game.getChallenges();
-            if (game.getChallenges().size() == 3 && game.getChallenges().get(2).getFirstScore() != null && !game.getChallenges().get(2).getFirstScore().isEmpty() && game.getChallenges().get(2).getSecondScore() != null && !game.getChallenges().get(2).getSecondScore().isEmpty()) {
+            gameRedisDTO.challengeList = l;
+            if (l.size() == 3 && l.get(2).getFirstScore() != null && !l.get(2).getFirstScore().isEmpty() && l.get(2).getSecondScore() != null && !l.get(2).getSecondScore().isEmpty()) {
 
                 User firstUser = game.getFirst();
                 User secondUser = game.getSecond();
@@ -1134,7 +1141,7 @@ public class BusinessService {
 
             }
 
-            if (game.getChallenges().size() == 1 && game.getChallenges().get(0).getSecondScore() == null) {
+            if (l.size() == 1 && l.get(0).getSecondScore() == null) {
                 RedisUtil.addHashItem("half", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
             } else if (!game.getGameStatus().equals(GameStatus.FINISHED)) {
                 RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));

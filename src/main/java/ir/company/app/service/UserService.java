@@ -148,9 +148,11 @@ public class UserService {
                 gameLowDTO.status = "نوبت شماست";
             }
             if (game.getFirst().getLogin().equalsIgnoreCase(username))
-                gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
-            else
                 gameLowDTO.score = game.getSecondScore() + "-" + game.getFirstScore();
+
+            else
+                gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
+
             homeDTO.halfGame.add(gameLowDTO);
         }
 
@@ -166,9 +168,11 @@ public class UserService {
             gameLowDTO.first = firstUser;
             gameLowDTO.gameId = game.getId();
             if (game.getFirst().getLogin().equalsIgnoreCase(username))
-                gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
-            else
                 gameLowDTO.score = game.getSecondScore() + "-" + game.getFirstScore();
+
+            else
+                gameLowDTO.score = game.getFirstScore() + "-" + game.getSecondScore();
+
 
             if (username.equalsIgnoreCase(game.getFirst().getLogin())) {
                 if (game.getWinner() == 1) {
