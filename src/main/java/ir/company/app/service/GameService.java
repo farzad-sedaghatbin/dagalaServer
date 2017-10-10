@@ -188,8 +188,8 @@ public class GameService {
             if (field == null) {
                 return null;
             }
+            gameRedisDTO = RedisUtil.getHashItem("half", field);
         }
-        gameRedisDTO = RedisUtil.getHashItem("half", field);
         RedisUtil.removeItem("half", field);
         return gameRedisDTO;
     }

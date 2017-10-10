@@ -243,14 +243,14 @@ public class BusinessService {
         GameRedisDTO gameRedisDTO = new GameRedisDTO();
         gameRedisDTO.first = new GameRedisDTO.User();
         if (challengeList.size() == 0) {
-            challenge.setFirstScore("-1");
+            challenge.setFirstScore("0");
             gameRedisDTO.first.user = game.getFirst().getLogin();
             gameRedisDTO.first.avatar = game.getFirst().getAvatar();
 
 
         } else if (challengeList.size() == 1) {
             gameRedisDTO.second = new GameRedisDTO.User();
-            challenge.setSecondScore("-1");
+            challenge.setSecondScore("0");
             gameRedisDTO.second.user = game.getSecond().getLogin();
             gameRedisDTO.second.avatar = game.getSecond().getAvatar();
 
@@ -268,10 +268,10 @@ public class BusinessService {
             RedisUtil.removeItem("invisible", game.getId().toString());
             game.setGameStatus(GameStatus.HALF);
 
-        } else
+        } else {
             RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
-        game.setGameStatus(GameStatus.FULL);
-
+            game.setGameStatus(GameStatus.FULL);
+        }
         gameRepository.save(game);
 
         return ResponseEntity.ok(challenge.getId());
@@ -298,10 +298,10 @@ public class BusinessService {
         challenge.setName(abstractGame.getName());
         challenge.setUrl(abstractGame.getUrl());
         if (challengeList.size() == 0) {
-            challenge.setFirstScore("-1");
+            challenge.setFirstScore("0");
 
         } else if (challengeList.size() == 1) {
-            challenge.setSecondScore("-1");
+            challenge.setSecondScore("0");
 
         }
         if (challengeList == null) {
@@ -342,9 +342,9 @@ public class BusinessService {
 
 
                 if (s[2].equalsIgnoreCase(game.getFirst().getLogin())) {
-                    challenge.setFirstScore("-1");
+                    challenge.setFirstScore("0");
                 } else {
-                    challenge.setSecondScore("-1");
+                    challenge.setSecondScore("0");
                 }
             } else {
 
@@ -357,9 +357,9 @@ public class BusinessService {
                 challenge = challengeList.get(2);
 
                 if (s[2].equalsIgnoreCase(game.getFirst().getLogin())) {
-                    challenge.setFirstScore("-1");
+                    challenge.setFirstScore("0");
                 } else {
-                    challenge.setSecondScore("-1");
+                    challenge.setSecondScore("0");
                 }
             }
 
@@ -385,7 +385,7 @@ public class BusinessService {
             challenge[0].setFirstScore(challenge[0].getFirstScore());
             gameRedisDTO.first.user = game.getFirst().getLogin();
             gameRedisDTO.first.avatar = game.getFirst().getAvatar();
-            challenge[0].setSecondScore("-1");
+            challenge[0].setSecondScore("0");
             if (game.getSecond() != null) {
                 gameRedisDTO.second.user = game.getSecond().getLogin();
                 gameRedisDTO.second.avatar = game.getSecond().getAvatar();
@@ -516,6 +516,7 @@ public class BusinessService {
         User user = userRepository.findOneByLogin(s[1]).get();
         Factor factor = new Factor();
         factor.setUser(user);
+        factor.setMarketObject(marketRepository.findOne(Long.valueOf(s[2])));
         factor.setAmount(Long.valueOf(s[0]));
         factorRepository.save(factor);
         factor.setuID("DAG" + Integer.toHexString((System.identityHashCode(factor.getId()))).toUpperCase());
@@ -543,16 +544,27 @@ public class BusinessService {
                 }
                 double d = paymentIFBinding.verifyTransaction(ss, "10822833");
                 if (d < 0) {
-                    response.sendRedirect("http://uniroo.ir/error.html?code=" + d);
+                    response.sendRedirect("http://dagala.ir/error.html?code=" + d);
 
                 } else {
-
-                    response.sendRedirect("http://uniroo.ir/payment.html?code=" + ss);
+                    Factor factor = factorRepository.findByUID(s[0]);
+                    User user=factor.getUser();
+                    MarketObject marketObject=factor.getMarketObject();
+                    if (s[0].contains("gem")) {
+                        user.setGem(user.getGem() + (int) marketObject.getAmount());
+                    } else if (s[0].contains("exp")) {
+                        user.setExpireExp(ZonedDateTime.now().plusDays((int) marketObject.getAmount()));
+                        user.setExpRatio(Double.parseDouble(marketObject.getDescription()));
+                    } else {
+                        user.setCoin(user.getCoin() + (int) marketObject.getAmount());
+                    }
+                    userRepository.save(user);
+                    response.sendRedirect("http://dagala.ir/payment.html?code=" + ss);
 
                 }
 
             } else {
-                response.sendRedirect("http://uniroo.ir/error.html?code=" + s[1].split("=")[1]);
+                response.sendRedirect("http://dagala.ir/error.html?code=" + s[1].split("=")[1]);
 
             }
         } catch (IOException e) {
@@ -914,20 +926,20 @@ public class BusinessService {
             if (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) {
 
                 game.setWinner(2);
-                secondUser.setScore(secondUser.getScore() + 10);
-                secondUser.setCoin(secondUser.getCoin() + 200);
+                secondUser.setScore(secondUser.getScore() + Constants.doubleWinEXP);
+                secondUser.setCoin(secondUser.getCoin() + Constants.doubleWinPrize);
                 hasWinner[0] = true;
             } else if (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) {
                 game.setWinner(1);
-                firsUser.setScore(firsUser.getScore() + 10);
-                firsUser.setCoin(firsUser.getCoin() + 200);
+                firsUser.setScore(firsUser.getScore() +  Constants.doubleWinEXP);
+                firsUser.setCoin(firsUser.getCoin() + Constants.doubleWinPrize);
                 hasWinner[0] = true;
             }
         });
         if (!hasWinner[0] && game.getChallenges().size() == 1) {
             game.setWinner(1);
-            firsUser.setScore(firsUser.getScore() + 10);
-            firsUser.setCoin(firsUser.getCoin() + 200);
+            firsUser.setScore(firsUser.getScore() +  Constants.doubleWinEXP);
+            firsUser.setCoin(firsUser.getCoin() + Constants.doubleWinPrize);
         }
 
         userRepository.save(firsUser);

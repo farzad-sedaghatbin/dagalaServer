@@ -296,6 +296,7 @@ public class FarzadUserService {
 
     public ResponseEntity<?> confirmReset(@Valid @RequestBody ForgetPasswordDTO data) {
         //todo forget scenario send email or sms
+
         Optional<User> user = userRepository.findOneByResetKey(data.getCode());
         if (user.isPresent()) {
             User user1 = user.get();
