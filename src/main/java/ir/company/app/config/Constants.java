@@ -35,7 +35,7 @@ public final class Constants {
     public static int invite = 150;
     public static int invited = 150;
     public static int video = 20;
-    public static int ExpandMenu = 60;
+    public static int ExpandMenu = 10;
     public static int winEXP = 5;
     public static int doubleWinEXP = 6;
     public static int loseEXP = 1;

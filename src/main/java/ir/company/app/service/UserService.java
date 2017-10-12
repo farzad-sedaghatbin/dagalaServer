@@ -19,6 +19,7 @@ import ir.company.app.web.rest.vm.ManagedUserVM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,10 +84,8 @@ public class UserService {
         q.setParameter(1, user.getId());
         Object[] o = (Object[]) q.getSingleResult();
         homeDTO.rating = Integer.valueOf(String.valueOf(o[1]));
-        List<Game> halfGame = gameRepository.findByGameStatusAndFirstAndLeague(GameStatus.FULL, userRepository.findOneByLogin(username).get(), null, new PageRequest(0, 5));
-        List<Game> fullGame = gameRepository.findByGameStatusAndSecondAndLeague(GameStatus.FINISHED, userRepository.findOneByLogin(username).get(), null, new PageRequest(0, 5));
-        fullGame.addAll(gameRepository.findByGameStatusAndFirstAndLeague(GameStatus.FINISHED, userRepository.findOneByLogin(username).get(), null, new PageRequest(0, 5)));
-        halfGame.addAll(gameRepository.findByGameStatusAndSecondAndLeague(GameStatus.FULL, userRepository.findOneByLogin(username).get(), null, new PageRequest(0, 5)));
+        List<Game> halfGame = gameRepository.findByGameStatusAndFirstOrSecondAndLeague(GameStatus.FULL, user,user,  new PageRequest(0, 5,new Sort(Sort.Direction.DESC,"id")));
+        List<Game> fullGame = gameRepository.findByGameStatusAndFirstOrSecondAndLeague(GameStatus.FINISHED, user, user, new PageRequest(0, 5,new Sort(Sort.Direction.DESC,"id")));
 
         homeDTO.halfGame = new ArrayList<>();
         for (Game game : halfGame) {

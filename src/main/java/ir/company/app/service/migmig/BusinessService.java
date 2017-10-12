@@ -287,9 +287,7 @@ public class BusinessService {
         String[] s = data.split(",");
         User user = userRepository.findOneByLogin(s[2]).get();
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
-        Game game = gameRepository.findByFirstAndLeagueAndGameStatus(user, league, GameStatus.FULL);
-        if (game == null)
-            game = gameRepository.findBySecondAndLeagueAndGameStatus(user, league, GameStatus.FULL);
+        Game game = gameRepository.findByFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FULL);
 
         AbstractGame abstractGame = abstractGameRepository.findOne(Long.valueOf(s[1]));
         List<Challenge> challengeList = game.getChallenges();
@@ -548,8 +546,8 @@ public class BusinessService {
 
                 } else {
                     Factor factor = factorRepository.findByUID(s[0]);
-                    User user=factor.getUser();
-                    MarketObject marketObject=factor.getMarketObject();
+                    User user = factor.getUser();
+                    MarketObject marketObject = factor.getMarketObject();
                     if (s[0].contains("gem")) {
                         user.setGem(user.getGem() + (int) marketObject.getAmount());
                     } else if (s[0].contains("exp")) {
@@ -583,6 +581,10 @@ public class BusinessService {
 
 
         MarketObject marketObject = marketRepository.findByName(s[0]);
+
+        if (marketObject.isCoin()) {
+            user.setCoin(user.getCoin() - (Integer.valueOf(marketObject.getPrice())));
+        }
         if (s[0].contains("gem")) {
             user.setGem(user.getGem() + (int) marketObject.getAmount());
         } else if (s[0].contains("exp")) {
@@ -592,7 +594,7 @@ public class BusinessService {
             user.setCoin(user.getCoin() + (int) marketObject.getAmount());
         }
         userRepository.save(user);
-        return ResponseEntity.ok("200");
+        return ResponseEntity.ok(userService.refresh(false, user.getLogin()));
     }
 
     @RequestMapping(value = "/1/videoWatch", method = RequestMethod.POST)
@@ -829,9 +831,7 @@ public class BusinessService {
         String[] s = data.split(",");
         User user = userRepository.findOneByLogin(s[1]).get();
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
-        Game game = gameRepository.findByFirstAndLeagueAndGameStatus(user, league, GameStatus.FULL);
-        if (game == null)
-            game = gameRepository.findBySecondAndLeagueAndGameStatus(user, league, GameStatus.FULL);
+        Game game = gameRepository.findByFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FULL);
 
         try {
             DetailDTO d = new DetailDTO();
@@ -918,7 +918,7 @@ public class BusinessService {
         String[] s = data.split(",");
         Game game = gameRepository.findOne(Long.valueOf(s[0]));
 
-        User firsUser = game.getFirst();
+        User firstUser = game.getFirst();
         User secondUser = game.getSecond();
         final boolean[] hasWinner = {false};
 
@@ -931,20 +931,38 @@ public class BusinessService {
                 hasWinner[0] = true;
             } else if (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) {
                 game.setWinner(1);
-                firsUser.setScore(firsUser.getScore() +  Constants.doubleWinEXP);
-                firsUser.setCoin(firsUser.getCoin() + Constants.doubleWinPrize);
+                firstUser.setScore(firstUser.getScore() + Constants.doubleWinEXP);
+                firstUser.setCoin(firstUser.getCoin() + Constants.doubleWinPrize);
                 hasWinner[0] = true;
             }
         });
         if (!hasWinner[0] && game.getChallenges().size() == 1) {
             game.setWinner(1);
-            firsUser.setScore(firsUser.getScore() +  Constants.doubleWinEXP);
-            firsUser.setCoin(firsUser.getCoin() + Constants.doubleWinPrize);
+            firstUser.setScore(firstUser.getScore() + Constants.doubleWinEXP);
+            firstUser.setCoin(firstUser.getCoin() + Constants.doubleWinPrize);
         }
+        if (game.getWinner() == 1) {
+            firstUser.setWin(firstUser.getWin() + 1);
+            firstUser.setWinInRow(firstUser.getWinInRow() + 1);
+            if (firstUser.getWinInRow() > firstUser.getMaxWinInRow()) {
+                firstUser.setMaxWinInRow(firstUser.getWinInRow());
+            }
 
-        userRepository.save(firsUser);
+            secondUser.setLose(secondUser.getLose() + 1);
+            secondUser.setWinInRow(0);
+        } else {
+            secondUser.setWin(secondUser.getWin() + 1);
+            secondUser.setWinInRow(secondUser.getWinInRow() + 1);
+            if (secondUser.getWinInRow() > secondUser.getMaxWinInRow()) {
+                secondUser.setMaxWinInRow(secondUser.getWinInRow());
+            }
+
+            firstUser.setLose(firstUser.getLose() + 1);
+            firstUser.setWinInRow(0);
+        }
+        userRepository.save(firstUser);
         userRepository.save(secondUser);
-        boolean newLevel = isNewLevel(firsUser, secondUser, s[1]);
+        boolean newLevel = isNewLevel(firstUser, secondUser, s[1]);
 
         game.setGameStatus(GameStatus.FINISHED);
 

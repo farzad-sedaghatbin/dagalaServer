@@ -21,6 +21,9 @@ public class MarketObject {
     @Column(name = "icon")
     private String icon;
 
+    @Column(name = "coin")
+    private Boolean coin;
+
     @Column(name = "price")
     private String price;
     private double amount;
@@ -71,5 +74,13 @@ public class MarketObject {
 
     public void setAmount(double amount) {
         this.amount = amount;
+    }
+
+    public boolean isCoin() {
+        return coin;
+    }
+
+    public void setCoin(boolean coin) {
+        this.coin = coin;
     }
 }

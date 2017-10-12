@@ -274,7 +274,7 @@ public class FarzadUserService {
                 KavenegarApi api = new KavenegarApi("5635717141617A52534F636F49546D38454E647870773D3D");
 //                api.send("10006006606600", tel, "شماره بازیابی :  " + s);
 
-                api.verifyLookup(tel, s, "restore");
+                api.verifyLookup(tel, s, "dagalareset");
 
             } catch (HttpException ex) { // در صورتی که خروجی وب سرویس 200 نباشد این خطارخ می دهد.
                 System.out.print("HttpException  : " + ex.getMessage());
