@@ -115,7 +115,7 @@ public class RedisUtil {
 
     public static void removeItem(String key, String field) {
 
-        jedis.del(key, field);
+        jedis.hdel(key, field);
     }
 
     public static Long sizeOfMap(String key) {

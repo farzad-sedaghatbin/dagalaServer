@@ -84,7 +84,7 @@ public class UserService {
         q.setParameter(1, user.getId());
         Object[] o = (Object[]) q.getSingleResult();
         homeDTO.rating = Integer.valueOf(String.valueOf(o[1]));
-        List<Game> halfGame = gameRepository.findByGameStatusAndFirstOrSecondAndLeague(GameStatus.FULL, user,user,  new PageRequest(0, 5,new Sort(Sort.Direction.DESC,"id")));
+        List<Game> halfGame = gameRepository.findByGameStatusAndFirstOrSecondAndLeague(GameStatus.FULL, user,user,  new PageRequest(0, 10,new Sort(Sort.Direction.DESC,"id")));
         List<Game> fullGame = gameRepository.findByGameStatusAndFirstOrSecondAndLeague(GameStatus.FINISHED, user, user, new PageRequest(0, 5,new Sort(Sort.Direction.DESC,"id")));
 
         homeDTO.halfGame = new ArrayList<>();
@@ -101,24 +101,24 @@ public class UserService {
                 secondUser.user = game.getSecond().getLogin();
                 secondUser.avatar = game.getSecond().getAvatar();
                 if (game.getFirstScore() > game.getSecondScore()) {
-                    gameLowDTO.scoreStatus = "فعلا برنده ای";
+                    gameLowDTO.scoreStatus = "جلویی";
                 } else if (game.getFirstScore() < game.getSecondScore()) {
-                    gameLowDTO.scoreStatus = "فعلا بازنده ای ";
+                    gameLowDTO.scoreStatus = "عقبی";
 
                 } else {
-                    gameLowDTO.scoreStatus = "فعلا مساوی";
+                    gameLowDTO.scoreStatus = " مساوی";
                 }
             } else if (game.getSecond() != null && game.getSecond().getLogin().equalsIgnoreCase(username)) {
 
                 secondUser.user = game.getFirst().getLogin();
                 secondUser.avatar = game.getFirst().getAvatar();
                 if (game.getFirstScore() < game.getSecondScore()) {
-                    gameLowDTO.scoreStatus = "فعلا برنده ای";
+                    gameLowDTO.scoreStatus = "جلویی";
                 } else if (game.getFirstScore() > game.getSecondScore()) {
-                    gameLowDTO.scoreStatus = "فعلا بازنده ای";
+                    gameLowDTO.scoreStatus = "عقبی";
 
                 } else {
-                    gameLowDTO.scoreStatus = "فعلا مساوی";
+                    gameLowDTO.scoreStatus = " مساوی";
                 }
             }
             Challenge challenge = game.getChallenges().get(game.getChallenges().size() - 1);

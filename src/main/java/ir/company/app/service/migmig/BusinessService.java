@@ -214,6 +214,7 @@ public class BusinessService {
                 game.setSecond(user);
                 second.user = user.getLogin();
                 second.avatar = game.getSecond().getAvatar();
+                game.setGameStatus(GameStatus.FULL);
                 gameRepository.save(game);
                 RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
                 user.setCoin(user.getCoin() - Constants.perGame);
@@ -397,6 +398,7 @@ public class BusinessService {
             gameRedisDTO.gameId = game.getId();
             gameRedisDTO.challengeList = challengeList;
             game.setDateTime(ZonedDateTime.now().plusDays(1));
+            game.setGameStatus(GameStatus.FULL);
             gameRepository.save(game);
             RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
 
