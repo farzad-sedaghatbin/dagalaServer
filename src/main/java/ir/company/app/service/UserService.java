@@ -84,8 +84,11 @@ public class UserService {
         q.setParameter(1, user.getId());
         Object[] o = (Object[]) q.getSingleResult();
         homeDTO.rating = Integer.valueOf(String.valueOf(o[1]));
-        List<Game> halfGame = gameRepository.findByGameStatusAndFirstOrSecondAndLeague(GameStatus.FULL, user,user,  new PageRequest(0, 10,new Sort(Sort.Direction.DESC,"id")));
-        List<Game> fullGame = gameRepository.findByGameStatusAndFirstOrSecondAndLeague(GameStatus.FINISHED, user, user, new PageRequest(0, 5,new Sort(Sort.Direction.DESC,"id")));
+        List<Game> halfGame = gameRepository.findByGameStatusAndFirstAndLeague(GameStatus.FULL, user,  new PageRequest(0, 10,new Sort(Sort.Direction.DESC,"id")));
+         halfGame .addAll(gameRepository.findByGameStatusAndSecondAndLeague(GameStatus.FULL, user,  new PageRequest(0, 10,new Sort(Sort.Direction.DESC,"id"))));
+         halfGame .addAll(gameRepository.findByGameStatusAndFirstAndLeague(GameStatus.HALF, user,  new PageRequest(0, 10,new Sort(Sort.Direction.DESC,"id"))));
+        List<Game> fullGame = gameRepository.findByGameStatusAndFirstAndLeague(GameStatus.FINISHED, user, new PageRequest(0, 5,new Sort(Sort.Direction.DESC,"id")));
+        fullGame.addAll(gameRepository.findByGameStatusAndSecondAndLeague(GameStatus.FINISHED, user, new PageRequest(0, 5,new Sort(Sort.Direction.DESC,"id"))));
 
         homeDTO.halfGame = new ArrayList<>();
         for (Game game : halfGame) {

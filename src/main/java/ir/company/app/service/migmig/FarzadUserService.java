@@ -74,10 +74,10 @@ public class FarzadUserService {
 //                boolean rememberMe = (loginDTO.isRememberMe() == null) ? false : loginDTO.isRememberMe();
                 String jwt = tokenProvider.createToken(authentication, true);
                 response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
-                User user = userRepository.findOneByLogin(loginDTO.getUsername()).get();
+                User user = userRepository.findOneByLogin(loginDTO.getUsername().toLowerCase()).get();
                 user.setPushSessionKey(loginDTO.getDeviceToken());
                 userRepository.save(user);
-                HomeDTO userLoginDTO = userService.refresh(false, loginDTO.getUsername());
+                HomeDTO userLoginDTO = userService.refresh(false, loginDTO.getUsername().toLowerCase());
                 userLoginDTO.token = jwt;
                 userLoginDTO.user = user.getLogin();
 

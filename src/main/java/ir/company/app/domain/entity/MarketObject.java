@@ -22,7 +22,7 @@ public class MarketObject {
     private String icon;
 
     @Column(name = "coin")
-    private Boolean coin;
+    private Boolean coin = new Boolean(false);
 
     @Column(name = "price")
     private String price;

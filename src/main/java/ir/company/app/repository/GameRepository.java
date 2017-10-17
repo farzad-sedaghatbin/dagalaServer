@@ -14,9 +14,14 @@ import java.util.List;
  * Spring Data JPA repository for the User entity.
  */
 public interface GameRepository extends JpaRepository<Game, Long> {
-    @Query("select g from Game g where g.gameStatus = ?1 and g.league is null and (g.first=?2 or g.second=?3)")
+    @Query("select g from Game g where g.gameStatus = ?1 and g.league is null and g.first=?2 ")
 
-    List<Game> findByGameStatusAndFirstOrSecondAndLeague(GameStatus gameStatus, User first, User second,  Pageable pageable);
+    List<Game> findByGameStatusAndFirstAndLeague(GameStatus gameStatus, User first, Pageable pageable);
+
+
+    @Query("select g from Game g where g.gameStatus = ?1 and g.league is null and g.second=?2 ")
+
+    List<Game> findByGameStatusAndSecondAndLeague(GameStatus gameStatus, User second, Pageable pageable);
 
     @Query("select g from Game g where g.gameStatus = ?4 and g.league=?3 and (g.first=?1 or g.second=?2)")
 
