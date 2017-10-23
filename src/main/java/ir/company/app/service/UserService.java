@@ -30,10 +30,8 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service class for managing users.
@@ -122,7 +120,7 @@ public class UserService {
                     gameLowDTO.scoreStatus = " مساوی";
                 }
             }
-            Challenge challenge = game.getChallenges().get(game.getChallenges().size() - 1);
+            Challenge challenge = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList()).get(game.getChallenges().size() - 1);
 
             if (game.getSecond() == null) {
                 gameLowDTO.status = "در انتظار حریف";

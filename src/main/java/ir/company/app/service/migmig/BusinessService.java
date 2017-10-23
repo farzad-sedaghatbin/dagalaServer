@@ -421,9 +421,10 @@ public class BusinessService {
 
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
         if (league.getCapacity() - league.getFill() != 0) {
-            league.setFill(league.getFill()+1);
+            league.setFill(league.getFill() + 1);
             league.getUserList().add(user);
             user.getLeagues().add(league);
+            user.setGem(user.getGem() - league.getCost());
             userRepository.save(user);
             leagueRepository.save(league);
             return ResponseEntity.ok("200");
