@@ -101,7 +101,7 @@ public class BusinessService {
             recordDTOS.add(recordDTO);
         }
         RecordDTO recordDTO = new RecordDTO();
-        User u = userRepository.findOneByLogin(s[1]).get();
+        User u = userRepository.findOneByLogin(s[1].toLowerCase()).get();
 
         Record record = recordRepository.findByAbstractGameAndUser(abstractGame, u);
         if (record != null) {
@@ -143,7 +143,7 @@ public class BusinessService {
             recordDTOS.add(recordDTO);
         }
         RecordDTO recordDTO = new RecordDTO();
-        User u = userRepository.findOneByLogin(user).get();
+        User u = userRepository.findOneByLogin(user.toLowerCase()).get();
 
         recordDTO.score = u.getScore();
 
@@ -173,7 +173,7 @@ public class BusinessService {
 
     public ResponseEntity<?> requestGame(@RequestBody String username) throws JsonProcessingException {
         GameRedisDTO gameRedisDTO = new GameRedisDTO();
-        User user = userRepository.findOneByLogin(username).get();
+        User user = userRepository.findOneByLogin(username.toLowerCase()).get();
         if (RedisUtil.sizeOfMap("half") == 0) {
             Game game = new Game();
             GameRedisDTO.User first = new GameRedisDTO.User();
@@ -286,7 +286,7 @@ public class BusinessService {
     public ResponseEntity<?> createLeagueGame(@RequestBody String data) throws JsonProcessingException {
 
         String[] s = data.split(",");
-        User user = userRepository.findOneByLogin(s[2]).get();
+        User user = userRepository.findOneByLogin(s[2].toLowerCase()).get();
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
         Game game = gameRepository.findByFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FULL);
 
@@ -389,7 +389,7 @@ public class BusinessService {
                 gameRedisDTO.second.user = game.getSecond().getLogin();
                 gameRedisDTO.second.avatar = game.getSecond().getAvatar();
             } else {
-                User u = userRepository.findOneByLogin(s[2]).get();
+                User u = userRepository.findOneByLogin(s[2].toLowerCase()).get();
                 gameRedisDTO.second.user = u.getLogin();
                 gameRedisDTO.second.avatar = u.getAvatar();
             }
@@ -417,7 +417,7 @@ public class BusinessService {
     public ResponseEntity<?> requestLeague(@RequestBody String data) {
 
         String[] s = data.split(",");
-        User user = userRepository.findOneByLogin(s[1]).get();
+        User user = userRepository.findOneByLogin(s[1].toLowerCase()).get();
 
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
         if (league.getCapacity() - league.getFill() != 0) {
@@ -438,7 +438,7 @@ public class BusinessService {
     @Timed
     @CrossOrigin(origins = "*")
     public ResponseEntity<?> availableLeague(@RequestBody String username) {
-        User user = userRepository.findOneByLogin(username).get();
+        User user = userRepository.findOneByLogin(username.toLowerCase()).get();
 
         List<League> list = leagueRepository.findAll();
         List<LeagueDTO> leagueDTOS = new ArrayList<>();
@@ -513,7 +513,7 @@ public class BusinessService {
 
     public ResponseEntity<?> factor(@Valid @RequestBody String data, HttpServletResponse response) {
         String[] s = data.split(",");
-        User user = userRepository.findOneByLogin(s[1]).get();
+        User user = userRepository.findOneByLogin(s[1].toLowerCase()).get();
         Factor factor = new Factor();
         factor.setUser(user);
         factor.setMarketObject(marketRepository.findOne(Long.valueOf(s[2])));
@@ -579,7 +579,7 @@ public class BusinessService {
 
     public ResponseEntity<?> inventory(@RequestBody String data) throws JsonProcessingException {
         String[] s = data.split(",");
-        User user = userRepository.findOneByLogin(s[1]).get();
+        User user = userRepository.findOneByLogin(s[1].toLowerCase()).get();
 
 
         MarketObject marketObject = marketRepository.findByName(s[0]);
@@ -604,7 +604,7 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
 
     public ResponseEntity<?> videoWatch(@RequestBody String username) throws JsonProcessingException {
-        User user = userRepository.findOneByLogin(username).get();
+        User user = userRepository.findOneByLogin(username.toLowerCase()).get();
 
 
         user.setCoin(user.getCoin() + Constants.video);
@@ -618,7 +618,7 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
 
     public ResponseEntity<?> expandMenu(@RequestBody String username) throws JsonProcessingException {
-        User user = userRepository.findOneByLogin(username).get();
+        User user = userRepository.findOneByLogin(username.toLowerCase()).get();
 
 
         user.setCoin(user.getCoin() - Constants.ExpandMenu);
@@ -831,7 +831,7 @@ public class BusinessService {
 
     public ResponseEntity<?> detailLeague(@RequestBody String data) {
         String[] s = data.split(",");
-        User user = userRepository.findOneByLogin(s[1]).get();
+        User user = userRepository.findOneByLogin(s[1].toLowerCase()).get();
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
         Game game = gameRepository.findByFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FULL);
 
@@ -1194,7 +1194,7 @@ public class BusinessService {
 
     public ResponseEntity<?> submitRecord(@RequestBody InputDTO data) throws
         JsonProcessingException {
-        User user = userRepository.findOneByLogin(data.user).get();
+        User user = userRepository.findOneByLogin(data.user.toLowerCase()).get();
 
         AbstractGame abstractGame = abstractGameRepository.findOne(Long.valueOf(data.gameId));
         Record record = recordRepository.findByAbstractGameAndUser(abstractGame, user);

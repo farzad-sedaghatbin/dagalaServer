@@ -65,7 +65,7 @@ public class UserService {
     private EntityManager em;
 
     public HomeDTO refresh(boolean newLevel, String username) {
-        User user = userRepository.findOneByLogin(username).get();
+        User user = userRepository.findOneByLogin(username.toLowerCase()).get();
         HomeDTO homeDTO = new HomeDTO();
         homeDTO.score = user.getScore();
         homeDTO.gem = user.getGem();
@@ -84,11 +84,9 @@ public class UserService {
         q.setParameter(1, user.getId());
         Object[] o = (Object[]) q.getSingleResult();
         homeDTO.rating = Integer.valueOf(String.valueOf(o[1]));
-        List<Game> halfGame = gameRepository.findByGameStatusAndFirstAndLeague(GameStatus.FULL, user,  new PageRequest(0, 10,new Sort(Sort.Direction.DESC,"id")));
-         halfGame .addAll(gameRepository.findByGameStatusAndSecondAndLeague(GameStatus.FULL, user,  new PageRequest(0, 10,new Sort(Sort.Direction.DESC,"id"))));
-         halfGame .addAll(gameRepository.findByGameStatusAndFirstAndLeague(GameStatus.HALF, user,  new PageRequest(0, 10,new Sort(Sort.Direction.DESC,"id"))));
-        List<Game> fullGame = gameRepository.findByGameStatusAndFirstAndLeague(GameStatus.FINISHED, user, new PageRequest(0, 5,new Sort(Sort.Direction.DESC,"id")));
-        fullGame.addAll(gameRepository.findByGameStatusAndSecondAndLeague(GameStatus.FINISHED, user, new PageRequest(0, 5,new Sort(Sort.Direction.DESC,"id"))));
+        List<Game> halfGame = gameRepository.findByGameStatusAndFirstAndSecondAndLeague(GameStatus.FULL, user, user, new PageRequest(0, 10, new Sort(Sort.Direction.DESC, "id")));
+        halfGame.addAll(gameRepository.findByGameStatusAndFirstAndSecondAndLeague(GameStatus.HALF, user, user, new PageRequest(0, 10, new Sort(Sort.Direction.DESC, "id"))));
+        List<Game> fullGame = gameRepository.findByGameStatusAndFirstAndSecondAndLeague(GameStatus.FINISHED, user, user, new PageRequest(0, 10, new Sort(Sort.Direction.DESC, "id")));
 
         homeDTO.halfGame = new ArrayList<>();
         for (Game game : halfGame) {

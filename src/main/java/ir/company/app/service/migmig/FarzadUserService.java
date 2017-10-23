@@ -138,7 +138,7 @@ public class FarzadUserService {
     public ResponseEntity<?> changeAvatar(@Valid @RequestBody String data) {
 
         String[] s = data.split(",");
-        User user = userRepository.findOneByLogin(s[1]).get();
+        User user = userRepository.findOneByLogin(s[1].toLowerCase()).get();
 
         user.setAvatar(s[0]);
         userRepository.save(user);
@@ -153,7 +153,7 @@ public class FarzadUserService {
     public ResponseEntity<?> rouletteWheel(@Valid @RequestBody String data) {
         String[] s = data.split(",");
 
-        User user = userRepository.findOneByLogin(s[1]).get();
+        User user = userRepository.findOneByLogin(s[1].toLowerCase()).get();
         if (user.getLastRoulette() == null || ((ZonedDateTime.now().toInstant().toEpochMilli() - user.getLastRoulette().toInstant().toEpochMilli()) / 86400000) >= 1) {
             int add = 1;
             if (s[0].equalsIgnoreCase("0")) add = -10;
@@ -186,7 +186,7 @@ public class FarzadUserService {
 
     public ResponseEntity<?> videoLimit(@Valid @RequestBody String data) {
 
-        User user = userRepository.findOneByLogin(data).get();
+        User user = userRepository.findOneByLogin(data.toLowerCase()).get();
         if (user.getLastVideo() == null || (user.getLastVideo() != null && ((ZonedDateTime.now().toInstant().toEpochMilli() - user.getLastVideo().toInstant().toEpochMilli()) / 360000) >= 1)) {
             user.setLastVideo(ZonedDateTime.now());
             userRepository.save(user);
@@ -202,10 +202,10 @@ public class FarzadUserService {
 
     public ResponseEntity<?> inviteFriend(@Valid @RequestBody String data) {
         String[] s = data.split(",");
-        User user = userRepository.findOneByLogin(s[1]).get();
+        User user = userRepository.findOneByLogin(s[1].toLowerCase()).get();
         String returns;
         if ((s[1] != "null") && user.getInvitedUser1() == null) {
-            User invited = userRepository.findOneByLogin(s[1]).get();
+            User invited = userRepository.findOneByLogin(s[0].toLowerCase()).get();
             if (invited != null) {
                 invited.setRating(invited.getRating() + Constants.invited);
                 userRepository.save(invited);
@@ -216,7 +216,7 @@ public class FarzadUserService {
                 returns = "404";
             }
         } else if ((s[1] != "null" && s[1] != "") && user.getInvitedUser2() == null) {
-            User invited = userRepository.findOneByLogin(s[1]).get();
+            User invited = userRepository.findOneByLogin(s[0].toLowerCase()).get();
             if (invited != null) {
                 invited.setRating(invited.getRating() + Constants.invited);
                 user.setRating(user.getRating() + +Constants.invite);
@@ -227,7 +227,7 @@ public class FarzadUserService {
                 returns = "404";
             }
         } else if ((s[1] != "null" && s[1] != "") && user.getInvitedUser3() == null) {
-            User invited = userRepository.findOneByLogin(s[1]).get();
+            User invited = userRepository.findOneByLogin(s[0].toLowerCase()).get();
             if (invited != null) {
 
                 invited.setRating(invited.getRating() + Constants.invited);
@@ -253,7 +253,7 @@ public class FarzadUserService {
 
     public ResponseEntity<?> forget(@Valid @RequestBody String username) {
         //todo forget scenario send email or sms
-        Optional<User> user = userRepository.findOneByLogin(username);
+        Optional<User> user = userRepository.findOneByLogin(username.toLowerCase());
         if (user.isPresent()) {
 
             int START = 1000;
@@ -316,7 +316,7 @@ public class FarzadUserService {
 
     public ResponseEntity<?> changePassword(@Valid @RequestBody String data) {
         String[] s = data.split(",");
-        User user1 = userRepository.findOneByLogin(s[1]).get();
+        User user1 = userRepository.findOneByLogin(s[1].toLowerCase()).get();
         user1.setPassword(passwordEncoder.encode(s[0]));
         userRepository.save(user1);
         return ResponseEntity.ok("200");
