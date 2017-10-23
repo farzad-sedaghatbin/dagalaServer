@@ -421,6 +421,7 @@ public class BusinessService {
 
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
         if (league.getCapacity() - league.getFill() != 0) {
+            league.setFill(league.getFill()+1);
             league.getUserList().add(user);
             user.getLeagues().add(league);
             userRepository.save(user);
