@@ -11,7 +11,7 @@ public class LeagueDTO {
     public int capacity;
     public int left;
     public int size;
-    public int cost;
+    public String cost;
     public String startDate;
     public Long timeLeft;
     public Long id;

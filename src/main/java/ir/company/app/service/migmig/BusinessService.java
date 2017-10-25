@@ -453,7 +453,7 @@ public class BusinessService {
             leagueDTO.minLevel = league.getMinLevel();
             leagueDTO.left = league.getCapacity() - league.getFill();
             leagueDTO.index = i % 4;
-            leagueDTO.cost = league.getCost();
+            leagueDTO.cost = league.getCost()+"  الماس  ";
             leagueDTO.name = league.getName();
             leagueDTO.id = league.getId();
             switch (league.getStatus()) {
