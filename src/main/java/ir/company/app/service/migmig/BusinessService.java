@@ -420,7 +420,7 @@ public class BusinessService {
         User user = userRepository.findOneByLogin(s[1].toLowerCase()).get();
 
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
-        if (league.getCapacity() - league.getFill() != 0) {
+        if (league.getCapacity() - league.getFill() != 0 && user.getGem() >= league.getCost()) {
             league.setFill(league.getFill() + 1);
             league.getUserList().add(user);
             user.getLeagues().add(league);
@@ -453,7 +453,7 @@ public class BusinessService {
             leagueDTO.minLevel = league.getMinLevel();
             leagueDTO.left = league.getCapacity() - league.getFill();
             leagueDTO.index = i % 4;
-            leagueDTO.cost = league.getCost()+"  الماس  ";
+            leagueDTO.cost = league.getCost() + "  الماس  ";
             leagueDTO.name = league.getName();
             leagueDTO.id = league.getId();
             switch (league.getStatus()) {
@@ -560,6 +560,7 @@ public class BusinessService {
                     } else {
                         user.setCoin(user.getCoin() + (int) marketObject.getAmount());
                     }
+                    factor.setDone(true);
                     userRepository.save(user);
                     response.sendRedirect("http://dagala.ir/payment.html?code=" + ss);
 
@@ -741,10 +742,10 @@ public class BusinessService {
             gameDTO.icon = challenge.getIcon();
             if (game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
                 if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
-                    gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1")?"0":challenge.getFirstScore();
-                    gameDTO.secondScore = challenge.getSecondScore().equalsIgnoreCase("-1")?"0":challenge.getSecondScore();
+                    gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
+                    gameDTO.secondScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
                 } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
-                    gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1")?"0":challenge.getFirstScore();
+                    gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
                     gameDTO.secondScore = "???";
                 } else {
                     gameDTO.secondScore = "???";
@@ -754,15 +755,16 @@ public class BusinessService {
             } else {
 
                 if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
-                    gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1")?"0":challenge.getSecondScore();
-                    gameDTO.secondScore = challenge.getFirstScore().equalsIgnoreCase("-1")?"0":challenge.getFirstScore();;
+                    gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
+                    gameDTO.secondScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
+                    ;
 
                 } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
                     gameDTO.secondScore = "???";
                     gameDTO.myScore = "???";
                 } else {
                     gameDTO.secondScore = "???";
-                    gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1")?"0":challenge.getSecondScore();
+                    gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
                 }
 
             }
@@ -1058,8 +1060,8 @@ public class BusinessService {
                     } else if (Long.valueOf(challenge.getFirstScore()) < Long.valueOf(challenge.getSecondScore())) {
                         game.setSecondScore(game.getSecondScore() + 1);
                     } else {
-                        game.setSecondScore(game.getSecondScore() );
-                        game.setFirstScore(game.getFirstScore() );
+                        game.setSecondScore(game.getSecondScore());
+                        game.setFirstScore(game.getFirstScore());
 
                     }
                 }

@@ -26,6 +26,10 @@ public class Factor implements Serializable {
     @Column(name = "amount")
     private Long amount;
 
+
+    @Column(name = "done")
+    private Boolean done;
+
     @OneToOne
     MarketObject marketObject;
 
@@ -35,6 +39,17 @@ public class Factor implements Serializable {
     @Column(name = "UID")
     private String uID;
 
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public Boolean getDone() {
+        return done;
+    }
+
+    public void setDone(Boolean done) {
+        this.done = done;
+    }
 
     public String getuID() {
         return uID;
