@@ -6,5 +6,7 @@ applications:
     services:
        - dagalaDB
        - dagalaRedis
+       - dagalscale
+       - redmindstaticIP
 
 

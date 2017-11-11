@@ -839,6 +839,7 @@ public class BusinessService {
         String[] s = data.split(",");
         User user = userRepository.findOneByLogin(s[1].toLowerCase()).get();
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
+
         Game game = gameRepository.findByFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FULL);
 
         try {
@@ -900,6 +901,7 @@ public class BusinessService {
             secondUser.setCoin(secondUser.getCoin() + Constants.doubleWinPrize);
         } else {
             game.setWinner(1);
+
             firsUser.setScore(firsUser.getScore() + Constants.doubleWinEXP);
             firsUser.setCoin(firsUser.getCoin() + Constants.doubleWinPrize);
 
