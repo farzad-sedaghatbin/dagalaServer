@@ -4,6 +4,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,6 +26,11 @@ public class Game {
     GameStatus gameStatus;
     @OneToMany(fetch = FetchType.EAGER)
     List<Challenge> challenges;
+    @OneToMany(fetch = FetchType.EAGER)
+    List<Message> messagesFirst;
+    @OneToMany(fetch = FetchType.EAGER)
+    List<Message> messagesSecond;
+
     private ZonedDateTime dateTime;
     @OneToOne
     private League league;
@@ -112,5 +118,25 @@ public class Game {
 
     public void setLeague(League league) {
         this.league = league;
+    }
+
+    public List<Message> getMessagesFirst() {
+        if(messagesFirst==null)
+            return new ArrayList<>();
+        return messagesFirst;
+    }
+
+    public void setMessagesFirst(List<Message> messagesFirst) {
+        this.messagesFirst = messagesFirst;
+    }
+
+    public List<Message> getMessagesSecond() {
+        if(messagesSecond==null)
+            return new ArrayList<>();
+        return messagesSecond;
+    }
+
+    public void setMessagesSecond(List<Message> messagesSecond) {
+        this.messagesSecond = messagesSecond;
     }
 }

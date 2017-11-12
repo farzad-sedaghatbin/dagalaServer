@@ -85,8 +85,10 @@ public class UserService {
         List<Game> halfGame = gameRepository.findByGameStatusAndFirstAndSecondAndLeague(GameStatus.FULL, user, user, new PageRequest(0, 10, new Sort(Sort.Direction.DESC, "id")));
         halfGame.addAll(gameRepository.findByGameStatusAndFirstAndSecondAndLeague(GameStatus.HALF, user, user, new PageRequest(0, 10, new Sort(Sort.Direction.DESC, "id"))));
         List<Game> fullGame = gameRepository.findByGameStatusAndFirstAndSecondAndLeague(GameStatus.FINISHED, user, user, new PageRequest(0, 10, new Sort(Sort.Direction.DESC, "id")));
+        List<Game> friendly = gameRepository.findByGameStatusAndFirstAndSecondAndLeague(GameStatus.FRIENDLY, user, user, new PageRequest(0, 10, new Sort(Sort.Direction.DESC, "id")));
 
         homeDTO.halfGame = new ArrayList<>();
+        homeDTO.friendly = new ArrayList<>();
         for (Game game : halfGame) {
             GameLowDTO gameLowDTO = new GameLowDTO();
             GameLowDTO.User firstUser = new GameLowDTO.User();
@@ -154,6 +156,18 @@ public class UserService {
             homeDTO.halfGame.add(gameLowDTO);
         }
 
+        for (Game game : friendly) {
+            GameLowDTO gameLowDTO = new GameLowDTO();
+            GameLowDTO.User firstUser = new GameLowDTO.User();
+            GameLowDTO.User secondUser = new GameLowDTO.User();
+            gameLowDTO.second = secondUser;
+            gameLowDTO.first = firstUser;
+            gameLowDTO.gameId = game.getId();
+
+            fillLowUser(username, game, secondUser);
+            homeDTO.friendly.add(gameLowDTO);
+        }
+
         homeDTO.fullGame = new ArrayList<>();
         for (
             Game game : fullGame)
@@ -193,17 +207,21 @@ public class UserService {
 
                 }
             }
-            if (game.getFirst().getLogin().equalsIgnoreCase(username)) {
-                secondUser.user = game.getSecond().getLogin();
-                secondUser.avatar = game.getSecond().getAvatar();
-            } else {
-
-                secondUser.user = game.getFirst().getLogin();
-                secondUser.avatar = game.getFirst().getAvatar();
-            }
+            fillLowUser(username, game, secondUser);
             homeDTO.fullGame.add(gameLowDTO);
         }
         return homeDTO;
+    }
+
+    private void fillLowUser(String username, Game game, GameLowDTO.User secondUser) {
+        if (game.getFirst().getLogin().equalsIgnoreCase(username)) {
+            secondUser.user = game.getSecond().getLogin();
+            secondUser.avatar = game.getSecond().getAvatar();
+        } else {
+
+            secondUser.user = game.getFirst().getLogin();
+            secondUser.avatar = game.getFirst().getAvatar();
+        }
     }
 
     public static double distance(double lat1, double lon1, double lat2, double lon2) {

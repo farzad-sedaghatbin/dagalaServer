@@ -58,11 +58,12 @@ public class BusinessService {
     private final AbstractGameRepository abstractGameRepository;
     private final FactorRepository factorRepository;
     private final MarketRepository marketRepository;
+    private final MessageRepository messageRepository;
     @PersistenceContext
     private EntityManager em;
 
     @Inject
-    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, PolicyRepository policyRepository, LeagueRepository leagueRepository, FactorRepository factorRepository, MarketRepository marketRepository) {
+    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, PolicyRepository policyRepository, LeagueRepository leagueRepository, FactorRepository factorRepository, MarketRepository marketRepository, MessageRepository messageRepository) {
         this.categoryUserRepository = categoryUserRepository;
         this.policyRepository = policyRepository;
         this.levelRepository = levelRepository;
@@ -76,6 +77,7 @@ public class BusinessService {
         this.leagueRepository = leagueRepository;
         this.factorRepository = factorRepository;
         this.marketRepository = marketRepository;
+        this.messageRepository = messageRepository;
     }
 
 
@@ -162,7 +164,7 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
 
     public ResponseEntity<?> cancelRequest(@RequestBody String data) throws JsonProcessingException {
-        gameRepository.delete(Long.valueOf(data));
+//        gameRepository.delete(Long.valueOf(data));
         RedisUtil.removeItem("invisible", data);
         return ResponseEntity.ok("200");
     }
@@ -187,7 +189,8 @@ public class BusinessService {
             u.setCoin(u.getCoin() - Constants.perGame);
             userRepository.save(u);
             gameRedisDTO.gameId = game.getId();
-            RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
+            if (game.getLeague() == null)
+                RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
 
         } else {
             gameRedisDTO = gameService.requestGame(user);
@@ -205,7 +208,8 @@ public class BusinessService {
                 u.setCoin(u.getCoin() - Constants.perGame);
                 userRepository.save(u);
                 gameRedisDTO.gameId = game.getId();
-                RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
+                if (game.getLeague() == null)
+                    RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
                 return ResponseEntity.ok(gameRedisDTO);
             } else {
                 GameRedisDTO.User second = new GameRedisDTO.User();
@@ -216,7 +220,8 @@ public class BusinessService {
                 second.avatar = game.getSecond().getAvatar();
                 game.setGameStatus(GameStatus.FULL);
                 gameRepository.save(game);
-                RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
+                if (game.getLeague() == null)
+                    RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
                 user.setCoin(user.getCoin() - Constants.perGame);
                 userRepository.save(user);
             }
@@ -224,6 +229,73 @@ public class BusinessService {
         }
 
         return ResponseEntity.ok(gameRedisDTO);
+    }
+
+    @RequestMapping(value = "/1/acceptFriend", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> acceptFriend(@RequestBody String id) throws JsonProcessingException {
+
+        Game game = gameRepository.findOne(Long.valueOf(id));
+        game.setGameStatus(GameStatus.FULL);
+        gameRepository.save(game);
+        User user = game.getSecond();
+        user.setCoin(user.getCoin() - Constants.perGame);
+        userRepository.save(user);
+
+
+        return ResponseEntity.ok("200");
+    }
+
+    @RequestMapping(value = "/1/rejectFriend", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> rejectFriend(@RequestBody String id) throws JsonProcessingException {
+
+        gameRepository.delete(Long.valueOf(id));
+
+        return ResponseEntity.ok("200");
+    }
+
+    @RequestMapping(value = "/1/message", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> message(@RequestBody String ids) throws JsonProcessingException {
+        String[] s = ids.split(",");
+        Game game = gameRepository.findOne(Long.valueOf(s[1]));
+        if (game.getFirst().getLogin().equalsIgnoreCase(s[0])) {
+            game.getMessagesFirst().add(messageRepository.findOne(Long.valueOf(s[2])));
+        } else {
+            game.getMessagesSecond().add(messageRepository.findOne(Long.valueOf(s[2])));
+        }
+        gameRepository.save(game);
+
+
+        return ResponseEntity.ok("200");
+    }
+
+
+    @RequestMapping(value = "/1/friendly", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> friendly(@RequestBody String data) throws JsonProcessingException {
+        String[] s = data.split(",");
+        User user = userRepository.findOneByLogin(s[0].toLowerCase()).get();
+        User freind = userRepository.findOneByLogin(s[1].toLowerCase()).get();
+        Game game = new Game();
+        game.setGameStatus(GameStatus.FRIENDLY);
+        game.setFirst(user);
+        game.setSecond(freind);
+        gameRepository.save(game);
+        User u = game.getFirst();
+        u.setCoin(u.getCoin() - Constants.perGame);
+        userRepository.save(u);
+
+        return ResponseEntity.ok("200");
     }
 
 
@@ -264,12 +336,12 @@ public class BusinessService {
         game.setChallenges(challengeList);
         gameRedisDTO.gameId = game.getId();
         gameRedisDTO.challengeList = challengeList;
-        if (challengeList.size() == 1 && challenge.getSecondScore() == null) {
+        if (challengeList.size() == 1 && challenge.getSecondScore() == null && game.getLeague() == null) {
             RedisUtil.addHashItem("half", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
             RedisUtil.removeItem("invisible", game.getId().toString());
             game.setGameStatus(GameStatus.HALF);
 
-        } else {
+        } else if (game.getLeague() == null) {
             RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
             game.setGameStatus(GameStatus.FULL);
         }
@@ -400,7 +472,8 @@ public class BusinessService {
             game.setDateTime(ZonedDateTime.now().plusDays(1));
             game.setGameStatus(GameStatus.FULL);
             gameRepository.save(game);
-            RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
+            if (game.getLeague() == null)
+                RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
 
             JoinResult joinResult = new JoinResult();
             joinResult.lastUrl = challenge[0].getUrl();
@@ -841,6 +914,8 @@ public class BusinessService {
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
 
         Game game = gameRepository.findByFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FULL);
+        if (game == null)
+            game = gameRepository.findByFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FINISHED);
 
         try {
             DetailDTO d = new DetailDTO();
@@ -911,8 +986,8 @@ public class BusinessService {
         userRepository.save(secondUser);
         newLevel = isNewLevel(firsUser, secondUser, s[1]);
         game.setGameStatus(GameStatus.FINISHED);
-
-        RedisUtil.removeItem("full", game.getId().toString());
+        if (game.getLeague() == null)
+            RedisUtil.removeItem("full", game.getId().toString());
 
         gameRepository.save(game);
 
@@ -976,7 +1051,8 @@ public class BusinessService {
 
         game.setGameStatus(GameStatus.FINISHED);
 
-        RedisUtil.removeItem("full", game.getId().toString());
+        if (game.getLeague() == null)
+            RedisUtil.removeItem("full", game.getId().toString());
 
         gameRepository.save(game);
 
@@ -1174,14 +1250,14 @@ public class BusinessService {
 
                 game.setGameStatus(GameStatus.FINISHED);
                 gameRepository.save(game);
-
-                RedisUtil.removeItem("full", game.getId().toString());
+                if (game.getLeague() == null)
+                    RedisUtil.removeItem("full", game.getId().toString());
 
             }
 
-            if (l.size() == 1 && l.get(0).getSecondScore() == null) {
+            if (l.size() == 1 && l.get(0).getSecondScore() == null && game.getLeague() == null) {
                 RedisUtil.addHashItem("half", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
-            } else if (!game.getGameStatus().equals(GameStatus.FINISHED)) {
+            } else if (!game.getGameStatus().equals(GameStatus.FINISHED) && game.getLeague() == null) {
                 RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
             }
 

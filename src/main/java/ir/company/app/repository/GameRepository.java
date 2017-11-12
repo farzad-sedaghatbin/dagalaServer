@@ -19,6 +19,11 @@ public interface GameRepository extends JpaRepository<Game, Long> {
     List<Game> findByGameStatusAndFirstAndSecondAndLeague(GameStatus gameStatus, User first, User second, Pageable pageable);
 
 
+ @Query("select g from Game g where g.gameStatus = ?1 and g.league is null and (g.first=?2  or (g.second is not null and g.second=?3 ))")
+
+    List<Game> findFriendly(GameStatus gameStatus, User first, User second, Pageable pageable);
+
+
 
     @Query("select g from Game g where g.gameStatus = ?4 and g.league=?3 and (g.first=?1 or g.second=?2)")
 
