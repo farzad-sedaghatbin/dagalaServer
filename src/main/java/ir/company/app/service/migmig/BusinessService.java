@@ -286,6 +286,10 @@ public class BusinessService {
         String[] s = data.split(",");
         User user = userRepository.findOneByLogin(s[0].toLowerCase()).get();
         User freind = userRepository.findOneByLogin(s[1].toLowerCase()).get();
+        if(freind==null){
+            return ResponseEntity.ok("201");
+
+        }
         Game game = new Game();
         game.setGameStatus(GameStatus.FRIENDLY);
         game.setFirst(user);
