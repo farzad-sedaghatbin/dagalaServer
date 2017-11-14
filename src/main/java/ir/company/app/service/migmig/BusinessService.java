@@ -30,6 +30,7 @@ import javax.xml.rpc.ServiceException;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -473,7 +474,8 @@ public class BusinessService {
             game.setChallenges(challengeList);
             gameRedisDTO.gameId = game.getId();
             gameRedisDTO.challengeList = challengeList;
-            game.setDateTime(ZonedDateTime.now().plusDays(1));
+            if (game.getDateTime() == null)
+                game.setDateTime(ZonedDateTime.now(ZoneId.of("UTC+03:30")).plusDays(1));
             game.setGameStatus(GameStatus.FULL);
             gameRepository.save(game);
             if (game.getLeague() == null)
@@ -791,8 +793,10 @@ public class BusinessService {
     public ResponseEntity<?> detailGame(@RequestBody String data) throws JsonProcessingException {
         String[] s = data.split(",");
         Game game = gameRepository.findOne(Long.valueOf(s[0]));
-        List<Challenge> l = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
-
+        List<Challenge> l = new ArrayList<>();
+        if (game.getChallenges() != null) {
+            l = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
+        }
         DetailDTO detailDTO = new DetailDTO();
         detailDTO.gameId = game.getId();
         DetailDTO.User secondUser = new DetailDTO.User();
@@ -802,11 +806,13 @@ public class BusinessService {
                 secondUser.user = game.getSecond().getLogin();
                 secondUser.avatar = game.getSecond().getAvatar();
                 secondUser.level = game.getSecond().getLevel();
+                detailDTO.messages = game.getMessagesSecond().stream().map(Message::getId).collect(Collectors.toList());
             }
         } else {
             secondUser.user = game.getFirst().getLogin();
             secondUser.avatar = game.getFirst().getAvatar();
             secondUser.level = game.getFirst().getLevel();
+            detailDTO.messages = game.getMessagesFirst().stream().map(Message::getId).collect(Collectors.toList());
 
         }
         final int[] first = {0};
@@ -814,6 +820,7 @@ public class BusinessService {
         if (game.getDateTime() != null)
             detailDTO.timeLeft = (game.getDateTime().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 1000;
 
+        List<Challenge> finalL = l;
         l.forEach(challenge -> {
             DetailDTO.GameDTO gameDTO = new DetailDTO.GameDTO();
             gameDTO.icon = challenge.getIcon();
@@ -857,9 +864,9 @@ public class BusinessService {
                 detailDTO.status = "2";
             }
 
-            if (l.size() != 3 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
+            if (finalL.size() != 3 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
                 detailDTO.status = "1";
-                if (l.size() == 1) {
+                if (finalL.size() == 1) {
                     detailDTO.url = challenge.getUrl();
                 }
             }
@@ -868,15 +875,18 @@ public class BusinessService {
             }
 
         });
-        if (l.size() == 1 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+
+        if (l.size() == 0) {
+            detailDTO.status = "10";
+
+        } else if (l.size() == 1 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             if ((game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1]))
                 detailDTO.status = "1";
             else {
                 detailDTO.status = "2";
 
             }
-        }
-        if (l.size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+        } else if (l.size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             detailDTO.status = "3";
             AbstractGame abstractGame = thirdGame(Long.parseLong(s[0]));
             detailDTO.url = abstractGame.getUrl();
@@ -889,8 +899,7 @@ public class BusinessService {
             challengeList.add(challenge);
             gameRepository.save(game);
 
-        }
-        if (l.size() == 3 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+        } else if (l.size() == 3 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             detailDTO.url = l.get(2).getUrl();
             detailDTO.status = "3";
 

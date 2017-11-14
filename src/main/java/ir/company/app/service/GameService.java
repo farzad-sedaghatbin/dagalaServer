@@ -1,33 +1,24 @@
 package ir.company.app.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import ir.company.app.config.Constants;
-import ir.company.app.domain.Authority;
 import ir.company.app.domain.entity.*;
-import ir.company.app.repository.*;
-import ir.company.app.security.AuthoritiesConstants;
+import ir.company.app.repository.AbstractGameRepository;
+import ir.company.app.repository.ChallengeRepository;
+import ir.company.app.repository.GameRepository;
+import ir.company.app.repository.UserRepository;
 import ir.company.app.security.SecurityUtils;
 import ir.company.app.service.dto.DetailDTO;
-import ir.company.app.service.dto.GameLowDTO;
 import ir.company.app.service.dto.GameRedisDTO;
-import ir.company.app.service.dto.HomeDTO;
-import ir.company.app.service.util.RandomUtil;
 import ir.company.app.service.util.RedisUtil;
-import ir.company.app.web.rest.vm.ManagedUserVM;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.inject.Inject;
-import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * Service class for managing users.
@@ -54,11 +45,19 @@ public class GameService {
         if (SecurityUtils.getCurrentUserLogin().equalsIgnoreCase(game.getFirst().getLogin())) {
             if (game.getSecond() != null) {
                 secondUser.user = game.getSecond().getLogin();
+                secondUser.level = game.getSecond().getLevel();
                 secondUser.avatar = game.getSecond().getAvatar();
+                if(game.getMessagesSecond()!=null&&game.getMessagesSecond().size()>0)
+                detailDTO.messages = game.getMessagesSecond().stream().map(Message::getId).collect(Collectors.toList());
+
             }
         } else {
             secondUser.user = game.getFirst().getLogin();
+            secondUser.level = game.getFirst().getLevel();
             secondUser.avatar = game.getFirst().getAvatar();
+            if(game.getMessagesFirst()!=null&&game.getMessagesFirst().size()>0)
+            detailDTO.messages = game.getMessagesFirst().stream().map(Message::getId).collect(Collectors.toList());
+
         }
         final int[] first = {0};
         final int[] second = {0};

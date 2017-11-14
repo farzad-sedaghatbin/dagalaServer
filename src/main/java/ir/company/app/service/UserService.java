@@ -122,9 +122,21 @@ public class UserService {
                     gameLowDTO.scoreStatus = " مساوی";
                 }
             }
-            Challenge challenge = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList()).get(game.getChallenges().size() - 1);
+            Challenge challenge = null;
+            if (game.getChallenges() != null && game.getChallenges().size() != 0)
+                challenge = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList()).get(game.getChallenges().size() - 1);
 
-            if (game.getSecond() == null) {
+            if (challenge == null) {
+                if (game.getFirst().getLogin().equalsIgnoreCase(username)) {
+                    gameLowDTO.status = "نوبت شماست";
+
+                } else {
+                    gameLowDTO.status = "در انتظار حریف";
+
+                }
+
+
+            } else if (game.getSecond() == null) {
                 gameLowDTO.status = "در انتظار حریف";
             } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && game.getFirst().getLogin().equalsIgnoreCase(username)) {
                 gameLowDTO.status = "نوبت شماست";

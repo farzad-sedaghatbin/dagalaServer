@@ -7,6 +7,6 @@ applications:
        - dagalaDB
        - dagalaRedis
        - dagalscale
-       - redmindstaticIP
+       - uniroostaticIp
 
 

@@ -11,8 +11,9 @@ public class DetailDTO {
     public String status;
     public int score;
     public String url;
-    public Long timeLeft=null;
+    public Long timeLeft = null;
     public long gameId;
+   public List<Long> messages = new ArrayList<>();
 
     public List<GameDTO> gameDTOS = new ArrayList<>();
     public DetailDTO.User user;

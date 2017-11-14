@@ -139,4 +139,6 @@ public class Game {
     public void setMessagesSecond(List<Message> messagesSecond) {
         this.messagesSecond = messagesSecond;
     }
+
+
 }
