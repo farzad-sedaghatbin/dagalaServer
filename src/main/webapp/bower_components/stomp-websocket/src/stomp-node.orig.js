@@ -84,17 +84,17 @@ var wrapWS = function(url) {
 
   socket.connect(url);
   return ws;
-}
+};
 
 var overTCP = function(host, port) {
   var socket = wrapTCP(port, host);
   return Stomp.Stomp.over(socket);
-}
+};
 
 var overWS= function(url) {
   var socket = wrapWS(url);
   return Stomp.Stomp.over(socket);
-}
+};
 
 exports.overTCP = overTCP;
 exports.overWS = overWS;

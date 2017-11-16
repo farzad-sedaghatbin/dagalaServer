@@ -34,7 +34,7 @@ define(['Modernizr', 'createElement', 'test/webgl'], function(Modernizr, createE
     /* jshint -W053 */
 
     // Not a good candidate for css classes, so we avoid addTest stuff
-    Modernizr.webglextensions = new Boolean(false);
+    Modernizr.webglextensions = Boolean(false);
 
     if (!Modernizr.webgl) {
       return;
@@ -54,7 +54,7 @@ define(['Modernizr', 'createElement', 'test/webgl'], function(Modernizr, createE
     }
 
     if (ctx !== undefined) {
-      Modernizr.webglextensions = new Boolean(true);
+      Modernizr.webglextensions = Boolean(true);
     }
 
     for (var i = -1, len = exts.length; ++i < len;) {

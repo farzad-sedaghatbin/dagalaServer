@@ -57,7 +57,7 @@ define(['tests', 'Modernizr', 'classes', 'is'], function(tests, Modernizr, class
             // cast to a Boolean, if not one already
             /* jshint -W053 */
             if (Modernizr[featureNameSplit[0]] && !(Modernizr[featureNameSplit[0]] instanceof Boolean)) {
-              Modernizr[featureNameSplit[0]] = new Boolean(Modernizr[featureNameSplit[0]]);
+              Modernizr[featureNameSplit[0]] = Boolean(Modernizr[featureNameSplit[0]]);
             }
 
             Modernizr[featureNameSplit[0]][featureNameSplit[1]] = result;

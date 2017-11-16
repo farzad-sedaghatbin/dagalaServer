@@ -883,24 +883,24 @@
                                     <arguments>rebuild node-sass</arguments>
                                 </configuration>
                             </execution>-->
-                            <execution>
-                                <id>bower install</id>
-                                <goals>
-                                    <goal>bower</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>install --no-color</arguments>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>gulp build</id>
-                                <goals>
-                                    <goal>gulp</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>build --no-notification</arguments>
-                                </configuration>
-                            </execution>
+                            <!--<execution>-->
+                                <!--<id>bower install</id>-->
+                                <!--<goals>-->
+                                    <!--<goal>bower</goal>-->
+                                <!--</goals>-->
+                                <!--<configuration>-->
+                                    <!--<arguments>install &#45;&#45;no-color</arguments>-->
+                                <!--</configuration>-->
+                            <!--</execution>-->
+                            <!--<execution>-->
+                                <!--<id>gulp build</id>-->
+                                <!--<goals>-->
+                                    <!--<goal>gulp</goal>-->
+                                <!--</goals>-->
+                                <!--<configuration>-->
+                                    <!--<arguments>build &#45;&#45;no-notification</arguments>-->
+                                <!--</configuration>-->
+                            <!--</execution>-->
 
                             <!-- <execution>
                                 <id>gulp test</id>

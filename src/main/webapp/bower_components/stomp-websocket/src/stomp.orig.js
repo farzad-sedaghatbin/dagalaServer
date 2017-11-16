@@ -79,7 +79,7 @@
     };
 
     onmessage = function(evt) {
-      var data = evt.data
+      var data = evt.data;
       if (data instanceof ArrayBuffer) {
         view = new Uint8Array(data);
         data = "";

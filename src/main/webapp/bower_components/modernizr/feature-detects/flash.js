@@ -27,7 +27,7 @@ define(['Modernizr', 'createElement', 'docElement', 'addTest', 'getBody', 'isSVG
     var runTest = function(result, embed) {
       var bool = !!result;
       if (bool) {
-        bool = new Boolean(bool);
+        bool = Boolean(bool);
         bool.blocked = (result === 'blocked');
       }
       addTest('flash', function() { return bool; });

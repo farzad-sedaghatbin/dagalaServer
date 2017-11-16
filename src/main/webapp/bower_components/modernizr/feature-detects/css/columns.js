@@ -17,7 +17,7 @@ define(['Modernizr', 'testAllProps'], function(Modernizr, testAllProps) {
       var test = testAllProps('columnCount');
       try {
         if (bool = !!test) {
-          bool = new Boolean(bool);
+          bool = Boolean(bool);
         }
       } catch (e) {}
 

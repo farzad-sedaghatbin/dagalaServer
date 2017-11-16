@@ -294,7 +294,7 @@ ngTouch.factory('$swipe', [function() {
           if (eventHandlers['cancel']) {
             eventHandlers['cancel'](event);
           }
-          return;
+          
         } else {
           // Prevent the browser from scrolling.
           event.preventDefault();

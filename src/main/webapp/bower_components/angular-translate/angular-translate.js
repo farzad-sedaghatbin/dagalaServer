@@ -532,7 +532,7 @@ function $translate($STORAGE_KEY, $windowProvider, $translateSanitizationProvide
     }
 
     // If everything fails, return undefined.
-    return;
+    
   };
 
   /**

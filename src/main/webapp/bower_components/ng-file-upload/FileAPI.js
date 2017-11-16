@@ -4175,9 +4175,8 @@
 			        left : left,
 			        top : top
 			    };
-			};
-			
-			return {
+            }
+            return {
 				  top:		getOffset(el).top
 				, left:		getOffset(el).left
 				, width:	el.offsetWidth

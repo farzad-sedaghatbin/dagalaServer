@@ -197,7 +197,7 @@ describe('addTest', function() {
 
     it('supports nested properties with a bool base', function() {
       /* jshint -W053 */
-      addTest('fake', new Boolean(true));
+      addTest('fake', Boolean(true));
       /* jshint +W053 */
       addTest('fake.detect', true);
       expect(Modernizr.fake).to.be.an('object');

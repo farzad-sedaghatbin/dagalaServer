@@ -12,8 +12,8 @@ import java.util.List;
 @SuppressWarnings("unused")
 public interface FactorRepository extends JpaRepository<Factor, Long> {
 
-    public Factor findByUID(String uid);
+    Factor findByUID(String uid);
 
-    public List<Factor> findByMarketObject(MarketObject marketObject);
+    List<Factor> findByMarketObject(MarketObject marketObject);
 
 }

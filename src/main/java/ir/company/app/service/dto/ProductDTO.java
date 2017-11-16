@@ -19,7 +19,7 @@ public class ProductDTO implements Serializable {
 
 
     private Long statusId;
-    
+
 
     private String statusName;
 
@@ -73,9 +73,8 @@ public class ProductDTO implements Serializable {
 
         ProductDTO productDTO = (ProductDTO) o;
 
-        if ( ! Objects.equals(id, productDTO.id)) return false;
+        return Objects.equals(id, productDTO.id);
 
-        return true;
     }
 
     @Override

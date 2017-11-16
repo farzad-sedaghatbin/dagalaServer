@@ -35,7 +35,7 @@ describe('testRunner', function() {
         }, {
           'name': 'fakeBoolDeep',
           /* jshint -W053 */
-          'fn': new Boolean(true)
+          'fn': Boolean(true)
           /* jshint +W053 */
         }, {
           'name': 'fakeBoolDeep.detect',

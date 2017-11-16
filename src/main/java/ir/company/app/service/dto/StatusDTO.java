@@ -49,9 +49,8 @@ public class StatusDTO implements Serializable {
 
         StatusDTO statusDTO = (StatusDTO) o;
 
-        if ( ! Objects.equals(id, statusDTO.id)) return false;
+        return Objects.equals(id, statusDTO.id);
 
-        return true;
     }
 
     @Override

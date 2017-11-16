@@ -86,7 +86,7 @@ var
     if (fs.existsSync(o.output) && fs.statSync(o.output).isDirectory()) {
       o.output = Path.join(o.output, 'i18n.js');
     }
-    o.namespace = o.module ? 'module.exports' : o.namespace.replace(/^window\./, '')
+    o.namespace = o.module ? 'module.exports' : o.namespace.replace(/^window\./, '');
     return o;
   })(),
   _log = (options.verbose ? function(s) { console.log(s); } : function(){});

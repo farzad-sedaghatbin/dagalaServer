@@ -66,7 +66,7 @@ define(['Modernizr', 'addTest'], function(Modernizr, addTest) {
         var baseTest = name === 'webp';
 
         /* jshint -W053 */
-        addTest(name, baseTest ? new Boolean(result) : result);
+        addTest(name, baseTest ? Boolean(result) : result);
 
         if (cb) {
           cb(event);

@@ -71,7 +71,7 @@ describe('testProps', function() {
 
   describe('nonnative detect', function() {
     var contains = function(a, b) {return a.indexOf(b) > -1;};
-    var nativeTestProps = function() { return; };
+    var nativeTestProps = function() {  };
     var cssToDOM;
     var mStyle;
 

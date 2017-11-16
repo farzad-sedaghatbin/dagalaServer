@@ -60,12 +60,12 @@ define(['Modernizr', 'addTest'], function(Modernizr, addTest) {
 
       datauriBig.onerror = function() {
         addTest('datauri', true);
-        Modernizr.datauri = new Boolean(true);
+        Modernizr.datauri = Boolean(true);
         Modernizr.datauri.over32kb = false;
       };
       datauriBig.onload = function() {
         addTest('datauri', true);
-        Modernizr.datauri = new Boolean(true);
+        Modernizr.datauri = Boolean(true);
         Modernizr.datauri.over32kb = (datauriBig.width == 1 && datauriBig.height == 1);
       };
 

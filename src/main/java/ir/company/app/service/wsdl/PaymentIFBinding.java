@@ -8,14 +8,14 @@
 package ir.company.app.service.wsdl;
 
 public interface PaymentIFBinding extends javax.xml.rpc.Service {
-    public String getPaymentIFBindingSoap12Address();
+    String getPaymentIFBindingSoap12Address();
 
-    public PaymentIFBindingSoap getPaymentIFBindingSoap12() throws javax.xml.rpc.ServiceException;
+    PaymentIFBindingSoap getPaymentIFBindingSoap12() throws javax.xml.rpc.ServiceException;
 
-    public PaymentIFBindingSoap getPaymentIFBindingSoap12(java.net.URL portAddress) throws javax.xml.rpc.ServiceException;
-    public String getPaymentIFBindingSoapAddress();
+    PaymentIFBindingSoap getPaymentIFBindingSoap12(java.net.URL portAddress) throws javax.xml.rpc.ServiceException;
+    String getPaymentIFBindingSoapAddress();
 
-    public PaymentIFBindingSoap getPaymentIFBindingSoap() throws javax.xml.rpc.ServiceException;
+    PaymentIFBindingSoap getPaymentIFBindingSoap() throws javax.xml.rpc.ServiceException;
 
-    public PaymentIFBindingSoap getPaymentIFBindingSoap(java.net.URL portAddress) throws javax.xml.rpc.ServiceException;
+    PaymentIFBindingSoap getPaymentIFBindingSoap(java.net.URL portAddress) throws javax.xml.rpc.ServiceException;
 }

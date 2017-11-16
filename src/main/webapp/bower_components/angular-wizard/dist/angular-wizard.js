@@ -289,7 +289,7 @@ angular.module('mgo-angular-wizard').directive('wizard', function() {
 
             this.totalStepCount = function() {
                 return $scope.getEnabledSteps().length;
-            }
+            };
 
             //Access to enabled steps from outside
             this.getEnabledSteps = function(){

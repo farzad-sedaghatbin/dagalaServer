@@ -5,7 +5,6 @@ import ir.company.app.domain.entity.*;
 import ir.company.app.repository.AbstractGameRepository;
 import ir.company.app.repository.ChallengeRepository;
 import ir.company.app.repository.GameRepository;
-import ir.company.app.repository.UserRepository;
 import ir.company.app.security.SecurityUtils;
 import ir.company.app.service.dto.DetailDTO;
 import ir.company.app.service.dto.GameRedisDTO;
@@ -33,8 +32,6 @@ public class GameService {
     private AbstractGameRepository abstractGameRepository;
     @Inject
     private ChallengeRepository challengeRepository;
-    @Inject
-    private UserRepository userRepository;
 
 
     public DetailDTO detailGame(Game game) throws JsonProcessingException {
@@ -59,8 +56,6 @@ public class GameService {
             detailDTO.messages = game.getMessagesFirst().stream().map(Message::getId).collect(Collectors.toList());
 
         }
-        final int[] first = {0};
-        final int[] second = {0};
         if (game.getDateTime() != null)
             detailDTO.timeLeft = (game.getDateTime().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 1000;
 
@@ -160,16 +155,9 @@ public class GameService {
     public AbstractGame thirdGame(long gameId) throws JsonProcessingException {
         List<AbstractGame> abstractGames = abstractGameRepository.findAll();
         Game game = gameRepository.findOne(gameId);
-        List<AbstractGame> longSet = new ArrayList<>();
-        for (AbstractGame abstractGame : abstractGames) {
-            longSet.add(abstractGame);
-        }
+        List<AbstractGame> longSet = new ArrayList<>(abstractGames);
         for (AbstractGame abstractGame : longSet) {
-            for (Challenge game1 : game.getChallenges()) {
-                if (game1.getName().equalsIgnoreCase(abstractGame.getName())) {
-                    abstractGames.remove(abstractGame);
-                }
-            }
+            game.getChallenges().stream().filter(game1 -> game1.getName().equalsIgnoreCase(abstractGame.getName())).forEach(game1 -> abstractGames.remove(abstractGame));
         }
         Random r = new Random();
         return abstractGames.get(r.nextInt(abstractGames.size()));

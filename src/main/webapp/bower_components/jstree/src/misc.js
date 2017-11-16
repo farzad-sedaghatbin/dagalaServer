@@ -521,10 +521,10 @@
                         var callError = function(number, message) {
                                 self._data.core.last_error = { 'error' : 'configuration', 'plugin' : 'parentsload', 'id' : 'parentsload_' + number, 'reason' : message, 'data' : JSON.stringify({config: parentsloadSettings}) };
                                 self.settings.core.error.call(self, self._data.core.last_error);
-                        }
+                        };
 
                         if(!parentsloadSettings) {
-                                callError('01', 'The configuration must be presented')
+                                callError('01', 'The configuration must be presented');
                                 return
                         }
                         parentsloadSettings = parentsloadSettings.data;
@@ -551,22 +551,22 @@
                                 } /* else {
                                         use jstree the same data[propertyName] settings
                                 }*/
-                        }
+                        };
 
                         if($.isFunction(parentsloadSettings)) {
                                 this.settings.data = parentsloadSettings
                         } else if (typeof parentsloadSettings === 'object') {
                                 if (! (parentsloadSettings.url || parentsloadSettings.data)) {
-                                        callError('02', 'The "data.url" or "data.data" must be presented in configuration')
+                                        callError('02', 'The "data.url" or "data.data" must be presented in configuration');
                                         return
                                 }
-                                patchSettingsProperty('url')
+                                patchSettingsProperty('url');
                                 patchSettingsProperty('data')
 
                         } else {
                                 callError('03', 'The appropriate "data.url" or "data.data" must be presented in configuration')
                         }
-                }
+                };
 
                 this.load_node = function (obj, callback) {
                         if($.isArray(obj)) {
@@ -592,7 +592,7 @@
                                         parentsload_required : true,
                                 };
                                 return parent.load_node.call(this, obj, function(obj, status){
-                                        obj.parentsload_required = !status
+                                        obj.parentsload_required = !status;
                                         callback.call(this, obj, status)
                                 })
                         }

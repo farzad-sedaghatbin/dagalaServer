@@ -125,7 +125,6 @@ public class UserService {
             Challenge challenge = null;
             if (game.getChallenges() != null && game.getChallenges().size() != 0)
                 challenge = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList()).get(game.getChallenges().size() - 1);
-
             if (challenge == null) {
                 if (game.getFirst().getLogin().equalsIgnoreCase(username)) {
                     gameLowDTO.status = "نوبت شماست";
@@ -154,6 +153,7 @@ public class UserService {
             } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getFirst().getLogin().equalsIgnoreCase(username) && game.getChallenges().size() == 1) {
                 gameLowDTO.status = "در انتظار حریف";
             }
+
 
 
             if (game.getChallenges().size() == 2 && (gameLowDTO.status == null || gameLowDTO.status.isEmpty())) {

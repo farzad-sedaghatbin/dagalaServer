@@ -12,7 +12,7 @@ angular.module('ngCacheBuster', [])
 	
 	//Select blacklist or whitelist, default to whitelist
 	this.setMatchlist = function(list,black) {
-	    this.black = typeof black != 'undefined' ? black : false
+	    this.black = typeof black != 'undefined' ? black : false;
 	    this.matchlist = list;
 	};
 	
@@ -44,12 +44,12 @@ angular.module('ngCacheBuster', [])
 			var d = new Date();
 			config.url = config.url.replace(/[?|&]cacheBuster=\d+/,'');
 			//Some url's allready have '?' attached
-			config.url+=config.url.indexOf('?') === -1 ? '?' : '&'
+			config.url+=config.url.indexOf('?') === -1 ? '?' : '&';
 			config.url += 'cacheBuster=' + d.getTime();
 		    }
 		    
 		    if (logRequests) {
-			var log='request.url =' + config.url
+			var log='request.url =' + config.url;
 			busted ? $log.warn(log) : $log.info(log)
 		    }
 

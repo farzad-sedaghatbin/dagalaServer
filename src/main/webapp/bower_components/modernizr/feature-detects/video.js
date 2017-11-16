@@ -43,7 +43,7 @@ define(['Modernizr', 'createElement'], function(Modernizr, createElement) {
     // IE9 Running on Windows Server SKU can cause an exception to be thrown, bug #224
     try {
       if (bool = !!elem.canPlayType) {
-        bool = new Boolean(bool);
+        bool = Boolean(bool);
         bool.ogg = elem.canPlayType('video/ogg; codecs="theora"').replace(/^no$/, '');
 
         // Without QuickTime, this value will be `undefined`. github.com/Modernizr/Modernizr/issues/546

@@ -14,11 +14,11 @@ test("Subscribe using client ack mode, send a message and ack it", function() {
       equals(message.body, body);
       var receipt = Math.random();
       client.onreceipt = function(frame) {
-        equals(receipt, frame.headers['receipt-id'])
+        equals(receipt, frame.headers['receipt-id']);
         client.disconnect();
-      }
+      };
       message.ack({'receipt': receipt});
-    }
+    };
     var sub = client.subscribe(TEST.destination, onmessage, {'ack': 'client'});      
     client.send(TEST.destination, {}, body);
   });
@@ -38,11 +38,11 @@ test("Subscribe using client ack mode, send a message and nack it", function() {
       equals(message.body, body);
       var receipt = Math.random();
       client.onreceipt = function(frame) {
-        equals(receipt, frame.headers['receipt-id'])
+        equals(receipt, frame.headers['receipt-id']);
         client.disconnect();
-      }
+      };
       message.nack({'receipt': receipt});
-    }
+    };
     var sub = client.subscribe(TEST.destination, onmessage, {'ack': 'client'});      
     client.send(TEST.destination, {}, body);
   });
