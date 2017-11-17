@@ -12,11 +12,12 @@ public class LeagueDTO {
     public int left;
     public int size;
     public String cost;
+    public String description;
     public String startDate;
     public Long timeLeft;
     public Long id;
     public int status;
-public List<Prize> prizes = new ArrayList<>();
+    public List<Prize> prizes = new ArrayList<>();
 
     public int index;
     public String name;
@@ -28,7 +29,7 @@ public List<Prize> prizes = new ArrayList<>();
             this.desc = desc;
         }
 
-        public  int index;
-        public  String desc;
+        public int index;
+        public String desc;
     }
 }

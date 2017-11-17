@@ -14,17 +14,18 @@ public class League {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private int capacity=0;
-    private int fill=0;
-    private int cost=0;
-    private int minLevel=0;
+    private int capacity = 0;
+    private int fill = 0;
+    private int cost = 0;
+    private int minLevel = 0;
     private String name;
+    private String description;
     private StatusEnum status;
     private ZonedDateTime startDate;
-    @ManyToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_league", joinColumns = @JoinColumn(name = "league_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     List<User> userList;
-    @OneToMany(mappedBy = "league",fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "league", fetch = FetchType.EAGER)
     List<PrizeLeague> prizeLeagues;
 
 
@@ -106,5 +107,13 @@ public class League {
 
     public void setUserList(List<User> userList) {
         this.userList = userList;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

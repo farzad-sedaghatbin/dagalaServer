@@ -9,6 +9,7 @@ import java.util.List;
 public class DetailDTO {
     //    public String distance;
     public String status;
+    public String state;
     public int score;
     public String url;
     public Long timeLeft = null;

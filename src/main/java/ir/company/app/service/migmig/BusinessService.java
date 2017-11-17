@@ -46,6 +46,7 @@ public class BusinessService {
     @Inject
     GameService gameService;
     private final UserRepository userRepository;
+    private final LeagueUserRepository leagueUserRepository;
     private final ChallengeRepository challengeRepository;
     private final RecordRepository recordRepository;
     private final LevelRepository levelRepository;
@@ -63,7 +64,8 @@ public class BusinessService {
     private EntityManager em;
 
     @Inject
-    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, PolicyRepository policyRepository, LeagueRepository leagueRepository, FactorRepository factorRepository, MarketRepository marketRepository, MessageRepository messageRepository) {
+    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, LeagueUserRepository leagueUserRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, PolicyRepository policyRepository, LeagueRepository leagueRepository, FactorRepository factorRepository, MarketRepository marketRepository, MessageRepository messageRepository) {
+        this.leagueUserRepository = leagueUserRepository;
         this.categoryUserRepository = categoryUserRepository;
         this.policyRepository = policyRepository;
         this.levelRepository = levelRepository;
@@ -525,6 +527,7 @@ public class BusinessService {
             leagueDTO.index = i % 4;
             leagueDTO.cost = league.getCost() + "  الماس  ";
             leagueDTO.name = league.getName();
+            leagueDTO.description = league.getDescription();
             leagueDTO.id = league.getId();
             switch (league.getStatus()) {
                 case INIT:
@@ -896,6 +899,12 @@ public class BusinessService {
             DetailDTO d = new DetailDTO();
             if (!game.getGameStatus().equals(GameStatus.FINISHED)) {
                 d = gameService.detailGame(game);
+                if (game.getWinner() == 1) {
+                    d.state = "بردی";
+                } else if (game.getWinner() == 2) {
+                    d.state = "باختی";
+
+                }
             } else {
                 d.timeLeft = null;
             }
@@ -917,15 +926,15 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
 
     public ResponseEntity<?> finishedLeague(@RequestBody long id) {
-        Page<Object[]> topPlayers = userRepository.topPlayer(new PageRequest(0, 20, new Sort(Sort.Direction.DESC, "score")));
+        List<LeagueUser> topPlayers = leagueUserRepository.topPlayer(id);
         List<RecordDTO.User> recordDTOS = new ArrayList<>();
         final int[] i = {0};
-        for (Object[] topPlayer : topPlayers.getContent()) {
+        for (LeagueUser topPlayer : topPlayers) {
 
             RecordDTO.User recordDTO = new RecordDTO.User();
-            recordDTO.avatar = valueOf(topPlayer[0]);
+            recordDTO.avatar = valueOf(topPlayer.getUser().getAvatar());
             recordDTO.index = i[0]++ % 4;
-            recordDTO.user = valueOf(topPlayer[2]);
+            recordDTO.user = valueOf(topPlayer.getUser().getLogin());
             recordDTOS.add(recordDTO);
         }
         return ResponseEntity.ok(recordDTOS);

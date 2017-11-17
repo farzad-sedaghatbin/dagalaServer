@@ -11,7 +11,6 @@ import ir.company.app.repository.CategoryRepository;
 import ir.company.app.repository.GameRepository;
 import ir.company.app.repository.UserRepository;
 import ir.company.app.security.AuthoritiesConstants;
-import ir.company.app.security.SecurityUtils;
 import ir.company.app.service.dto.GameLowDTO;
 import ir.company.app.service.dto.HomeDTO;
 import ir.company.app.service.util.RandomUtil;
@@ -63,7 +62,7 @@ public class UserService {
     private EntityManager em;
 
     public HomeDTO refresh(boolean newLevel, String username) {
-        User user = userRepository.findOneByLogin(username.toLowerCase()).get();
+        User user = userRepository.findOneByLogin(username.toLowerCase());
         HomeDTO homeDTO = new HomeDTO();
         homeDTO.score = user.getScore();
         homeDTO.gem = user.getGem();
@@ -354,17 +353,6 @@ public class UserService {
         return user;
     }
 
-    public void updateUser(String firstName, String lastName, String email, String langKey) {
-        userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).ifPresent(u -> {
-            u.setFirstName(firstName);
-            u.setLastName(lastName);
-            u.setEmail(email);
-            u.setLangKey(langKey);
-            userRepository.save(u);
-            log.debug("Changed Information for User: {}", u);
-        });
-    }
-
     public void updateUser(Long id, String login, String firstName, String lastName, String email,
                            boolean activated, String langKey, Set<String> authorities) {
 
@@ -386,22 +374,7 @@ public class UserService {
             });
     }
 
-    public void deleteUser(String login) {
-        userRepository.findOneByLogin(login).ifPresent(u -> {
-            socialService.deleteUserSocialConnection(u.getLogin());
-            userRepository.delete(u);
-            log.debug("Deleted User: {}", u);
-        });
-    }
 
-    public void changePassword(String password) {
-        userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).ifPresent(u -> {
-            String encryptedPassword = passwordEncoder.encode(password);
-            u.setPassword(encryptedPassword);
-            userRepository.save(u);
-            log.debug("Changed password for User: {}", u);
-        });
-    }
 
     @Transactional(readOnly = true)
     public Optional<User> getUserWithAuthoritiesByLogin(String login) {
@@ -419,16 +392,7 @@ public class UserService {
         return user;
     }
 
-    @Transactional(readOnly = true)
-    public User getUserWithAuthorities() {
-        Optional<User> optionalUser = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin());
-        User user = null;
-        if (optionalUser.isPresent()) {
-            user = optionalUser.get();
-//            user.getAuthorities().size(); // eagerly load the association
-        }
-        return user;
-    }
+
 
 
     /**

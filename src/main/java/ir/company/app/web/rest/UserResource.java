@@ -2,26 +2,22 @@ package ir.company.app.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
 import ir.company.app.config.Constants;
-import ir.company.app.domain.entity.User;
 import ir.company.app.repository.UserRepository;
-import ir.company.app.security.AuthoritiesConstants;
 import ir.company.app.service.UserService;
-import ir.company.app.web.rest.util.HeaderUtil;
 import ir.company.app.web.rest.vm.ManagedUserVM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * REST controller for managing users.
@@ -72,34 +68,6 @@ public class UserResource {
      * @return the ResponseEntity with status 201 (Created) and with body the new user, or with status 400 (Bad Request) if the login or email is already in use
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @PostMapping("/users")
-    @Timed
-    @Secured(AuthoritiesConstants.ADMIN)
-    public ResponseEntity<?> createUser(@RequestBody ManagedUserVM managedUserVM, HttpServletRequest request) throws URISyntaxException {
-        log.debug("REST request to save User : {}", managedUserVM);
-
-        //Lowercase the user login before comparing with database
-        if (userRepository.findOneByLogin(managedUserVM.getLogin().toLowerCase()).isPresent()) {
-            return ResponseEntity.badRequest()
-                .headers(HeaderUtil.createFailureAlert("userManagement", "userexists", "Login already in use"))
-                .body(null);
-        } else if (userRepository.findOneByEmail(managedUserVM.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest()
-                .headers(HeaderUtil.createFailureAlert("userManagement", "emailexists", "Email already in use"))
-                .body(null);
-        } else {
-            User newUser = userService.createUser(managedUserVM);
-            String baseUrl = request.getScheme() + // "http"
-            "://" +                                // "://"
-            request.getServerName() +              // "myhost"
-            ":" +                                  // ":"
-            request.getServerPort() +              // "80"
-            request.getContextPath();              // "/myContextPath" or "" if deployed in root context
-            return ResponseEntity.created(new URI("/api/users/" + newUser.getLogin()))
-                .headers(HeaderUtil.createAlert( "userManagement.created", newUser.getLogin()))
-                .body(newUser);
-        }
-    }
 
     /**
      * PUT  /users : Updates an existing User.
@@ -109,27 +77,7 @@ public class UserResource {
      * or with status 400 (Bad Request) if the login or email is already in use,
      * or with status 500 (Internal Server Error) if the user couldn't be updated
      */
-    @PutMapping("/users")
-    @Timed
-    @Secured(AuthoritiesConstants.ADMIN)
-    public ResponseEntity<ManagedUserVM> updateUser(@RequestBody ManagedUserVM managedUserVM) {
-        log.debug("REST request to update User : {}", managedUserVM);
-        Optional<User> existingUser = userRepository.findOneByEmail(managedUserVM.getEmail());
-        if (existingUser.isPresent() && (!existingUser.get().getId().equals(managedUserVM.getId()))) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("userManagement", "emailexists", "E-mail already in use")).body(null);
-        }
-        existingUser = userRepository.findOneByLogin(managedUserVM.getLogin().toLowerCase());
-        if (existingUser.isPresent() && (!existingUser.get().getId().equals(managedUserVM.getId()))) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("userManagement", "userexists", "Login already in use")).body(null);
-        }
-        userService.updateUser(managedUserVM.getId(), managedUserVM.getLogin(), managedUserVM.getFirstName(),
-            managedUserVM.getLastName(), managedUserVM.getEmail(), managedUserVM.isActivated(),
-            managedUserVM.getLangKey(), managedUserVM.getAuthorities());
 
-        return ResponseEntity.ok()
-            .headers(HeaderUtil.createAlert("userManagement.updated", managedUserVM.getLogin()))
-            .body(new ManagedUserVM(userService.getUserWithAuthorities(managedUserVM.getId())));
-    }
 
     /**
      * GET  /users : get all users.
@@ -173,12 +121,4 @@ public class UserResource {
      * @param login the login of the user to delete
      * @return the ResponseEntity with status 200 (OK)
      */
-    @DeleteMapping("/users/{login:" + Constants.LOGIN_REGEX + "}")
-    @Timed
-    @Secured(AuthoritiesConstants.ADMIN)
-    public ResponseEntity<Void> deleteUser(@PathVariable String login) {
-        log.debug("REST request to delete User: {}", login);
-        userService.deleteUser(login);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert( "userManagement.deleted", login)).build();
-    }
 }
