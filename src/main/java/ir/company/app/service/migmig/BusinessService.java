@@ -168,6 +168,26 @@ public class BusinessService {
         return ResponseEntity.ok("200");
     }
 
+    @RequestMapping(value = "/1/rollback", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> rollback(@RequestBody String data) throws JsonProcessingException {
+        String[] s = data.split(",");
+        Game game = gameRepository.findOne(Long.valueOf(s[0]));
+        game.getChallenges().forEach(challenge -> {
+            if (challenge.getId().equals(Long.valueOf(s[1]))) {
+                if (game.getFirst().getLogin().equalsIgnoreCase(s[2])) {
+                    challenge.setFirstScore(null);
+                } else {
+                    challenge.setSecondScore(null);
+                }
+                challengeRepository.save(challenge);
+            }
+        });
+        return ResponseEntity.ok("200");
+    }
+
     @RequestMapping(value = "/1/requestGame", method = RequestMethod.POST)
     @Timed
     @CrossOrigin(origins = "*")
