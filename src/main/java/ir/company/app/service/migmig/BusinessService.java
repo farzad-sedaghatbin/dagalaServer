@@ -512,12 +512,15 @@ public class BusinessService {
         User user = userRepository.findOneByLogin(s[1].toLowerCase());
 
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
+        LeagueUser leagueUser = new LeagueUser();
         if (league.getCapacity() - league.getFill() != 0 && user.getGem() >= league.getCost()) {
             league.setFill(league.getFill() + 1);
-            league.getUserList().add(user);
-            user.getLeagues().add(league);
+            leagueUser.setLeague(league);
+            leagueUser.setUser(user);
+            leagueUser.setRanking(0);
             user.setGem(user.getGem() - league.getCost());
             userRepository.save(user);
+            leagueUserRepository.save(leagueUser);
             leagueRepository.save(league);
             return ResponseEntity.ok("200");
         } else if (league.getStatus().equals(StatusEnum.STARTED)) {
