@@ -207,9 +207,9 @@ public class FarzadUserService {
         if ((s[1] != "null") && user.getInvitedUser1() == null) {
             User invited = userRepository.findOneByLogin(s[0].toLowerCase());
             if (invited != null) {
-                invited.setRating(invited.getRating() + Constants.invited);
+                invited.setCoin(invited.getCoin() + Constants.invited);
                 userRepository.save(invited);
-                user.setRating(user.getRating() + +Constants.invite);
+                user.setCoin(user.getCoin() + +Constants.invite);
                 user.setInvitedUser1(invited);
                 returns = "200";
             } else {
@@ -218,8 +218,8 @@ public class FarzadUserService {
         } else if ((s[1] != "null" && s[1] != "") && user.getInvitedUser2() == null) {
             User invited = userRepository.findOneByLogin(s[0].toLowerCase());
             if (invited != null) {
-                invited.setRating(invited.getRating() + Constants.invited);
-                user.setRating(user.getRating() + +Constants.invite);
+                invited.setCoin(invited.getCoin() + Constants.invited);
+                user.setCoin(user.getCoin() + +Constants.invite);
                 userRepository.save(invited);
                 user.setInvitedUser2(invited);
                 returns = "200";
@@ -230,8 +230,8 @@ public class FarzadUserService {
             User invited = userRepository.findOneByLogin(s[0].toLowerCase());
             if (invited != null) {
 
-                invited.setRating(invited.getRating() + Constants.invited);
-                user.setRating(user.getRating() + +Constants.invite);
+                invited.setCoin(invited.getCoin() + Constants.invited);
+                user.setCoin(user.getCoin() + +Constants.invite);
                 user.setInvitedUser3(invited);
                 userRepository.save(invited);
                 returns = "200";
