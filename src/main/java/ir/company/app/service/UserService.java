@@ -1,14 +1,11 @@
 package ir.company.app.service;
 
 import ir.company.app.config.Constants;
-import ir.company.app.domain.Authority;
 import ir.company.app.domain.entity.*;
 import ir.company.app.repository.*;
-import ir.company.app.security.AuthoritiesConstants;
 import ir.company.app.service.dto.GameLowDTO;
 import ir.company.app.service.dto.HomeDTO;
 import ir.company.app.service.util.RandomUtil;
-import ir.company.app.web.rest.vm.ManagedUserVM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -23,7 +20,10 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -63,7 +63,7 @@ public class UserService {
     public HomeDTO refresh(boolean newLevel, String username) {
         User user = userRepository.findOneByLogin(username.toLowerCase());
         HomeDTO homeDTO = new HomeDTO();
-        homeDTO.score = user.getScore();
+        homeDTO.score = String.valueOf(user.getScore());
         homeDTO.gem = user.getGem();
         homeDTO.level = user.getLevel();
         homeDTO.avatar = user.getAvatar();
@@ -165,7 +165,7 @@ public class UserService {
             homeDTO.halfGame.add(gameLowDTO);
         }
 
-        fillFreindly(username, homeDTO, friendly);
+        fillFriendly(username, homeDTO, friendly);
 
         homeDTO.fullGame = new ArrayList<>();
         for (
@@ -215,7 +215,16 @@ public class UserService {
     public HomeDTO refreshV2(boolean newLevel, String username) {
         User user = userRepository.findOneByLogin(username.toLowerCase());
         HomeDTO homeDTO = new HomeDTO();
-        homeDTO.score = user.getScore();
+        String s;
+        if (user.getScore() > 1000000) {
+            s = String.valueOf(user.getScore() / 1000000) + " M";
+            ;
+        } else if (user.getScore() > 1000) {
+            s = String.valueOf(user.getScore() / 1000) + " K";
+        } else {
+            s = String.valueOf(user.getScore());
+        }
+        homeDTO.score = s;
         homeDTO.gem = user.getGem();
         homeDTO.level = user.getLevel();
         Level level = levelRepository.findByLevel(user.getLevel() + 1);
@@ -224,7 +233,7 @@ public class UserService {
         homeDTO.rating = user.getRating();
         homeDTO.coins = user.getCoin();
         homeDTO.newLevel = newLevel;
-        homeDTO.modal = modalRepository.findOne(1l).getContent();
+        homeDTO.modal = modalRepository.findOne(1L).getContent();
         homeDTO.user = user.getLogin();
         homeDTO.guest = user.getGuest();
         homeDTO.perGameCoins = Constants.perGame;
@@ -280,36 +289,36 @@ public class UserService {
                 challenge = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList()).get(game.getChallenges().size() - 1);
             if (challenge == null) {
                 if (game.getFirst().getLogin().equalsIgnoreCase(username)) {
-                    gameLowDTO.status = "نوبت شماست";
+                    gameLowDTO.status = "1";
 
                 } else {
-                    gameLowDTO.status = "در انتظار حریف";
+                    gameLowDTO.status = "0";
 
                 }
 
 
             } else if (game.getSecond() == null) {
-                gameLowDTO.status = "در انتظار حریف";
+                gameLowDTO.status = "0";
             } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && game.getFirst().getLogin().equalsIgnoreCase(username)) {
-                gameLowDTO.status = "نوبت شماست";
+                gameLowDTO.status = "1";
 
             } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && !game.getFirst().getLogin().equalsIgnoreCase(username)) {
-                gameLowDTO.status = "در انتظار حریف";
+                gameLowDTO.status = "0";
             } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && game.getSecond().getLogin().equalsIgnoreCase(username)) {
-                gameLowDTO.status = "نوبت شماست";
+                gameLowDTO.status = "1";
 
             } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && !game.getSecond().getLogin().equalsIgnoreCase(username)) {
-                gameLowDTO.status = "در انتظار حریف";
+                gameLowDTO.status = "0";
             } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getSecond().getLogin().equalsIgnoreCase(username) && game.getChallenges().size() == 1) {
-                gameLowDTO.status = "نوبت شماست";
+                gameLowDTO.status = "1";
 
             } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getFirst().getLogin().equalsIgnoreCase(username) && game.getChallenges().size() == 1) {
-                gameLowDTO.status = "در انتظار حریف";
+                gameLowDTO.status = "0";
             }
 
 
             if (game.getChallenges().size() == 2 && (gameLowDTO.status == null || gameLowDTO.status.isEmpty())) {
-                gameLowDTO.status = "نوبت شماست";
+                gameLowDTO.status = "1";
             }
             if (game.getFirst().getLogin().equalsIgnoreCase(username))
                 gameLowDTO.score = game.getSecondScore() + "  -  " + game.getFirstScore();
@@ -320,7 +329,7 @@ public class UserService {
             homeDTO.halfGame.add(gameLowDTO);
         }
 
-        fillFreindly(username, homeDTO, friendly);
+        fillFriendly(username, homeDTO, friendly);
 
         homeDTO.fullGame = new ArrayList<>();
         for (
@@ -367,7 +376,7 @@ public class UserService {
         return homeDTO;
     }
 
-    private void fillFreindly(String username, HomeDTO homeDTO, List<Game> friendly) {
+    private void fillFriendly(String username, HomeDTO homeDTO, List<Game> friendly) {
         for (Game game : friendly) {
             GameLowDTO gameLowDTO = new GameLowDTO();
             GameLowDTO.User firstUser = new GameLowDTO.User();
@@ -454,80 +463,6 @@ public class UserService {
                 user.setResetDate(ZonedDateTime.now());
                 userRepository.save(user);
                 return user;
-            });
-    }
-
-    public User createUser(String login, String password, String firstName, String lastName, String email,
-                           String langKey) {
-
-        User newUser = new User();
-        Authority authority = authorityRepository.findOne(AuthoritiesConstants.USER);
-        List<Authority> authorities = new ArrayList<>();
-        String encryptedPassword = passwordEncoder.encode(password);
-        newUser.setLogin(login);
-        // new user gets initially a generated password
-        newUser.setPassword(encryptedPassword);
-        newUser.setFirstName(firstName);
-        newUser.setLastName(lastName);
-        newUser.setEmail(email);
-        newUser.setLangKey(langKey);
-        // new user is not active
-        newUser.setActivated(false);
-        // new user gets registration key
-        newUser.setActivationKey(RandomUtil.generateActivationKey());
-        authorities.add(authority);
-//        newUser.setAuthorities(authorities);
-        userRepository.save(newUser);
-        log.debug("Created Information for User: {}", newUser);
-        return newUser;
-    }
-
-    public User createUser(ManagedUserVM managedUserVM) {
-        User user = new User();
-        user.setLogin(managedUserVM.getLogin());
-        user.setFirstName(managedUserVM.getFirstName());
-        user.setLastName(managedUserVM.getLastName());
-        user.setEmail(managedUserVM.getEmail());
-        if (managedUserVM.getLangKey() == null) {
-            user.setLangKey("en"); // default language
-        } else {
-            user.setLangKey(managedUserVM.getLangKey());
-        }
-        if (managedUserVM.getAuthorities() != null) {
-            List<Authority> authorities = new ArrayList<>();
-            managedUserVM.getAuthorities().stream().forEach(
-                authority -> authorities.add(authorityRepository.findOne(authority))
-            );
-//            user.setAuthorities(authorities);
-        }
-        String encryptedPassword = passwordEncoder.encode(RandomUtil.generatePassword());
-        user.setPassword(encryptedPassword);
-        user.setResetKey(RandomUtil.generateResetKey());
-        user.setResetDate(ZonedDateTime.now());
-        user.setActivated(true);
-        userRepository.save(user);
-        log.debug("Created Information for User: {}", user);
-        return user;
-    }
-
-    public void updateUser(Long id, String login, String firstName, String lastName, String email,
-                           boolean activated, String langKey, Set<String> authorities) {
-
-        Optional.of(userRepository
-            .findOne(id))
-            .ifPresent(u -> {
-                u.setLogin(login);
-                u.setFirstName(firstName);
-                u.setLastName(lastName);
-                u.setEmail(email);
-                u.setActivated(activated);
-                u.setLangKey(langKey);
-//                List<Authority> managedAuthorities = u.getAuthorities();
-//                managedAuthorities.clear();
-//                authorities.stream().forEach(
-//                    authority -> managedAuthorities.add(authorityRepository.findOne(authority))
-//                );
-                log.debug("Changed Information for User: {}", u);
             });
     }
 

@@ -13,7 +13,7 @@ public class HomeDTO {
     public boolean newEvent = false;
     public boolean guest = false;
     public int gem;
-    public long score;
+    public String score;
     public String avatar;
     public String user;
     public int rating;
