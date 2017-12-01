@@ -8,7 +8,9 @@ import java.util.List;
 public class HomeDTO {
     public int coins;
     public int level;
+    public long nextLevel;
     public boolean newLevel = false;
+    public boolean newEvent = false;
     public boolean guest = false;
     public int gem;
     public long score;
@@ -21,7 +23,6 @@ public class HomeDTO {
     public List<GameLowDTO> friendly;
     public List<GameLowDTO> halfGame;
     public List<GameLowDTO> fullGame;
-
-
     public long exp;
+    public String modal;
 }
