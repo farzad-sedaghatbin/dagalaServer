@@ -269,7 +269,7 @@ public class UserService {
                     gameLowDTO.scoreStatus = "0";
 
                 } else {
-                    gameLowDTO.scoreStatus = " 1";
+                    gameLowDTO.scoreStatus = "1";
                 }
             } else if (game.getSecond() != null && game.getSecond().getLogin().equalsIgnoreCase(username)) {
 
@@ -281,7 +281,7 @@ public class UserService {
                     gameLowDTO.scoreStatus = "0";
 
                 } else {
-                    gameLowDTO.scoreStatus = " 1";
+                    gameLowDTO.scoreStatus = "1";
                 }
             }
             Challenge challenge = null;

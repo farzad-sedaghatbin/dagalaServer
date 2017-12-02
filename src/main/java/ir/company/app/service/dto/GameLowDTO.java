@@ -7,7 +7,7 @@ public class GameLowDTO {
 
 
     public String status;
-    public String scoreStatus;
+    public String scoreStatus="1";
     public String score;
     public Long gameId;
 
