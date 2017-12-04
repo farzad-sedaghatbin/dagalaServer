@@ -54,6 +54,7 @@ public class BusinessService {
     private final CategoryRepository categoryRepository;
     private final GameRepository gameRepository;
     private final CategoryUserRepository categoryUserRepository;
+    private final AvatarRepository avatarRepository;
     private final PolicyRepository policyRepository;
     private final LeagueRepository leagueRepository;
     private final AbstractGameRepository abstractGameRepository;
@@ -64,9 +65,10 @@ public class BusinessService {
     private EntityManager em;
 
     @Inject
-    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, LeagueUserRepository leagueUserRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, PolicyRepository policyRepository, LeagueRepository leagueRepository, FactorRepository factorRepository, MarketRepository marketRepository, MessageRepository messageRepository) {
+    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, LeagueUserRepository leagueUserRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, AvatarRepository avatarRepository, PolicyRepository policyRepository, LeagueRepository leagueRepository, FactorRepository factorRepository, MarketRepository marketRepository, MessageRepository messageRepository) {
         this.leagueUserRepository = leagueUserRepository;
         this.categoryUserRepository = categoryUserRepository;
+        this.avatarRepository = avatarRepository;
         this.policyRepository = policyRepository;
         this.levelRepository = levelRepository;
         this.userRepository = userRepository;
@@ -336,6 +338,8 @@ public class BusinessService {
         challenge.setIcon(abstractGame.getIcon());
         challenge.setName(abstractGame.getName());
         challenge.setUrl(abstractGame.getUrl());
+        challenge.setAbstractId(abstractGame.getId());
+
         GameRedisDTO gameRedisDTO = new GameRedisDTO();
         gameRedisDTO.first = new GameRedisDTO.User();
         if (challengeList.size() == 0) {
@@ -387,6 +391,8 @@ public class BusinessService {
         Challenge challenge = new Challenge();
         challenge.setIcon(abstractGame.getIcon());
         challenge.setName(abstractGame.getName());
+        challenge.setAbstractId(abstractGame.getId());
+
         challenge.setUrl(abstractGame.getUrl());
         if (challengeList.size() == 0) {
             challenge.setFirstScore("-1");
@@ -619,6 +625,19 @@ public class BusinessService {
         factor.setuID("DAG" + Integer.toHexString((System.identityHashCode(factor.getId()))).toUpperCase());
         factorRepository.save(factor);
         return ResponseEntity.ok(factor.getuID());
+    }
+    @RequestMapping(value = "/1/purchaseAvatar", method = RequestMethod.POST, produces = "text/plain")
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> purchaseAvatar(@Valid @RequestBody String data) {
+        String[] s = data.split(",");
+        User user = userRepository.findOneByLogin(s[1].toLowerCase());
+        Avatar avatar= avatarRepository.findOne(Long.valueOf(s[0]));
+        user.getAvatars().add(avatar);
+        user.setCoin(user.getCoin()-avatar.getPrice());
+        userRepository.save(user);
+        return ResponseEntity.ok("200");
     }
 
 
@@ -884,6 +903,8 @@ public class BusinessService {
             challenge.setIcon(abstractGame.getIcon());
             challenge.setName(abstractGame.getName());
             challenge.setUrl(abstractGame.getUrl());
+            challenge.setAbstractId(abstractGame.getId());
+
             challengeRepository.save(challenge);
             challengeList.add(challenge);
             gameRepository.save(game);

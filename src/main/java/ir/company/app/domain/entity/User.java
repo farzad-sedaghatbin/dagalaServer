@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -124,6 +125,8 @@ public class User extends AbstractAuditingEntity implements Serializable {
     private ZonedDateTime lastRoulette;
     private ZonedDateTime lastVideo;
 
+    @OneToMany(fetch = FetchType.EAGER)
+    private List<Avatar> avatars;
     @ManyToMany(fetch = FetchType.EAGER, mappedBy = "userList")
     private List<League> leagues;
     @ManyToOne
@@ -457,5 +460,15 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
     public void setLastRoulette(ZonedDateTime lastRoulette) {
         this.lastRoulette = lastRoulette;
+    }
+
+    public List<Avatar> getAvatars() {
+        if (avatars == null)
+            return new ArrayList<>();
+        return avatars;
+    }
+
+    public void setAvatars(List<Avatar> avatars) {
+        this.avatars = avatars;
     }
 }

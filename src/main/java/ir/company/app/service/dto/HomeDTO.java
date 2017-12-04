@@ -12,6 +12,7 @@ public class HomeDTO {
     public boolean newLevel = false;
     public boolean newEvent = false;
     public boolean guest = false;
+    public String currentState = "دسته محلات";
     public int gem;
     public String score;
     public String avatar;

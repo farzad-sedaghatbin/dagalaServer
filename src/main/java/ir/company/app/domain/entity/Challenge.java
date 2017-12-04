@@ -21,6 +21,9 @@ public class Challenge {
     @Column(name = "url")
     private String url;
 
+    @Column(name = "abstractId")
+    private Long abstractId;
+
     @Column(name = "icon")
     private String icon;
 
@@ -70,6 +73,13 @@ public class Challenge {
         this.secondScore = secondScore;
     }
 
+    public Long getAbstractId() {
+        return abstractId;
+    }
+
+    public void setAbstractId(Long abstractId) {
+        this.abstractId = abstractId;
+    }
 
     public String getUrl() {
         return url;

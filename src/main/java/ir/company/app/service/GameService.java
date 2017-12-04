@@ -92,6 +92,7 @@ public class GameService {
             detailDTO.gameDTOS.add(gameDTO);
 
             gameDTO.challengeId = challenge.getId();
+            gameDTO.id = challenge.getAbstractId();
 
             if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                 detailDTO.status = "1";
@@ -129,6 +130,7 @@ public class GameService {
             challenge.setIcon(abstractGame.getIcon());
             challenge.setName(abstractGame.getName());
             challenge.setUrl(abstractGame.getUrl());
+            challenge.setAbstractId(abstractGame.getId());
             challengeRepository.save(challenge);
             challengeList.add(challenge);
             gameRepository.save(game);
