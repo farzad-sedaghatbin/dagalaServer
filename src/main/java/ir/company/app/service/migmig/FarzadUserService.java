@@ -14,10 +14,7 @@ import ir.company.app.security.AuthoritiesConstants;
 import ir.company.app.security.jwt.JWTConfigurer;
 import ir.company.app.security.jwt.TokenProvider;
 import ir.company.app.service.UserService;
-import ir.company.app.service.dto.ForgetPasswordDTO;
-import ir.company.app.service.dto.HomeDTO;
-import ir.company.app.service.dto.LoginDTO;
-import ir.company.app.service.dto.UserDTO;
+import ir.company.app.service.dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -54,7 +51,7 @@ public class FarzadUserService {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.userService = userService;
-        Constants.index = new AtomicLong(userRepository.count()+100);
+        Constants.index = new AtomicLong(userRepository.count() + 100);
     }
 
     @RequestMapping(value = "/1/user_authenticate", method = RequestMethod.POST)
@@ -98,7 +95,7 @@ public class FarzadUserService {
 
 
         User exist = userRepository.findOneByLogin(userDTO.getUsername().toLowerCase());
-        if (exist!=null) {
+        if (exist != null) {
             return ResponseEntity.ok("400");
         }
         User user = userRepository.findOneByGuestId(userDTO.getTempUser());
@@ -254,7 +251,7 @@ public class FarzadUserService {
     public ResponseEntity<?> forget(@Valid @RequestBody String username) {
         //todo forget scenario send email or sms
         User user = userRepository.findOneByLogin(username.toLowerCase());
-        if (user!=null) {
+        if (user != null) {
 
             int START = 1000;
             int END = 9999;
@@ -330,6 +327,27 @@ public class FarzadUserService {
     public ResponseEntity<?> refresh(@RequestBody String username) throws JsonProcessingException {
 
         return ResponseEntity.ok(userService.refresh(false, username));
+
+    }
+
+    @RequestMapping(value = "/1/profile", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> profile(@RequestBody String username) throws JsonProcessingException {
+        ProfileDTO profileDTO = new ProfileDTO();
+        User user = userRepository.findOneByLogin(username);
+        profileDTO.coins = user.getCoin();
+        profileDTO.draw = user.getDraw();
+        profileDTO.gem = user.getGem();
+        profileDTO.guest = user.getGuest();
+        profileDTO.level = user.getLevel();
+        profileDTO.lose = user.getLose();
+        profileDTO.win = user.getWin();
+        profileDTO.winInRow = user.getWinInRow();
+        profileDTO.maxWinInRow = user.getMaxWinInRow();
+        profileDTO.score = user.getScore();
+        return ResponseEntity.ok(profileDTO);
 
     }
 
