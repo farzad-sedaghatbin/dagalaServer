@@ -7,8 +7,10 @@ import com.kavenegar.sdk.excepctions.ApiException;
 import com.kavenegar.sdk.excepctions.HttpException;
 import ir.company.app.config.Constants;
 import ir.company.app.domain.Authority;
+import ir.company.app.domain.entity.ErrorLog;
 import ir.company.app.domain.entity.User;
 import ir.company.app.repository.AuthorityRepository;
+import ir.company.app.repository.ErrorLogRepository;
 import ir.company.app.repository.UserRepository;
 import ir.company.app.security.AuthoritiesConstants;
 import ir.company.app.security.jwt.JWTConfigurer;
@@ -28,6 +30,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -42,15 +46,17 @@ public class FarzadUserService {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final ErrorLogRepository errorLogRepository;
 
     @Inject
-    public FarzadUserService(TokenProvider tokenProvider, PasswordEncoder passwordEncoder, AuthorityRepository authorityRepository, AuthenticationManager authenticationManager, UserRepository userRepository, UserService userService) {
+    public FarzadUserService(TokenProvider tokenProvider, PasswordEncoder passwordEncoder, AuthorityRepository authorityRepository, AuthenticationManager authenticationManager, UserRepository userRepository, UserService userService, ErrorLogRepository errorLogRepository) {
         this.tokenProvider = tokenProvider;
         this.passwordEncoder = passwordEncoder;
         this.authorityRepository = authorityRepository;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.errorLogRepository = errorLogRepository;
         Constants.index = new AtomicLong(userRepository.count() + 100);
     }
 
@@ -357,17 +363,20 @@ public class FarzadUserService {
     @CrossOrigin(origins = "*")
 
     public ResponseEntity<?> tempUser(HttpServletResponse response) throws JsonProcessingException {
+
         User user = new User();
-        user.setLogin("dagala" + Constants.index.incrementAndGet());
-        user.setPassword(user.getLogin());
-        user.setGuestId(user.getLogin());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setActivated(true);
-        user.setCoin(Constants.newUser);
-        user.setCreatedBy("system");
-        user.setGuest(true);
-        List<Authority> authorities = new ArrayList<>();
-        authorities.add(authorityRepository.findOne(AuthoritiesConstants.USER));
+        try {
+
+            user.setLogin("dagala" + Constants.index.incrementAndGet());
+            user.setPassword(user.getLogin());
+            user.setGuestId(user.getLogin());
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setActivated(true);
+            user.setCoin(Constants.newUser);
+            user.setCreatedBy("system");
+            user.setGuest(true);
+            List<Authority> authorities = new ArrayList<>();
+            authorities.add(authorityRepository.findOne(AuthoritiesConstants.USER));
 //        user.setAuthorities(authoritie);
 //        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 //        user.setFirstName(userDTO.getFirstName());
@@ -375,13 +384,12 @@ public class FarzadUserService {
 //        user.setMobile(userDTO.getMobile());
 //        user.setGender(userDTO.getGender());
 
-        user.setAvatar("img/default.png");
-        userRepository.save(user);
+            user.setAvatar("img/default.png");
+            userRepository.save(user);
 
-        UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(user.getLogin(), user.getLogin());
-        HomeDTO guestDTO = new HomeDTO();
-        try {
+            UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(user.getLogin(), user.getLogin());
+            HomeDTO guestDTO = new HomeDTO();
             Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
             if (authentication.isAuthenticated()) {
 
@@ -396,10 +404,20 @@ public class FarzadUserService {
                 guestDTO.guest = true;
                 guestDTO.user = user.getLogin();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            return ResponseEntity.ok(guestDTO);
+
+        } catch (Throwable e) {
+            ErrorLog errorLog = new ErrorLog();
+            StringWriter result = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(result);
+            e.printStackTrace(printWriter);
+            if (user.getLogin() != null && user.getLogin().length() > 0)
+                errorLog.setUser(user);
+            errorLog.setLog(result.toString());
+            errorLogRepository.save(errorLog);
+            return ResponseEntity.ok("500");
+
         }
-        return ResponseEntity.ok(guestDTO);
     }
 
 
