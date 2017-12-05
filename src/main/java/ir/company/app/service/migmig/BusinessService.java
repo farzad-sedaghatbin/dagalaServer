@@ -28,6 +28,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.xml.rpc.ServiceException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
@@ -61,11 +63,12 @@ public class BusinessService {
     private final FactorRepository factorRepository;
     private final MarketRepository marketRepository;
     private final MessageRepository messageRepository;
+    private ErrorLogRepository errorLogRepository;
     @PersistenceContext
     private EntityManager em;
 
     @Inject
-    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, LeagueUserRepository leagueUserRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, AvatarRepository avatarRepository, PolicyRepository policyRepository, LeagueRepository leagueRepository, FactorRepository factorRepository, MarketRepository marketRepository, MessageRepository messageRepository) {
+    public BusinessService(LevelRepository levelRepository, UserRepository userRepository, LeagueUserRepository leagueUserRepository, ChallengeRepository challengeRepository, RecordRepository recordRepository, UserService userService, CategoryRepository categoryRepository, GameRepository gameRepository, AbstractGameRepository abstractGameRepository, CategoryUserRepository categoryUserRepository, AvatarRepository avatarRepository, PolicyRepository policyRepository, LeagueRepository leagueRepository, FactorRepository factorRepository, MarketRepository marketRepository, MessageRepository messageRepository, ErrorLogRepository errorLogRepository) {
         this.leagueUserRepository = leagueUserRepository;
         this.categoryUserRepository = categoryUserRepository;
         this.avatarRepository = avatarRepository;
@@ -82,6 +85,7 @@ public class BusinessService {
         this.factorRepository = factorRepository;
         this.marketRepository = marketRepository;
         this.messageRepository = messageRepository;
+        this.errorLogRepository = errorLogRepository;
     }
 
 
@@ -553,10 +557,10 @@ public class BusinessService {
             leagueDTO.size = league.getFill();
             leagueDTO.minLevel = league.getMinLevel();
             leagueDTO.left = league.getCapacity() - league.getFill();
-            leagueDTO.fill =  league.getFill();
+            leagueDTO.fill = league.getFill();
             leagueDTO.index = i % 4;
             leagueDTO.cost = league.getCost() + "  الماس  ";
-            leagueDTO.costNum = league.getCost() ;
+            leagueDTO.costNum = league.getCost();
             leagueDTO.name = league.getName();
             leagueDTO.description = league.getDescription();
             leagueDTO.id = league.getId();
@@ -627,6 +631,7 @@ public class BusinessService {
         factorRepository.save(factor);
         return ResponseEntity.ok(factor.getuID());
     }
+
     @RequestMapping(value = "/1/purchaseAvatar", method = RequestMethod.POST, produces = "text/plain")
     @Timed
     @CrossOrigin(origins = "*")
@@ -634,9 +639,9 @@ public class BusinessService {
     public ResponseEntity<?> purchaseAvatar(@Valid @RequestBody String data) {
         String[] s = data.split(",");
         User user = userRepository.findOneByLogin(s[1].toLowerCase());
-        Avatar avatar= avatarRepository.findOne(Long.valueOf(s[0]));
+        Avatar avatar = avatarRepository.findOne(Long.valueOf(s[0]));
         user.getAvatars().add(avatar);
-        user.setCoin(user.getCoin()-avatar.getPrice());
+        user.setCoin(user.getCoin() - avatar.getPrice());
         userRepository.save(user);
         return ResponseEntity.ok("200");
     }
@@ -805,6 +810,7 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
     public ResponseEntity<?> detailGame(@RequestBody String data) throws JsonProcessingException {
         String[] s = data.split(",");
+    try{
         Game game = gameRepository.findOne(Long.valueOf(s[0]));
         List<Challenge> l = new ArrayList<>();
         if (game.getChallenges() != null) {
@@ -926,6 +932,20 @@ public class BusinessService {
         }
 
         return ResponseEntity.ok(detailDTO);
+
+    } catch (Throwable e) {
+        ErrorLog errorLog = new ErrorLog();
+        StringWriter result = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(result);
+        e.printStackTrace(printWriter);
+        User user = userRepository.findOneByLogin(s[1]);
+        if (user.getLogin() != null && user.getLogin().length() > 0)
+            errorLog.setUser(user);
+        errorLog.setLog(result.toString());
+        errorLogRepository.save(errorLog);
+        return ResponseEntity.ok("500");
+
+    }
     }
 
     @RequestMapping(value = "/1/detailLeague", method = RequestMethod.POST)
@@ -1307,24 +1327,39 @@ public class BusinessService {
     public ResponseEntity<?> submitRecord(@RequestBody InputDTO data) throws
         JsonProcessingException {
         User user = userRepository.findOneByLogin(data.user.toLowerCase());
+        try {
 
-        AbstractGame abstractGame = abstractGameRepository.findOne(Long.valueOf(data.gameId));
-        Record record = recordRepository.findByAbstractGameAndUser(abstractGame, user);
-        if (record == null) {
-            record = new Record();
-            record.setUser(user);
-            record.setAbstractGame(abstractGame);
-            record.setScore(data.score);
-            recordRepository.save(record);
-        }
-        if (record.getScore() < data.score) {
-            record.setScore(data.score);
-            record.setUser(user);
-            record.setAbstractGame(abstractGame);
-            recordRepository.save(record);
-        }
 
-        return ResponseEntity.ok("200");
+            AbstractGame abstractGame = abstractGameRepository.findOne(Long.valueOf(data.gameId));
+            Record record = recordRepository.findByAbstractGameAndUser(abstractGame, user);
+            if (record == null) {
+                record = new Record();
+                record.setUser(user);
+                record.setAbstractGame(abstractGame);
+                record.setScore(data.score);
+                recordRepository.save(record);
+            }
+            if (record.getScore() < data.score) {
+                record.setScore(data.score);
+                record.setUser(user);
+                record.setAbstractGame(abstractGame);
+                recordRepository.save(record);
+            }
+
+            return ResponseEntity.ok("200");
+
+        } catch (Throwable e) {
+            ErrorLog errorLog = new ErrorLog();
+            StringWriter result = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(result);
+            e.printStackTrace(printWriter);
+            if (user.getLogin() != null && user.getLogin().length() > 0)
+                errorLog.setUser(user);
+            errorLog.setLog(result.toString());
+            errorLogRepository.save(errorLog);
+            return ResponseEntity.ok("500");
+
+        }
     }
 
     @RequestMapping(value = "/1/refreshPolicy", method = RequestMethod.POST)
