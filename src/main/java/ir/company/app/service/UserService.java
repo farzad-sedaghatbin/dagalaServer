@@ -228,12 +228,13 @@ public class UserService {
         homeDTO.gem = user.getGem();
         homeDTO.level = user.getLevel();
         Level level = levelRepository.findByLevel(user.getLevel() + 1);
-        homeDTO.nextLevel = (user.getScore() * level.getThreshold()) / 100;
+        homeDTO.nextLevel = (user.getScore() * 100) / level.getThreshold() + "%";
         homeDTO.avatar = user.getAvatar();
         homeDTO.rating = user.getRating();
         homeDTO.coins = user.getCoin();
         homeDTO.newLevel = newLevel;
-        homeDTO.modal = modalRepository.findOne(1L).getContent();
+        if (user.getGuest())
+            homeDTO.modal = modalRepository.findOne(1L).getContent();
         homeDTO.user = user.getLogin();
         homeDTO.guest = user.getGuest();
         homeDTO.perGameCoins = Constants.perGame;
