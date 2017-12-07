@@ -1,5 +1,6 @@
 package ir.company.app.repository;
 
+import ir.company.app.domain.entity.League;
 import ir.company.app.domain.entity.LeagueUser;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,5 +15,8 @@ import java.util.List;
 public interface LeagueUserRepository extends JpaRepository<LeagueUser, Long> {
     @Query("select u from LeagueUser u where u.league.id=:id and u.ranking <> -1 order by u.ranking desc ")
     List<LeagueUser> topPlayer(@Param("id") Long id);
+
+    List<LeagueUser> findByLeagueAndLoser(League league, Boolean loser);
+
 
 }

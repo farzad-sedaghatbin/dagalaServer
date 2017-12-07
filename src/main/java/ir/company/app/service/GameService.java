@@ -102,7 +102,7 @@ public class GameService {
                 detailDTO.status = "2";
             }
 
-            if (game.getChallenges().size() != 3 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
+            if (game.getChallenges().size() != 5 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                 detailDTO.status = "1";
                 if (game.getChallenges().size() == 1) {
                     detailDTO.url = challenge.getUrl();
@@ -120,8 +120,15 @@ public class GameService {
                 detailDTO.status = "2";
 
             }
+        }    if (game.getChallenges().size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+            if ((game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()))
+                detailDTO.status = "2";
+            else {
+                detailDTO.status = "1";
+
+            }
         }
-        if (game.getChallenges().size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+        if (game.getChallenges().size() == 4 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             detailDTO.status = "3";
             AbstractGame abstractGame = thirdGame(game.getId());
             detailDTO.url = abstractGame.getUrl();
@@ -136,7 +143,7 @@ public class GameService {
             gameRepository.save(game);
 
         }
-        if (game.getChallenges().size() == 3 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+        if (game.getChallenges().size() == 5 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             detailDTO.url = game.getChallenges().get(2).getUrl();
             detailDTO.status = "3";
 

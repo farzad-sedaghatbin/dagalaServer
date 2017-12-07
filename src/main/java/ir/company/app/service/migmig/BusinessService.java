@@ -37,6 +37,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import static java.lang.String.valueOf;
@@ -559,7 +560,10 @@ public class BusinessService {
             leagueDTO.left = league.getCapacity() - league.getFill();
             leagueDTO.fill = league.getFill();
             leagueDTO.index = i % 4;
-            leagueDTO.cost = league.getCost() + "  الماس  ";
+            if (league.getCost() > 0)
+                leagueDTO.cost = league.getCost() + "  الماس  ";
+            else
+                leagueDTO.cost = "رایگان";
             leagueDTO.costNum = league.getCost();
             leagueDTO.name = league.getName();
             leagueDTO.description = league.getDescription();
@@ -810,142 +814,142 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
     public ResponseEntity<?> detailGame(@RequestBody String data) throws JsonProcessingException {
         String[] s = data.split(",");
-    try{
-        Game game = gameRepository.findOne(Long.valueOf(s[0]));
-        List<Challenge> l = new ArrayList<>();
-        if (game.getChallenges() != null) {
-            l = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
-        }
-        DetailDTO detailDTO = new DetailDTO();
-        detailDTO.gameId = game.getId();
-        DetailDTO.User secondUser = new DetailDTO.User();
-        detailDTO.user = secondUser;
-        if (s[1].equalsIgnoreCase(game.getFirst().getLogin())) {
-            if (game.getSecond() != null) {
-                secondUser.user = game.getSecond().getLogin();
-                secondUser.avatar = game.getSecond().getAvatar();
-                secondUser.level = game.getSecond().getLevel();
-                detailDTO.messages = game.getMessagesSecond().stream().map(Message::getId).collect(Collectors.toList());
+        try {
+            Game game = gameRepository.findOne(Long.valueOf(s[0]));
+            List<Challenge> l = new ArrayList<>();
+            if (game.getChallenges() != null) {
+                l = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
             }
-        } else {
-            secondUser.user = game.getFirst().getLogin();
-            secondUser.avatar = game.getFirst().getAvatar();
-            secondUser.level = game.getFirst().getLevel();
-            detailDTO.messages = game.getMessagesFirst().stream().map(Message::getId).collect(Collectors.toList());
-
-        }
-        if (game.getDateTime() != null)
-            detailDTO.timeLeft = (game.getDateTime().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 1000;
-
-        List<Challenge> finalL = l;
-        l.forEach(challenge -> {
-            DetailDTO.GameDTO gameDTO = new DetailDTO.GameDTO();
-            gameDTO.icon = challenge.getIcon();
-            if (game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
-                if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
-                    gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
-                    gameDTO.secondScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
-                } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
-                    gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
-                    gameDTO.secondScore = "???";
-                } else {
-                    gameDTO.secondScore = "???";
-                    gameDTO.myScore = "???";
+            DetailDTO detailDTO = new DetailDTO();
+            detailDTO.gameId = game.getId();
+            DetailDTO.User secondUser = new DetailDTO.User();
+            detailDTO.user = secondUser;
+            if (s[1].equalsIgnoreCase(game.getFirst().getLogin())) {
+                if (game.getSecond() != null) {
+                    secondUser.user = game.getSecond().getLogin();
+                    secondUser.avatar = game.getSecond().getAvatar();
+                    secondUser.level = game.getSecond().getLevel();
+                    detailDTO.messages = game.getMessagesSecond().stream().map(Message::getId).collect(Collectors.toList());
                 }
-
             } else {
+                secondUser.user = game.getFirst().getLogin();
+                secondUser.avatar = game.getFirst().getAvatar();
+                secondUser.level = game.getFirst().getLevel();
+                detailDTO.messages = game.getMessagesFirst().stream().map(Message::getId).collect(Collectors.toList());
 
-                if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
-                    gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
-                    gameDTO.secondScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
-                } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
-                    gameDTO.secondScore = "???";
-                    gameDTO.myScore = "???";
+            }
+            if (game.getDateTime() != null)
+                detailDTO.timeLeft = (game.getDateTime().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 1000;
+
+            List<Challenge> finalL = l;
+            l.forEach(challenge -> {
+                DetailDTO.GameDTO gameDTO = new DetailDTO.GameDTO();
+                gameDTO.icon = challenge.getIcon();
+                if (game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
+                    if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
+                        gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
+                        gameDTO.secondScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
+                    } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
+                        gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
+                        gameDTO.secondScore = "???";
+                    } else {
+                        gameDTO.secondScore = "???";
+                        gameDTO.myScore = "???";
+                    }
+
                 } else {
-                    gameDTO.secondScore = "???";
-                    gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
+
+                    if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
+                        gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
+                        gameDTO.secondScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
+                    } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
+                        gameDTO.secondScore = "???";
+                        gameDTO.myScore = "???";
+                    } else {
+                        gameDTO.secondScore = "???";
+                        gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
+                    }
+
                 }
+                detailDTO.gameDTOS.add(gameDTO);
 
-            }
-            detailDTO.gameDTOS.add(gameDTO);
+                gameDTO.challengeId = challenge.getId();
 
-            gameDTO.challengeId = challenge.getId();
-
-            if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
-                detailDTO.status = "1";
-                detailDTO.url = challenge.getUrl();
-            }
-            if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && !game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
-                detailDTO.status = "2";
-            }
-
-            if (finalL.size() != 3 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
-                detailDTO.status = "1";
-                if (finalL.size() == 1) {
+                if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
+                    detailDTO.status = "1";
                     detailDTO.url = challenge.getUrl();
                 }
+                if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && !game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
+                    detailDTO.status = "2";
+                }
+
+                if (finalL.size() != 3 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
+                    detailDTO.status = "1";
+                    if (finalL.size() == 1) {
+                        detailDTO.url = challenge.getUrl();
+                    }
+                }
+                if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && !game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
+                    detailDTO.status = "2";
+                }
+
+            });
+
+            if (l.size() == 0) {
+                detailDTO.status = "10";
+
+            } else if (l.size() == 1 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+                if ((game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1]))
+                    detailDTO.status = "1";
+                else {
+                    detailDTO.status = "2";
+
+                }
+            } else if (l.size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+                detailDTO.status = "3";
+                AbstractGame abstractGame = gameService.thirdGame(Long.parseLong(s[0]));
+                detailDTO.url = abstractGame.getUrl();
+                List<Challenge> challengeList = game.getChallenges();
+                Challenge challenge = new Challenge();
+                challenge.setIcon(abstractGame.getIcon());
+                challenge.setName(abstractGame.getName());
+                challenge.setUrl(abstractGame.getUrl());
+                challenge.setAbstractId(abstractGame.getId());
+
+                challengeRepository.save(challenge);
+                challengeList.add(challenge);
+                gameRepository.save(game);
+
+            } else if (l.size() == 3 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+                detailDTO.url = l.get(2).getUrl();
+                detailDTO.status = "3";
+
             }
-            if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && !game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
-                detailDTO.status = "2";
+            if (game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
+                detailDTO.score = game.getFirstScore();
+
+                secondUser.score = game.getSecondScore();
+            } else {
+                detailDTO.score = game.getSecondScore();
+
+                secondUser.score = game.getFirstScore();
             }
 
-        });
+            return ResponseEntity.ok(detailDTO);
 
-        if (l.size() == 0) {
-            detailDTO.status = "10";
-
-        } else if (l.size() == 1 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
-            if ((game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1]))
-                detailDTO.status = "1";
-            else {
-                detailDTO.status = "2";
-
-            }
-        } else if (l.size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
-            detailDTO.status = "3";
-            AbstractGame abstractGame = gameService.thirdGame(Long.parseLong(s[0]));
-            detailDTO.url = abstractGame.getUrl();
-            List<Challenge> challengeList = game.getChallenges();
-            Challenge challenge = new Challenge();
-            challenge.setIcon(abstractGame.getIcon());
-            challenge.setName(abstractGame.getName());
-            challenge.setUrl(abstractGame.getUrl());
-            challenge.setAbstractId(abstractGame.getId());
-
-            challengeRepository.save(challenge);
-            challengeList.add(challenge);
-            gameRepository.save(game);
-
-        } else if (l.size() == 3 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
-            detailDTO.url = l.get(2).getUrl();
-            detailDTO.status = "3";
+        } catch (Throwable e) {
+            ErrorLog errorLog = new ErrorLog();
+            StringWriter result = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(result);
+            e.printStackTrace(printWriter);
+            User user = userRepository.findOneByLogin(s[1]);
+            if (user.getLogin() != null && user.getLogin().length() > 0)
+                errorLog.setUser(user);
+            errorLog.setLog(result.toString());
+            errorLogRepository.save(errorLog);
+            return ResponseEntity.ok("500");
 
         }
-        if (game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
-            detailDTO.score = game.getFirstScore();
-
-            secondUser.score = game.getSecondScore();
-        } else {
-            detailDTO.score = game.getSecondScore();
-
-            secondUser.score = game.getFirstScore();
-        }
-
-        return ResponseEntity.ok(detailDTO);
-
-    } catch (Throwable e) {
-        ErrorLog errorLog = new ErrorLog();
-        StringWriter result = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(result);
-        e.printStackTrace(printWriter);
-        User user = userRepository.findOneByLogin(s[1]);
-        if (user.getLogin() != null && user.getLogin().length() > 0)
-            errorLog.setUser(user);
-        errorLog.setLog(result.toString());
-        errorLogRepository.save(errorLog);
-        return ResponseEntity.ok("500");
-
-    }
     }
 
     @RequestMapping(value = "/1/detailLeague", method = RequestMethod.POST)
@@ -1349,17 +1353,21 @@ public class BusinessService {
             return ResponseEntity.ok("200");
 
         } catch (Throwable e) {
-            ErrorLog errorLog = new ErrorLog();
-            StringWriter result = new StringWriter();
-            PrintWriter printWriter = new PrintWriter(result);
-            e.printStackTrace(printWriter);
-            if (user.getLogin() != null && user.getLogin().length() > 0)
-                errorLog.setUser(user);
-            errorLog.setLog(result.toString());
-            errorLogRepository.save(errorLog);
-            return ResponseEntity.ok("500");
+            return getResponseEntity(user, e);
 
         }
+    }
+
+    private ResponseEntity<?> getResponseEntity(User user, Throwable e) {
+        ErrorLog errorLog = new ErrorLog();
+        StringWriter result = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(result);
+        e.printStackTrace(printWriter);
+        if (user.getLogin() != null && user.getLogin().length() > 0)
+            errorLog.setUser(user);
+        errorLog.setLog(result.toString());
+        errorLogRepository.save(errorLog);
+        return ResponseEntity.ok("500");
     }
 
     @RequestMapping(value = "/1/refreshPolicy", method = RequestMethod.POST)
@@ -1383,6 +1391,39 @@ public class BusinessService {
         Constants.losePrize = policyRepository.findByEPolicy(EPolicy.LOSE_PRIZE).getValue();
         Constants.doubleLosePrize = policyRepository.findByEPolicy(EPolicy.DOUBLE_LOSE_PRIZE).getValue();
         Constants.drawPrize = policyRepository.findByEPolicy(EPolicy.DRAW_PRIZE).getValue();
+        return ResponseEntity.ok("200");
+    }
+
+    @RequestMapping(value = "/1/drawLeague", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+
+    public ResponseEntity<?> drawLeague(@RequestBody String data) {
+        League league = leagueRepository.findOne(Long.valueOf(data));
+        List<LeagueUser> leagueUsers = leagueUserRepository.findByLeagueAndLoser(league, false);
+
+        for (int i = 16; i > 0; i -= 2) {
+            Random r = new Random();
+            int index1 = r.nextInt(i);
+            User user1 = leagueUsers.get(index1).getUser();
+            leagueUsers.remove(index1);
+
+            int index2 = r.nextInt(i - 1);
+            while (index1 == index2) {
+                Random r1 = new Random();
+                index2 = r1.nextInt(i - 1);
+            }
+            User user2 = leagueUsers.get(index2).getUser();
+            leagueUsers.remove(index2);
+            Game game = new Game();
+            game.setFirst(user1);
+            game.setSecond(user2);
+            game.setDateTime(ZonedDateTime.now(ZoneId.of("UTC+03:30")).plusDays(1));
+            game.setGameStatus(GameStatus.FULL);
+            game.setLeague(league);
+            gameRepository.save(game);
+        }
         return ResponseEntity.ok("200");
     }
 }

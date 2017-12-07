@@ -18,8 +18,11 @@ public class LeagueUser {
     @ManyToOne
     private League league;
 
-    @Column(name = "ranking", nullable = true)
+    @Column(name = "ranking")
     private Integer ranking = 0;
+
+    @Column(name = "loser")
+    private Boolean loser = false;
 
     public Long getId() {
         return id;
@@ -51,5 +54,13 @@ public class LeagueUser {
 
     public void setLeague(League league) {
         this.league = league;
+    }
+
+    public Boolean getLoser() {
+        return loser;
+    }
+
+    public void setLoser(Boolean loser) {
+        this.loser = loser;
     }
 }
