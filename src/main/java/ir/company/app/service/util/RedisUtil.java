@@ -1,7 +1,6 @@
 package ir.company.app.service.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ir.company.app.domain.entity.Challenge;
 import ir.company.app.service.dto.GameRedisDTO;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -10,12 +9,8 @@ import redis.clients.jedis.Protocol;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import static net.sf.ehcache.util.Timestamper.next;
 
 /**
  * Created by farzad on 12/13/16.
@@ -76,6 +71,10 @@ public class RedisUtil {
             e.printStackTrace();
             return null;
         }
+    }
+    public static String getItemPlain(String key) {
+
+            return jedis.get(key);
     }
 
     public static String getFields(String key, int index) {

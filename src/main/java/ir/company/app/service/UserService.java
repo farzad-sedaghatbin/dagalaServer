@@ -73,7 +73,7 @@ public class UserService {
         homeDTO.user = user.getLogin();
         homeDTO.guest = user.getGuest();
         homeDTO.perGameCoins = Constants.perGame;
-        homeDTO.friendGameCoins= Constants.friendGame;
+        homeDTO.friendGameCoins = Constants.friendGame;
         homeDTO.userid = user.getId();
         if (user.getExpireExp() != null && user.getExpireExp().isAfter(ZonedDateTime.now()))
             homeDTO.exp = (user.getExpireExp().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 3600000;
@@ -229,7 +229,7 @@ public class UserService {
         homeDTO.gem = user.getGem();
         homeDTO.level = user.getLevel();
         Level level = levelRepository.findByLevel(user.getLevel() + 1);
-        homeDTO.nextLevel = (user.getScore() * 100) / level.getThreshold() + "%";
+        homeDTO.nextLevel = (((user.getScore() * 100) / level.getThreshold()) / 2.4) + "%";
         homeDTO.avatar = user.getAvatar();
         homeDTO.rating = user.getRating();
         homeDTO.coins = user.getCoin();

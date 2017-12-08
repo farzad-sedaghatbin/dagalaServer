@@ -962,20 +962,20 @@ public class BusinessService {
         User user = userRepository.findOneByLogin(s[1].toLowerCase());
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
 
-        Game game = gameRepository.findByFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FULL);
+        Game game = gameRepository.findFirstByFirstOrSecondAndLeagueAndGameStatusByOrderByIdDesc(user, user, league, GameStatus.FULL);
         if (game == null)
-            game = gameRepository.findByFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FINISHED);
+            game = gameRepository.findFirstByFirstOrSecondAndLeagueAndGameStatusByOrderByIdDesc(user, user, league, GameStatus.FINISHED);
 
         try {
             DetailDTO d = new DetailDTO();
-            if (!game.getGameStatus().equals(GameStatus.FINISHED)) {
-                d = gameService.detailGame(game);
-                if (game.getWinner() == 1) {
-                    d.state = "بردی";
-                } else if (game.getWinner() == 2) {
-                    d.state = "باختی";
+//            if (!game.getGameStatus().equals(GameStatus.FINISHED)) {
+            d = gameService.detailGame(game);
+            if (game.getWinner() == 1) {
+                d.state = "بردی";
+            } else if (game.getWinner() == 2) {
+                d.state = "باختی";
 
-                }
+//                }
             } else {
                 d.timeLeft = null;
             }
@@ -1427,5 +1427,17 @@ public class BusinessService {
             gameRepository.save(game);
         }
         return ResponseEntity.ok("200");
+
+    }
+
+    @RequestMapping(value = "/1/turn", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<?> turn(@RequestBody String username) {
+        String s = RedisUtil.getItemPlain(username);
+        if (s != null) {
+            return ResponseEntity.ok("200");
+        }
+        return ResponseEntity.ok("201");
     }
 }
