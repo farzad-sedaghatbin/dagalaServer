@@ -31,6 +31,7 @@ public final class Constants {
     public static AtomicLong index = new AtomicLong(0l);
 
     public static int perGame = 40;
+    public static int friendGame = 40;
     public static int newUser = 400;
     public static int invite = 150;
     public static int invited = 150;

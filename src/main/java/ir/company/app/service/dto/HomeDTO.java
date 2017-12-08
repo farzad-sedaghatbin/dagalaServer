@@ -21,6 +21,7 @@ public class HomeDTO {
     public Long userid;
     public String token;
     public int perGameCoins;
+    public int friendGameCoins;
     public List<GameLowDTO> friendly;
     public List<GameLowDTO> halfGame;
     public List<GameLowDTO> fullGame;

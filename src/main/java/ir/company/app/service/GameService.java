@@ -45,7 +45,7 @@ public class GameService {
                 secondUser.level = game.getSecond().getLevel();
                 secondUser.avatar = game.getSecond().getAvatar();
                 if(game.getMessagesSecond()!=null&&game.getMessagesSecond().size()>0)
-                detailDTO.messages = game.getMessagesSecond().stream().map(Message::getId).collect(Collectors.toList());
+                detailDTO.messages = game.getMessagesSecond().stream().map(Message::getIcon).collect(Collectors.toList());
 
             }
         } else {
@@ -53,7 +53,7 @@ public class GameService {
             secondUser.level = game.getFirst().getLevel();
             secondUser.avatar = game.getFirst().getAvatar();
             if(game.getMessagesFirst()!=null&&game.getMessagesFirst().size()>0)
-            detailDTO.messages = game.getMessagesFirst().stream().map(Message::getId).collect(Collectors.toList());
+            detailDTO.messages = game.getMessagesFirst().stream().map(Message::getIcon).collect(Collectors.toList());
 
         }
         if (game.getDateTime() != null)

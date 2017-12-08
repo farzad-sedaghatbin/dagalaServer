@@ -73,6 +73,7 @@ public class UserService {
         homeDTO.user = user.getLogin();
         homeDTO.guest = user.getGuest();
         homeDTO.perGameCoins = Constants.perGame;
+        homeDTO.friendGameCoins= Constants.friendGame;
         homeDTO.userid = user.getId();
         if (user.getExpireExp() != null && user.getExpireExp().isAfter(ZonedDateTime.now()))
             homeDTO.exp = (user.getExpireExp().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 3600000;
@@ -238,6 +239,7 @@ public class UserService {
         homeDTO.user = user.getLogin();
         homeDTO.guest = user.getGuest();
         homeDTO.perGameCoins = Constants.perGame;
+        homeDTO.friendGameCoins = Constants.friendGame;
         homeDTO.userid = user.getId();
         if (user.getExpireExp() != null && user.getExpireExp().isAfter(ZonedDateTime.now()))
             homeDTO.exp = (user.getExpireExp().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 3600000;

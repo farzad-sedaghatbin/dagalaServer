@@ -293,9 +293,9 @@ public class BusinessService {
         String[] s = ids.split(",");
         Game game = gameRepository.findOne(Long.valueOf(s[1]));
         if (game.getFirst().getLogin().equalsIgnoreCase(s[0])) {
-            game.getMessagesFirst().add(messageRepository.findOne(Long.valueOf(s[2])));
+            game.getMessagesFirst().add(messageRepository.findByIcon(s[2]));
         } else {
-            game.getMessagesSecond().add(messageRepository.findOne(Long.valueOf(s[2])));
+            game.getMessagesSecond().add(messageRepository.findByIcon(s[2]));
         }
         gameRepository.save(game);
 
@@ -322,7 +322,7 @@ public class BusinessService {
         game.setSecond(freind);
         gameRepository.save(game);
         User u = game.getFirst();
-        u.setCoin(u.getCoin() - Constants.perGame);
+        u.setCoin(u.getCoin() - Constants.friendGame);
         userRepository.save(u);
 
         return ResponseEntity.ok("200");
@@ -829,13 +829,13 @@ public class BusinessService {
                     secondUser.user = game.getSecond().getLogin();
                     secondUser.avatar = game.getSecond().getAvatar();
                     secondUser.level = game.getSecond().getLevel();
-                    detailDTO.messages = game.getMessagesSecond().stream().map(Message::getId).collect(Collectors.toList());
+                    detailDTO.messages = game.getMessagesSecond().stream().map(Message::getIcon).collect(Collectors.toList());
                 }
             } else {
                 secondUser.user = game.getFirst().getLogin();
                 secondUser.avatar = game.getFirst().getAvatar();
                 secondUser.level = game.getFirst().getLevel();
-                detailDTO.messages = game.getMessagesFirst().stream().map(Message::getId).collect(Collectors.toList());
+                detailDTO.messages = game.getMessagesFirst().stream().map(Message::getIcon).collect(Collectors.toList());
 
             }
             if (game.getDateTime() != null)
@@ -874,6 +874,7 @@ public class BusinessService {
                 detailDTO.gameDTOS.add(gameDTO);
 
                 gameDTO.challengeId = challenge.getId();
+                gameDTO.id = challenge.getAbstractId();
 
                 if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
                     detailDTO.status = "1";
@@ -1377,6 +1378,7 @@ public class BusinessService {
     public ResponseEntity<?> refreshPolicy() {
 
         Constants.perGame = policyRepository.findByEPolicy(EPolicy.PER_GAME).getValue();
+        Constants.friendGame = policyRepository.findByEPolicy(EPolicy.FRIEND_GAME).getValue();
         Constants.newUser = policyRepository.findByEPolicy(EPolicy.NEW_USER).getValue();
         Constants.invite = policyRepository.findByEPolicy(EPolicy.INVITE).getValue();
         Constants.invited = policyRepository.findByEPolicy(EPolicy.INVITED).getValue();
@@ -1403,7 +1405,7 @@ public class BusinessService {
         League league = leagueRepository.findOne(Long.valueOf(data));
         List<LeagueUser> leagueUsers = leagueUserRepository.findByLeagueAndLoser(league, false);
 
-        for (int i = 16; i > 0; i -= 2) {
+        for (int i = leagueUsers.size(); i > 0; i -= 2) {
             Random r = new Random();
             int index1 = r.nextInt(i);
             User user1 = leagueUsers.get(index1).getUser();
@@ -1419,7 +1421,7 @@ public class BusinessService {
             Game game = new Game();
             game.setFirst(user1);
             game.setSecond(user2);
-            game.setDateTime(ZonedDateTime.now(ZoneId.of("UTC+03:30")).plusDays(1));
+            game.setDateTime(ZonedDateTime.now(ZoneId.of("UTC")).plusDays(1));
             game.setGameStatus(GameStatus.FULL);
             game.setLeague(league);
             gameRepository.save(game);
