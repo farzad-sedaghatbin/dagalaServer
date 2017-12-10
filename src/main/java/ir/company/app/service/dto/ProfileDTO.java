@@ -1,13 +1,15 @@
 package ir.company.app.service.dto;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A DTO representing a user's credentials
  */
 public class ProfileDTO {
 
     private String username;
-    private String avatar;
     public int coins;
     public int level;
     public boolean guest = false;
@@ -24,9 +26,11 @@ public class ProfileDTO {
     public double run = 0d;
     public double skill = 0d;
     public double sport = 0d;
+   public List<String> avatars= new ArrayList<>();
 
     public long score;
     public int maxWinInRow = 0;
+    public String avatar;
 
     public String getUsername() {
         return username;

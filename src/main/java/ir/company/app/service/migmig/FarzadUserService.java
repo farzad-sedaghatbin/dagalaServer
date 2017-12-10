@@ -7,6 +7,7 @@ import com.kavenegar.sdk.excepctions.ApiException;
 import com.kavenegar.sdk.excepctions.HttpException;
 import ir.company.app.config.Constants;
 import ir.company.app.domain.Authority;
+import ir.company.app.domain.entity.Avatar;
 import ir.company.app.domain.entity.ErrorLog;
 import ir.company.app.domain.entity.User;
 import ir.company.app.repository.AuthorityRepository;
@@ -35,6 +36,7 @@ import java.io.StringWriter;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -346,6 +348,8 @@ public class FarzadUserService {
         profileDTO.coins = user.getCoin();
         profileDTO.draw = user.getDraw();
         profileDTO.gem = user.getGem();
+        profileDTO.avatar= user.getAvatar();
+        profileDTO.setUsername(user.getLogin());
         profileDTO.guest = user.getGuest();
         profileDTO.level = user.getLevel();
         profileDTO.lose = user.getLose();
@@ -353,6 +357,7 @@ public class FarzadUserService {
         profileDTO.winInRow = user.getWinInRow();
         profileDTO.maxWinInRow = user.getMaxWinInRow();
         profileDTO.score = user.getScore();
+        profileDTO.avatars = user.getAvatars().stream().map(Avatar::getIcon).collect(Collectors.toList());
         return ResponseEntity.ok(profileDTO);
 
     }
