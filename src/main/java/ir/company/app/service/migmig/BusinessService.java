@@ -970,18 +970,20 @@ public class BusinessService {
             DetailDTO d = new DetailDTO();
 //            if (!game.getGameStatus().equals(GameStatus.FINISHED)) {
             d = gameService.detailGame(game);
-            if (game.getWinner() == 1) {
-                d.state = "بردی";
-            } else if (game.getWinner() == 2) {
-                d.state = "باختی";
-
-//                }
-            } else {
-                d.timeLeft = null;
-            }
+//            if (game.getWinner() == 1) {
+//                d.state = "بردی";
+//            } else if (game.getWinner() == 2) {
+//                d.state = "باختی";
+//
+////                }
+//            } else {
+//                d.timeLeft = null;
+//            }
             if (game.getChallenges().size() == 0) {
                 if (user.getId().equals(game.getFirst().getId()))
                     d.status = "10";
+                else
+                    d.status="2";
             }
             return ResponseEntity.ok(d);
         } catch (JsonProcessingException e) {
@@ -1212,101 +1214,16 @@ public class BusinessService {
             boolean newLevel = false;
             gameRedisDTO.gameId = game.getId();
             gameRedisDTO.challengeList = l;
-            if (l.size() == 3 && l.get(2).getFirstScore() != null && !l.get(2).getFirstScore().isEmpty() && l.get(2).getSecondScore() != null && !l.get(2).getSecondScore().isEmpty()) {
+            if (l.size() == 3 && game.getLeague()==null && l.get(2).getFirstScore() != null && !l.get(2).getFirstScore().isEmpty() && l.get(2).getSecondScore() != null && !l.get(2).getSecondScore().isEmpty()) {
 
-                User firstUser = game.getFirst();
-                User secondUser = game.getSecond();
-                if (game.getFirstScore() > game.getSecondScore()) {
-                    game.setWinner(1);
+                newLevel = finishState(s[3], game);
 
-                } else if (game.getFirstScore() < game.getSecondScore()) {
-                    game.setWinner(2);
+            }
 
-                } else {
-                    game.setWinner(0);
-                }
-                if (game.getWinner() == 1) {
-                    firstUser.setWin(firstUser.getWin() + 1);
-                    firstUser.setWinInRow(firstUser.getWinInRow() + 1);
-                    if (firstUser.getWinInRow() > firstUser.getMaxWinInRow()) {
-                        firstUser.setMaxWinInRow(firstUser.getWinInRow());
-                    }
 
-                    secondUser.setLose(secondUser.getLose() + 1);
-                    secondUser.setWinInRow(0);
+            if (l.size() == 5 && game.getLeague()!=null && l.get(4).getFirstScore() != null && !l.get(4).getFirstScore().isEmpty() && l.get(4).getSecondScore() != null && !l.get(4).getSecondScore().isEmpty()) {
 
-                    if (game.getFirstScore() - game.getSecondScore() > 1) {
-                        if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
-                            firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
-                        else
-                            firstUser.setScore(firstUser.getScore() + Constants.doubleWinEXP);
-                        firstUser.setCoin(firstUser.getCoin() + Constants.doubleWinPrize);
-                    } else {
-                        if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
-                            firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
-                        else
-                            firstUser.setScore(firstUser.getScore() + Constants.winEXP);
-                        if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
-                            secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
-                        else
-                            secondUser.setScore(secondUser.getScore() + Constants.loseEXP);
-                        firstUser.setCoin(firstUser.getCoin() + Constants.winPrize);
-                        secondUser.setCoin(secondUser.getCoin() + Constants.losePrize);
-                    }
-                } else if (game.getWinner() == 2) {
-                    secondUser.setWin(secondUser.getWin() + 1);
-                    secondUser.setWinInRow(secondUser.getWinInRow() + 1);
-                    if (secondUser.getWinInRow() > secondUser.getMaxWinInRow()) {
-                        secondUser.setMaxWinInRow(secondUser.getWinInRow());
-                    }
-
-                    firstUser.setLose(firstUser.getLose() + 1);
-                    firstUser.setWinInRow(0);
-
-                    if (game.getSecondScore() - game.getFirstScore() > 1) {
-                        if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
-                            secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
-                        else
-                            secondUser.setScore(secondUser.getScore() + Constants.doubleLoseEXP);
-                        secondUser.setCoin(secondUser.getCoin() + Constants.doubleWinPrize);
-                    } else {
-                        if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
-                            firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
-                        else
-                            firstUser.setScore(firstUser.getScore() + Constants.loseEXP);
-                        if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
-                            secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
-                        else
-                            secondUser.setScore(secondUser.getScore() + Constants.winEXP);
-                        firstUser.setCoin(firstUser.getCoin() + Constants.losePrize);
-                        secondUser.setCoin(secondUser.getCoin() + Constants.winPrize);
-                    }
-                } else {
-
-                    secondUser.setDraw(secondUser.getDraw() + 1);
-                    secondUser.setWinInRow(0);
-                    firstUser.setDraw(firstUser.getDraw() + 1);
-                    firstUser.setWinInRow(0);
-                    if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
-                        firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
-                    else
-                        firstUser.setScore(firstUser.getScore() + Constants.drawEXP);
-                    if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
-                        secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
-                    else
-                        secondUser.setScore(secondUser.getScore() + Constants.drawEXP);
-                    firstUser.setCoin(firstUser.getCoin() + Constants.drawPrize);
-                    secondUser.setCoin(secondUser.getCoin() + Constants.drawPrize);
-                }
-
-                userRepository.save(firstUser);
-                userRepository.save(secondUser);
-                newLevel = isNewLevel(firstUser, secondUser, s[3]);
-
-                game.setGameStatus(GameStatus.FINISHED);
-                gameRepository.save(game);
-                if (game.getLeague() == null)
-                    RedisUtil.removeItem("full", game.getId().toString());
+                newLevel = finishState(s[3], game);
 
             }
 
@@ -1321,6 +1238,103 @@ public class BusinessService {
             e1.printStackTrace();
         }
         return ResponseEntity.ok("201");
+    }
+
+    private boolean finishState(String username, Game game) {
+        boolean newLevel;User firstUser = game.getFirst();
+        User secondUser = game.getSecond();
+        if (game.getFirstScore() > game.getSecondScore()) {
+            game.setWinner(1);
+
+        } else if (game.getFirstScore() < game.getSecondScore()) {
+            game.setWinner(2);
+
+        } else {
+            game.setWinner(0);
+        }
+        if (game.getWinner() == 1) {
+            firstUser.setWin(firstUser.getWin() + 1);
+            firstUser.setWinInRow(firstUser.getWinInRow() + 1);
+            if (firstUser.getWinInRow() > firstUser.getMaxWinInRow()) {
+                firstUser.setMaxWinInRow(firstUser.getWinInRow());
+            }
+
+            secondUser.setLose(secondUser.getLose() + 1);
+            secondUser.setWinInRow(0);
+
+            if (game.getFirstScore() - game.getSecondScore() > 1) {
+                if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                    firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
+                else
+                    firstUser.setScore(firstUser.getScore() + Constants.doubleWinEXP);
+                firstUser.setCoin(firstUser.getCoin() + Constants.doubleWinPrize);
+            } else {
+                if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                    firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
+                else
+                    firstUser.setScore(firstUser.getScore() + Constants.winEXP);
+                if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                    secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
+                else
+                    secondUser.setScore(secondUser.getScore() + Constants.loseEXP);
+                firstUser.setCoin(firstUser.getCoin() + Constants.winPrize);
+                secondUser.setCoin(secondUser.getCoin() + Constants.losePrize);
+            }
+        } else if (game.getWinner() == 2) {
+            secondUser.setWin(secondUser.getWin() + 1);
+            secondUser.setWinInRow(secondUser.getWinInRow() + 1);
+            if (secondUser.getWinInRow() > secondUser.getMaxWinInRow()) {
+                secondUser.setMaxWinInRow(secondUser.getWinInRow());
+            }
+
+            firstUser.setLose(firstUser.getLose() + 1);
+            firstUser.setWinInRow(0);
+
+            if (game.getSecondScore() - game.getFirstScore() > 1) {
+                if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                    secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
+                else
+                    secondUser.setScore(secondUser.getScore() + Constants.doubleLoseEXP);
+                secondUser.setCoin(secondUser.getCoin() + Constants.doubleWinPrize);
+            } else {
+                if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                    firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
+                else
+                    firstUser.setScore(firstUser.getScore() + Constants.loseEXP);
+                if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                    secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
+                else
+                    secondUser.setScore(secondUser.getScore() + Constants.winEXP);
+                firstUser.setCoin(firstUser.getCoin() + Constants.losePrize);
+                secondUser.setCoin(secondUser.getCoin() + Constants.winPrize);
+            }
+        } else {
+
+            secondUser.setDraw(secondUser.getDraw() + 1);
+            secondUser.setWinInRow(0);
+            firstUser.setDraw(firstUser.getDraw() + 1);
+            firstUser.setWinInRow(0);
+            if (firstUser.getExpireExp() != null && firstUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                firstUser.setScore(firstUser.getScore() + (int) (Constants.doubleWinEXP * firstUser.getExpRatio()));
+            else
+                firstUser.setScore(firstUser.getScore() + Constants.drawEXP);
+            if (secondUser.getExpireExp() != null && secondUser.getExpireExp().isAfter(ZonedDateTime.now()))
+                secondUser.setScore(secondUser.getScore() + (int) (Constants.doubleWinEXP * secondUser.getExpRatio()));
+            else
+                secondUser.setScore(secondUser.getScore() + Constants.drawEXP);
+            firstUser.setCoin(firstUser.getCoin() + Constants.drawPrize);
+            secondUser.setCoin(secondUser.getCoin() + Constants.drawPrize);
+        }
+
+        userRepository.save(firstUser);
+        userRepository.save(secondUser);
+        newLevel = isNewLevel(firstUser, secondUser, username);
+
+        game.setGameStatus(GameStatus.FINISHED);
+        gameRepository.save(game);
+        if (game.getLeague() == null)
+            RedisUtil.removeItem("full", game.getId().toString());
+        return newLevel;
     }
 
 

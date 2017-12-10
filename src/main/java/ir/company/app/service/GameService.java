@@ -44,16 +44,16 @@ public class GameService {
                 secondUser.user = game.getSecond().getLogin();
                 secondUser.level = game.getSecond().getLevel();
                 secondUser.avatar = game.getSecond().getAvatar();
-                if(game.getMessagesSecond()!=null&&game.getMessagesSecond().size()>0)
-                detailDTO.messages = game.getMessagesSecond().stream().map(Message::getIcon).collect(Collectors.toList());
+                if (game.getMessagesSecond() != null && game.getMessagesSecond().size() > 0)
+                    detailDTO.messages = game.getMessagesSecond().stream().map(Message::getIcon).collect(Collectors.toList());
 
             }
         } else {
             secondUser.user = game.getFirst().getLogin();
             secondUser.level = game.getFirst().getLevel();
             secondUser.avatar = game.getFirst().getAvatar();
-            if(game.getMessagesFirst()!=null&&game.getMessagesFirst().size()>0)
-            detailDTO.messages = game.getMessagesFirst().stream().map(Message::getIcon).collect(Collectors.toList());
+            if (game.getMessagesFirst() != null && game.getMessagesFirst().size() > 0)
+                detailDTO.messages = game.getMessagesFirst().stream().map(Message::getIcon).collect(Collectors.toList());
 
         }
         if (game.getDateTime() != null)
@@ -104,7 +104,7 @@ public class GameService {
 
             if (game.getChallenges().size() != 5 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                 detailDTO.status = "1";
-                if (game.getChallenges().size() == 1) {
+                if (game.getChallenges().size() % 2== 1) {
                     detailDTO.url = challenge.getUrl();
                 }
             }
@@ -120,7 +120,8 @@ public class GameService {
                 detailDTO.status = "2";
 
             }
-        }    if (game.getChallenges().size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+        }
+        if (game.getChallenges().size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             if ((game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()))
                 detailDTO.status = "2";
             else {
@@ -128,7 +129,16 @@ public class GameService {
 
             }
         }
-        if (game.getChallenges().size() == 4 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+
+        if (game.getChallenges().size() == 3 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+            if ((game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin()))
+                detailDTO.status = "1";
+            else {
+                detailDTO.status = "2";
+
+            }
+        }
+        if (game.getChallenges().size() == 4 && game.getChallenges().get(3).getFirstScore()!=null&& game.getChallenges().get(3).getFirstScore()!=null && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             detailDTO.status = "3";
             AbstractGame abstractGame = thirdGame(game.getId());
             detailDTO.url = abstractGame.getUrl();
@@ -144,7 +154,7 @@ public class GameService {
 
         }
         if (game.getChallenges().size() == 5 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
-            detailDTO.url = game.getChallenges().get(2).getUrl();
+            detailDTO.url = game.getChallenges().get(4).getUrl();
             detailDTO.status = "3";
 
         }
