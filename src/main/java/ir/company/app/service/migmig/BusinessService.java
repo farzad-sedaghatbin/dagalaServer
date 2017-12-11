@@ -265,9 +265,10 @@ public class BusinessService {
 
         Game game = gameRepository.findOne(Long.valueOf(id));
         game.setGameStatus(GameStatus.FULL);
+        game.setDateTime(ZonedDateTime.now(ZoneId.of("UTC+03:30")).plusDays(1));
         gameRepository.save(game);
         User user = game.getSecond();
-        user.setCoin(user.getCoin() - Constants.perGame);
+        user.setCoin(user.getCoin() - Constants.friendGame);
         userRepository.save(user);
 
 
@@ -279,8 +280,11 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
 
     public ResponseEntity<?> rejectFriend(@RequestBody String id) throws JsonProcessingException {
-
-        gameRepository.delete(Long.valueOf(id));
+        Game game = gameRepository.findOne(Long.valueOf(id));
+        User user = userRepository.findOne(game.getFirst().getId());
+        user.setCoin(user.getCoin() + Constants.friendGame);
+        userRepository.save(user);
+        gameRepository.delete(game);
 
         return ResponseEntity.ok("200");
     }
@@ -399,7 +403,7 @@ public class BusinessService {
         challenge.setAbstractId(abstractGame.getId());
 
         challenge.setUrl(abstractGame.getUrl());
-        if (challengeList.size() % 2== 0) {
+        if (challengeList.size() % 2 == 0) {
             challenge.setFirstScore("-1");
 
         } else if (challengeList.size() % 2 == 1) {
@@ -926,8 +930,10 @@ public class BusinessService {
 
             });
 
-            if (l.size() == 0) {
+            if (l.size() == 0 && game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
                 detailDTO.status = "10";
+            } else if (l.size() == 0 && game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
+                detailDTO.status = "2";
 
             } else if (l.size() == 1 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
                 if ((game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1]))
@@ -1006,9 +1012,9 @@ public class BusinessService {
 //                d.state = "باختی";
 //
 ////                }
-//            } else {
-//                d.timeLeft = null;
-//            }
+            if (game.getGameStatus().equals(GameStatus.FINISHED)) {
+                d.timeLeft = null;
+            }
             if (game.getChallenges().size() == 0) {
                 if (user.getId().equals(game.getFirst().getId()))
                     d.status = "10";

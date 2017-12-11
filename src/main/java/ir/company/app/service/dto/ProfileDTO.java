@@ -31,6 +31,7 @@ public class ProfileDTO {
     public long score;
     public int maxWinInRow = 0;
     public String avatar;
+    public Integer rating;
 
     public String getUsername() {
         return username;

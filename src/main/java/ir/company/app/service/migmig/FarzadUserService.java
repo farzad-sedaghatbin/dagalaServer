@@ -29,6 +29,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.PrintWriter;
@@ -49,6 +52,9 @@ public class FarzadUserService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final ErrorLogRepository errorLogRepository;
+
+    @PersistenceContext
+    private EntityManager em;
 
     @Inject
     public FarzadUserService(TokenProvider tokenProvider, PasswordEncoder passwordEncoder, AuthorityRepository authorityRepository, AuthenticationManager authenticationManager, UserRepository userRepository, UserService userService, ErrorLogRepository errorLogRepository) {
@@ -357,6 +363,10 @@ public class FarzadUserService {
         profileDTO.winInRow = user.getWinInRow();
         profileDTO.maxWinInRow = user.getMaxWinInRow();
         profileDTO.score = user.getScore();
+        Query q = em.createNativeQuery("SELECT * FROM (SELECT id,rank() OVER (ORDER BY score DESC) FROM jhi_user ) as gr WHERE  id =?");
+        q.setParameter(1, user.getId());
+        Object[] o = (Object[]) q.getSingleResult();
+        profileDTO.rating = Integer.valueOf(String.valueOf(o[1]));
         profileDTO.avatars = user.getAvatars().stream().map(Avatar::getIcon).collect(Collectors.toList());
         return ResponseEntity.ok(profileDTO);
 
