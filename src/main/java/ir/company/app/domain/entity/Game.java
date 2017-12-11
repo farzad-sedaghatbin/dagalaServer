@@ -38,7 +38,15 @@ public class Game {
     private int winner = -1;
     private int firstScore = 0;
     private int SecondScore = 0;
+    private boolean friendly = false;
 
+    public boolean isFriendly() {
+        return friendly;
+    }
+
+    public void setFriendly(boolean friendly) {
+        this.friendly = friendly;
+    }
 
     public Long getId() {
         return id;
@@ -77,6 +85,8 @@ public class Game {
     }
 
     public void setGameStatus(GameStatus gameStatus) {
+        if (gameStatus.equals(GameStatus.FRIENDLY))
+            friendly = true;
         this.gameStatus = gameStatus;
     }
 
@@ -121,7 +131,7 @@ public class Game {
     }
 
     public List<Message> getMessagesFirst() {
-        if(messagesFirst==null)
+        if (messagesFirst == null)
             return new ArrayList<>();
         return messagesFirst;
     }
@@ -131,7 +141,7 @@ public class Game {
     }
 
     public List<Message> getMessagesSecond() {
-        if(messagesSecond==null)
+        if (messagesSecond == null)
             return new ArrayList<>();
         return messagesSecond;
     }

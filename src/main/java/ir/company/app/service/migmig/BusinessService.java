@@ -215,7 +215,7 @@ public class BusinessService {
             u.setCoin(u.getCoin() - Constants.perGame);
             userRepository.save(u);
             gameRedisDTO.gameId = game.getId();
-            if (game.getLeague() == null)
+            if (game.getLeague() == null && !game.isFriendly())
                 RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
 
         } else {
