@@ -301,27 +301,27 @@ public class UserService {
 
 
             } else if (game.getSecond() == null) {
-                gameLowDTO.status = "0";
-            } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && game.getFirst().getLogin().equalsIgnoreCase(username)) {
                 gameLowDTO.status = "1";
+            } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && game.getFirst().getLogin().equalsIgnoreCase(username)) {
+                gameLowDTO.status = "0";
 
             } else if (challenge.getSecondScore() != null && (challenge.getFirstScore() == null) && !game.getFirst().getLogin().equalsIgnoreCase(username)) {
-                gameLowDTO.status = "0";
-            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && game.getSecond().getLogin().equalsIgnoreCase(username)) {
                 gameLowDTO.status = "1";
+            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && game.getSecond().getLogin().equalsIgnoreCase(username)) {
+                gameLowDTO.status = "0";
 
             } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() == null) && !game.getSecond().getLogin().equalsIgnoreCase(username)) {
-                gameLowDTO.status = "0";
-            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getSecond().getLogin().equalsIgnoreCase(username) && game.getChallenges().size() == 1) {
                 gameLowDTO.status = "1";
+            } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getSecond().getLogin().equalsIgnoreCase(username) && game.getChallenges().size() == 1) {
+                gameLowDTO.status = "0";
 
             } else if (challenge.getFirstScore() != null && (challenge.getSecondScore() != null) && game.getFirst().getLogin().equalsIgnoreCase(username) && game.getChallenges().size() == 1) {
-                gameLowDTO.status = "0";
+                gameLowDTO.status = "1";
             }
 
 
             if (game.getChallenges().size() == 2 && (gameLowDTO.status == null || gameLowDTO.status.isEmpty())) {
-                gameLowDTO.status = "1";
+                gameLowDTO.status = "0";
             }
             if (game.getFirst().getLogin().equalsIgnoreCase(username))
                 gameLowDTO.score = game.getSecondScore() + "  -  " + game.getFirstScore();
@@ -354,22 +354,22 @@ public class UserService {
 
             if (username.equalsIgnoreCase(game.getFirst().getLogin())) {
                 if (game.getWinner() == 1) {
-                    gameLowDTO.status = "3";
+                    gameLowDTO.scoreStatus = "3";
                 } else if (game.getWinner() == 2) {
-                    gameLowDTO.status = "0";
+                    gameLowDTO.scoreStatus = "0";
 
                 } else {
-                    gameLowDTO.status = "1";
+                    gameLowDTO.scoreStatus = "1";
 
                 }
             } else {
                 if (game.getWinner() == 2) {
-                    gameLowDTO.status = "3";
+                    gameLowDTO.scoreStatus = "3";
                 } else if (game.getWinner() == 1) {
-                    gameLowDTO.status = "0";
+                    gameLowDTO.scoreStatus = "0";
 
                 } else {
-                    gameLowDTO.status = "1";
+                    gameLowDTO.scoreStatus = "1";
 
                 }
             }

@@ -38,7 +38,7 @@ public class Game {
     private int winner = -1;
     private int firstScore = 0;
     private int SecondScore = 0;
-    private boolean friendly = false;
+    private Boolean friendly = false;
 
     public boolean isFriendly() {
         return friendly;

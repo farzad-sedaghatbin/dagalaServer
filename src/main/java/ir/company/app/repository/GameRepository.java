@@ -31,7 +31,7 @@ public interface GameRepository extends JpaRepository<Game, Long> {
 
     @Query("select g from Game g where g.gameStatus = ?4 and g.league=?3 and (g.first=?1 or g.second=?2)")
 
-    Game findFirstByFirstOrSecondAndLeagueAndGameStatusByOrderByIdDesc(User first,User second, League league, GameStatus gameStatus);
+    List<Game>  findFirstOrSecondAndLeagueAndGameStatus(User first, User second, League league, GameStatus gameStatus);
 
 
 

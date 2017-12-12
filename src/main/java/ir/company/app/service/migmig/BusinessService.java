@@ -234,7 +234,7 @@ public class BusinessService {
                 u.setCoin(u.getCoin() - Constants.perGame);
                 userRepository.save(u);
                 gameRedisDTO.gameId = game.getId();
-                if (game.getLeague() == null)
+                if (game.getLeague() == null && !game.isFriendly())
                     RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
                 return ResponseEntity.ok(gameRedisDTO);
             } else {
@@ -998,10 +998,11 @@ public class BusinessService {
         User user = userRepository.findOneByLogin(s[1].toLowerCase());
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
 
-        Game game = gameRepository.findFirstByFirstOrSecondAndLeagueAndGameStatusByOrderByIdDesc(user, user, league, GameStatus.FULL);
-        if (game == null)
-            game = gameRepository.findFirstByFirstOrSecondAndLeagueAndGameStatusByOrderByIdDesc(user, user, league, GameStatus.FINISHED);
-
+        List<Game> games = gameRepository.findFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FULL);
+        if (games == null || games.size() == 0)
+            games = gameRepository.findFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FINISHED);
+        List<Game> g = games.stream().sorted(Comparator.comparingLong(Game::getId)).collect(Collectors.toList());
+        Game game = g.get(games.size() - 1);
         try {
             DetailDTO d = new DetailDTO();
 //            if (!game.getGameStatus().equals(GameStatus.FINISHED)) {
@@ -1187,6 +1188,7 @@ public class BusinessService {
                 if (challenge.getId().equals(Long.valueOf(s[1]))) {
                     if (s[3].equalsIgnoreCase(game.getFirst().getLogin())) {
                         challenge.setFirstScore(s[2]);
+                        RedisUtil.addItem(game.getSecond().getLogin(), "");
                         AbstractGame abstractGame = abstractGameRepository.findByName(challenge.getName());
                         Record record = recordRepository.findByAbstractGameAndUser(abstractGame, game.getFirst());
                         if (record == null) {
@@ -1205,6 +1207,7 @@ public class BusinessService {
                         }
                     } else {
                         challenge.setSecondScore(s[2]);
+                        RedisUtil.addItem(game.getFirst().getLogin(), "");
                         AbstractGame abstractGame = abstractGameRepository.findByName(challenge.getName());
                         Record record;
                         record = recordRepository.findByAbstractGameAndUser(abstractGame, game.getSecond());
@@ -1487,6 +1490,7 @@ public class BusinessService {
     public ResponseEntity<?> turn(@RequestBody String username) {
         String s = RedisUtil.getItemPlain(username);
         if (s != null) {
+            RedisUtil.removeItem(username);
             return ResponseEntity.ok("200");
         }
         return ResponseEntity.ok("201");
