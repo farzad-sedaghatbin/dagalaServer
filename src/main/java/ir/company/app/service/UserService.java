@@ -68,7 +68,7 @@ public class UserService {
         homeDTO.level = user.getLevel();
         homeDTO.avatar = user.getAvatar();
         homeDTO.rating = user.getRating();
-        homeDTO.coins = user.getCoin();
+        homeDTO.coins = String.valueOf(user.getCoin());
         homeDTO.newLevel = newLevel;
         homeDTO.user = user.getLogin();
         homeDTO.guest = user.getGuest();
@@ -232,7 +232,15 @@ public class UserService {
         homeDTO.nextLevel = (((user.getScore() * 100) / level.getThreshold()) / 2.4) + "%";
         homeDTO.avatar = user.getAvatar();
         homeDTO.rating = user.getRating();
-        homeDTO.coins = user.getCoin();
+
+        if (user.getScore() > 1000000) {
+            s = String.valueOf(user.getCoin() / 1000000) + " M";
+        } else if (user.getCoin() > 1000) {
+            s = String.valueOf(user.getCoin() / 1000) + " K";
+        } else {
+            s = String.valueOf(user.getCoin());
+        }
+        homeDTO.coins = s;
         homeDTO.newLevel = newLevel;
         if (user.getGuest())
             homeDTO.modal = modalRepository.findOne(1L).getContent();
@@ -380,6 +388,7 @@ public class UserService {
     }
 
     private void fillFriendly(String username, HomeDTO homeDTO, List<Game> friendly) {
+        friendly = friendly.stream().filter(a -> isFirst(a, username)).collect(Collectors.toList());
         for (Game game : friendly) {
             GameLowDTO gameLowDTO = new GameLowDTO();
             GameLowDTO.User firstUser = new GameLowDTO.User();
@@ -391,6 +400,11 @@ public class UserService {
             fillLowUser(username, game, secondUser);
             homeDTO.friendly.add(gameLowDTO);
         }
+    }
+
+    private static boolean isFirst(Game game, String username) {
+
+        return game.getSecond().getLogin().equalsIgnoreCase(username);
     }
 
     private void fillLowUser(String username, Game game, GameLowDTO.User secondUser) {
