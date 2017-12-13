@@ -1039,6 +1039,7 @@ public class BusinessService {
         List<LeagueUser> topPlayers = leagueUserRepository.topPlayer(id);
         List<RecordDTO.User> recordDTOS = new ArrayList<>();
         final int[] i = {0};
+        topPlayers = topPlayers.stream().filter(player -> player.top(player)).collect(Collectors.toList());
         for (LeagueUser topPlayer : topPlayers) {
 
             RecordDTO.User recordDTO = new RecordDTO.User();

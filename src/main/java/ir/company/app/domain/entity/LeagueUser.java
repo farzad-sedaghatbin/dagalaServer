@@ -63,4 +63,9 @@ public class LeagueUser {
     public void setLoser(Boolean loser) {
         this.loser = loser;
     }
+
+    public boolean top(LeagueUser leagueUser){
+        return leagueUser.getRanking()>0;
+
+    }
 }
