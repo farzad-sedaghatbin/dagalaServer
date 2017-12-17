@@ -848,7 +848,6 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
     public ResponseEntity<?> detailGame(@RequestBody String data) throws JsonProcessingException {
         String[] s = data.split(",");
-        try {
             Game game = gameRepository.findOne(Long.valueOf(s[0]));
             List<Challenge> l = new ArrayList<>();
             if (game.getChallenges() != null) {
@@ -974,19 +973,6 @@ public class BusinessService {
 
             return ResponseEntity.ok(detailDTO);
 
-        } catch (Throwable e) {
-            ErrorLog errorLog = new ErrorLog();
-            StringWriter result = new StringWriter();
-            PrintWriter printWriter = new PrintWriter(result);
-            e.printStackTrace(printWriter);
-            User user = userRepository.findOneByLogin(s[1]);
-            if (user.getLogin() != null && user.getLogin().length() > 0)
-                errorLog.setUser(user);
-            errorLog.setLog(result.toString());
-            errorLogRepository.save(errorLog);
-            return ResponseEntity.ok("500");
-
-        }
     }
 
     @RequestMapping(value = "/1/detailLeague", method = RequestMethod.POST)

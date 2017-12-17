@@ -380,7 +380,6 @@ public class FarzadUserService {
     public ResponseEntity<?> tempUser(HttpServletResponse response) throws JsonProcessingException {
 
         User user = new User();
-        try {
 
             user.setLogin("dagala" + Constants.index.incrementAndGet());
             user.setPassword(user.getLogin());
@@ -421,23 +420,8 @@ public class FarzadUserService {
             }
             return ResponseEntity.ok(guestDTO);
 
-        } catch (Throwable e) {
-            ErrorLog errorLog = new ErrorLog();
-            return getResponseEntity(user, e, errorLog);
-
-        }
     }
 
-    private ResponseEntity<?> getResponseEntity(User user, Throwable e, ErrorLog errorLog) {
-        StringWriter result = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(result);
-        e.printStackTrace(printWriter);
-        if (user.getLogin() != null && user.getLogin().length() > 0)
-            errorLog.setUser(user);
-        errorLog.setLog(result.toString());
-        errorLogRepository.save(errorLog);
-        return ResponseEntity.ok("500");
-    }
 
 
 }
