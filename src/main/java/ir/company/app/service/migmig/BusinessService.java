@@ -170,7 +170,7 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
 
     public ResponseEntity<?> cancelRequest(@RequestBody String data) throws JsonProcessingException {
-//        gameRepository.delete(Long.valueOf(data));
+        gameRepository.delete(Long.valueOf(data));
         RedisUtil.removeItem("invisible", data);
         return ResponseEntity.ok("200");
     }
@@ -743,7 +743,7 @@ public class BusinessService {
         }
         hanldeInAppPurchase(s[0], user, marketObject);
         userRepository.save(user);
-        return ResponseEntity.ok(userService.refresh(false, user.getLogin()));
+        return ResponseEntity.ok(userService.refreshV2(false, user.getLogin()));
     }
 
     private void hanldeInAppPurchase(String type, User user, MarketObject marketObject) {
@@ -1087,7 +1087,7 @@ public class BusinessService {
         gameRepository.save(game);
 
 
-        return ResponseEntity.ok(userService.refresh(newLevel, s[1]));
+        return ResponseEntity.ok(userService.refreshV2(newLevel, s[1]));
     }
 
     @RequestMapping(value = "/1/timeOut", method = RequestMethod.POST)
@@ -1152,7 +1152,7 @@ public class BusinessService {
         gameRepository.save(game);
 
 
-        return ResponseEntity.ok(userService.refresh(newLevel, s[1]));
+        return ResponseEntity.ok(userService.refreshV2(newLevel, s[1]));
     }
 
     private boolean isNewLevel(User firsUser, User secondUser, String username) {
@@ -1189,7 +1189,8 @@ public class BusinessService {
                 if (challenge.getId().equals(Long.valueOf(s[1]))) {
                     if (s[3].equalsIgnoreCase(game.getFirst().getLogin())) {
                         challenge.setFirstScore(s[2]);
-                        RedisUtil.addItem(game.getSecond().getLogin(), "");
+                        if (game.getSecond() != null)
+                            RedisUtil.addItem(game.getSecond().getLogin(), "");
                         AbstractGame abstractGame = abstractGameRepository.findByName(challenge.getName());
                         Record record = recordRepository.findByAbstractGameAndUser(abstractGame, game.getFirst());
                         if (record == null) {
@@ -1273,7 +1274,7 @@ public class BusinessService {
                 RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
             }
 
-            return ResponseEntity.ok(userService.refresh(newLevel, s[3]));
+            return ResponseEntity.ok(userService.refreshV2(newLevel, s[3]));
         } catch (Exception e1) {
             e1.printStackTrace();
         }

@@ -88,7 +88,7 @@ public class FarzadUserService {
                 User user = userRepository.findOneByLogin(loginDTO.getUsername().toLowerCase());
                 user.setPushSessionKey(loginDTO.getDeviceToken());
                 userRepository.save(user);
-                HomeDTO userLoginDTO = userService.refresh(false, loginDTO.getUsername().toLowerCase());
+                HomeDTO userLoginDTO = userService.refreshV2(false, loginDTO.getUsername().toLowerCase());
                 userLoginDTO.token = jwt;
                 userLoginDTO.user = user.getLogin();
 
@@ -135,7 +135,7 @@ public class FarzadUserService {
         String jwt = tokenProvider.createToken(authentication, true);
         response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
 
-        HomeDTO userLoginDTO = userService.refresh(false, user.getLogin());
+        HomeDTO userLoginDTO = userService.refreshV2(false, user.getLogin());
         userLoginDTO.token = jwt;
         userLoginDTO.user = user.getLogin();
 
@@ -327,8 +327,8 @@ public class FarzadUserService {
 
     public ResponseEntity<?> changePassword(@Valid @RequestBody String data) {
         String[] s = data.split(",");
-        User user1 = userRepository.findOneByLogin(s[1].toLowerCase());
-        user1.setPassword(passwordEncoder.encode(s[0]));
+        User user1 = userRepository.findOneByLogin(s[0].toLowerCase());
+        user1.setPassword(passwordEncoder.encode(s[1]));
         userRepository.save(user1);
         return ResponseEntity.ok("200");
     }
@@ -414,7 +414,7 @@ public class FarzadUserService {
                 response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
 
 
-                guestDTO = userService.refresh(false, user.getLogin());
+                guestDTO = userService.refreshV2(false, user.getLogin());
                 guestDTO.token = jwt;
                 guestDTO.guest = true;
                 guestDTO.user = user.getLogin();

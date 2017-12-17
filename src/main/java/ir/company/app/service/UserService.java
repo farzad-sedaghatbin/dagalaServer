@@ -69,6 +69,7 @@ public class UserService {
         homeDTO.avatar = user.getAvatar();
         homeDTO.rating = user.getRating();
         homeDTO.coins = String.valueOf(user.getCoin());
+        homeDTO.coinNum = user.getCoin();
         homeDTO.newLevel = newLevel;
         homeDTO.user = user.getLogin();
         homeDTO.guest = user.getGuest();
@@ -240,6 +241,7 @@ public class UserService {
         } else {
             s = String.valueOf(user.getCoin());
         }
+        homeDTO.coinNum = user.getCoin();
         homeDTO.coins = s;
         homeDTO.newLevel = newLevel;
         if (user.getGuest())

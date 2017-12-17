@@ -7,6 +7,7 @@ import java.util.List;
  */
 public class HomeDTO {
     public String coins;
+    public int coinNum;
     public int level;
     public String nextLevel;
     public boolean newLevel = false;
