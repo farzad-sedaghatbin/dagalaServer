@@ -863,6 +863,7 @@ public class BusinessService {
                     secondUser.avatar = game.getSecond().getAvatar();
                     secondUser.level = game.getSecond().getLevel();
                     detailDTO.messages = game.getMessagesSecond().stream().map(Message::getIcon).collect(Collectors.toList());
+                    messageRepository.delete(game.getMessagesSecond());
                 }
             } else {
                 secondUser.user = game.getFirst().getLogin();
@@ -870,6 +871,7 @@ public class BusinessService {
                 secondUser.level = game.getFirst().getLevel();
                 detailDTO.messages = game.getMessagesFirst().stream().map(Message::getIcon).collect(Collectors.toList());
 
+                messageRepository.delete(game.getMessagesFirst());
             }
             if (game.getDateTime() != null)
                 detailDTO.timeLeft = (game.getDateTime().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 1000;
