@@ -3,6 +3,7 @@ package ir.company.app.domain.entity;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 /**
  * Created by farzad on 8/1/17.
@@ -17,6 +18,15 @@ public class ErrorLog {
     @OneToOne
     private User user;
     private String log;
+    private LocalDateTime localDateTime;
+
+    public LocalDateTime getLocalDateTime() {
+        return localDateTime;
+    }
+
+    public void setLocalDateTime(LocalDateTime localDateTime) {
+        this.localDateTime = localDateTime;
+    }
 
     public String getLog() {
         return log;

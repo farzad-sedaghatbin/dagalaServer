@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import javax.inject.Inject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.time.LocalDateTime;
 
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
@@ -39,6 +40,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         errorLog.setUser(user);
         ex.printStackTrace(printWriter);
         errorLog.setLog(result.toString());
+        errorLog.setLocalDateTime(LocalDateTime.now());
         errorLogRepository.save(errorLog);
         String bodyOfResponse = "Internal error";
         return handleExceptionInternal(ex, bodyOfResponse,
