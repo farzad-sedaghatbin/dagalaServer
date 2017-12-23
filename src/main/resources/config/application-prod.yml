@@ -24,7 +24,7 @@ spring:
              cachePrepStmts: true
 #             prepStmtCacheSize: 250
 #             prepStmtCacheSqlLimit: 2048
-             maximumPoolSize: 1
+             maximumPoolSize: 100
 
   jpa:
     database-platform: ir.company.app.domain.util.FixedPostgreSQL82Dialect

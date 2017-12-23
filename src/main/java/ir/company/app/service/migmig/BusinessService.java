@@ -34,10 +34,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.valueOf;
@@ -215,6 +212,7 @@ public class BusinessService {
             u.setCoin(u.getCoin() - Constants.perGame);
             userRepository.save(u);
             gameRedisDTO.gameId = game.getId();
+            gameRedisDTO.challengeList = new ArrayList<>(game.getChallenges());
             if (game.getLeague() == null && !game.isFriendly())
                 RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
 
@@ -234,6 +232,8 @@ public class BusinessService {
                 u.setCoin(u.getCoin() - Constants.perGame);
                 userRepository.save(u);
                 gameRedisDTO.gameId = game.getId();
+                gameRedisDTO.challengeList = new ArrayList<>(game.getChallenges());
+
                 if (game.getLeague() == null && !game.isFriendly())
                     RedisUtil.addHashItem("invisible", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
                 return ResponseEntity.ok(gameRedisDTO);
@@ -249,11 +249,12 @@ public class BusinessService {
                 if (game.getLeague() == null)
                     RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
                 user.setCoin(user.getCoin() - Constants.perGame);
+                gameRedisDTO.challengeList = new ArrayList<>(game.getChallenges());
+
                 userRepository.save(user);
             }
 
         }
-
         return ResponseEntity.ok(gameRedisDTO);
     }
 
@@ -323,6 +324,7 @@ public class BusinessService {
         Game game = new Game();
         game.setGameStatus(GameStatus.FRIENDLY);
         game.setFirst(user);
+        game.setFriendly(true);
         game.setSecond(freind);
         gameRepository.save(game);
         User u = game.getFirst();
@@ -342,7 +344,7 @@ public class BusinessService {
         String[] s = data.split(",");
         Game game = gameRepository.findOne(Long.valueOf(s[0]));
         AbstractGame abstractGame = abstractGameRepository.findOne(Long.valueOf(s[1]));
-        List<Challenge> challengeList = game.getChallenges();
+        Set<Challenge> challengeList = game.getChallenges();
         Challenge challenge = new Challenge();
         challenge.setIcon(abstractGame.getIcon());
         challenge.setName(abstractGame.getName());
@@ -368,13 +370,12 @@ public class BusinessService {
         challengeRepository.save(challenge);
         game.setChallenges(challengeList);
         gameRedisDTO.gameId = game.getId();
-        gameRedisDTO.challengeList = challengeList;
-        if (challengeList.size() == 1 && challenge.getSecondScore() == null && game.getLeague() == null) {
+        if (challengeList.size() == 1 && challenge.getSecondScore() == null && game.getLeague() == null && !game.isFriendly()) {
             RedisUtil.addHashItem("half", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
             RedisUtil.removeItem("invisible", game.getId().toString());
             game.setGameStatus(GameStatus.HALF);
 
-        } else if (game.getLeague() == null) {
+        } else if (game.getLeague() == null && !game.isFriendly()) {
             RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
             game.setGameStatus(GameStatus.FULL);
         }
@@ -396,7 +397,7 @@ public class BusinessService {
         Game game = gameRepository.findByFirstOrSecondAndLeagueAndGameStatus(user, user, league, GameStatus.FULL);
 
         AbstractGame abstractGame = abstractGameRepository.findOne(Long.valueOf(s[1]));
-        List<Challenge> challengeList = game.getChallenges();
+        Set<Challenge> challengeList = game.getChallenges();
         Challenge challenge = new Challenge();
         challenge.setIcon(abstractGame.getIcon());
         challenge.setName(abstractGame.getName());
@@ -529,9 +530,7 @@ public class BusinessService {
                 gameRedisDTO.second.avatar = u.getAvatar();
             }
             challengeRepository.save(challenge[0]);
-            game.setChallenges(challengeList);
             gameRedisDTO.gameId = game.getId();
-            gameRedisDTO.challengeList = challengeList;
             if (game.getDateTime() == null)
                 game.setDateTime(ZonedDateTime.now(ZoneId.of("UTC+03:30")).plusDays(1));
             game.setGameStatus(GameStatus.FULL);
@@ -692,8 +691,11 @@ public class BusinessService {
     public void donePeyment(@Valid @RequestBody String data, HttpServletResponse response) {
 
         try {
+            data = URLDecoder.decode(data, StandardCharsets.UTF_8.toString());
             String[] s = URLDecoder.decode(data, StandardCharsets.UTF_8.toString()).split("\\&");
-            if (s[1].split("=")[1].equalsIgnoreCase("ok")) {
+            ErrorLog error = new ErrorLog();
+
+            if (s[0].split("=")[1].equalsIgnoreCase("ok")) {
                 String ss = s[6].split("=")[1];
                 PaymentIFBindingLocator paymentIFBindingSoapStub = new PaymentIFBindingLocator();
                 PaymentIFBindingSoap paymentIFBinding = null;
@@ -704,20 +706,26 @@ public class BusinessService {
                 }
                 double d = paymentIFBinding.verifyTransaction(ss, "10822833");
                 if (d < 0) {
+                    error.setLog("d < 0 and d is " + d + " %%%% " + data);
+                    errorLogRepository.save(error);
                     response.sendRedirect("http://dagala.ir/error.html?code=" + d);
 
                 } else {
-                    Factor factor = factorRepository.findByUID(s[0]);
+                    Factor factor = factorRepository.findByUID(s[2].split("=")[1]);
                     User user = factor.getUser();
                     MarketObject marketObject = factor.getMarketObject();
-                    hanldeInAppPurchase(s[0], user, marketObject);
+                    hanldeInAppPurchase(user, marketObject);
                     factor.setDone(true);
                     userRepository.save(user);
+                    error.setLog("paymetn was ok " + data);
+                    errorLogRepository.save(error);
                     response.sendRedirect("http://dagala.ir/payment.html?code=" + ss);
 
                 }
 
             } else {
+                error.setLog("s is not OK and s is" + s[0] + " %%%% " + data);
+                errorLogRepository.save(error);
                 response.sendRedirect("http://dagala.ir/error.html?code=" + s[1].split("=")[1]);
 
             }
@@ -750,6 +758,17 @@ public class BusinessService {
         if (type.contains("gem")) {
             user.setGem(user.getGem() + (int) marketObject.getAmount());
         } else if (type.contains("exp")) {
+            user.setExpireExp(ZonedDateTime.now().plusDays((int) marketObject.getAmount()));
+            user.setExpRatio(Double.parseDouble(marketObject.getDescription()));
+        } else {
+            user.setCoin(user.getCoin() + (int) marketObject.getAmount());
+        }
+    }
+
+    private void hanldeInAppPurchase(User user, MarketObject marketObject) {
+        if (marketObject.getName().contains("gem")) {
+            user.setGem(user.getGem() + (int) marketObject.getAmount());
+        } else if (marketObject.getName().contains("exp")) {
             user.setExpireExp(ZonedDateTime.now().plusDays((int) marketObject.getAmount()));
             user.setExpRatio(Double.parseDouble(marketObject.getDescription()));
         } else {
@@ -803,9 +822,9 @@ public class BusinessService {
         List<MenuDTO> menuDTOS = new ArrayList<>();
         String[] s = data.split(",");
         List<AbstractGame> menus = abstractGameRepository.findByGameCategory(categoryRepository.findOne(Long.valueOf(s[1])));
-        List<Challenge> challenges;
+        Set<Challenge> challenges;
         if (s[0].equalsIgnoreCase("train")) {
-            challenges = new ArrayList<>();
+            challenges = new HashSet<>();
         } else {
             challenges = gameRepository.findOne(Long.valueOf(s[0])).getChallenges();
         }
@@ -848,132 +867,136 @@ public class BusinessService {
     @CrossOrigin(origins = "*")
     public ResponseEntity<?> detailGame(@RequestBody String data) throws JsonProcessingException {
         String[] s = data.split(",");
-            Game game = gameRepository.findOne(Long.valueOf(s[0]));
-            List<Challenge> l = new ArrayList<>();
-            if (game.getChallenges() != null) {
-                l = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
-            }
-            DetailDTO detailDTO = new DetailDTO();
-            detailDTO.gameId = game.getId();
-            DetailDTO.User secondUser = new DetailDTO.User();
-            detailDTO.user = secondUser;
-            if (s[1].equalsIgnoreCase(game.getFirst().getLogin())) {
-                if (game.getSecond() != null) {
-                    secondUser.user = game.getSecond().getLogin();
-                    secondUser.avatar = game.getSecond().getAvatar();
-                    secondUser.level = game.getSecond().getLevel();
-                    detailDTO.messages = game.getMessagesSecond().stream().map(Message::getIcon).collect(Collectors.toList());
-                    messageRepository.delete(game.getMessagesSecond());
+        Game game = gameRepository.findOne(Long.valueOf(s[0]));
+        List<Challenge> l = new ArrayList<>();
+        if (game.getChallenges() != null) {
+            l = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
+        }
+        DetailDTO detailDTO = new DetailDTO();
+        detailDTO.gameId = game.getId();
+        DetailDTO.User secondUser = new DetailDTO.User();
+        detailDTO.user = secondUser;
+        if (s[1].equalsIgnoreCase(game.getFirst().getLogin())) {
+            if (game.getSecond() != null) {
+                secondUser.user = game.getSecond().getLogin();
+                secondUser.avatar = game.getSecond().getAvatar();
+                secondUser.level = game.getSecond().getLevel();
+                detailDTO.messages = game.getMessagesSecond().stream().map(Message::getIcon).collect(Collectors.toList());
+                if (detailDTO.messages != null && detailDTO.messages.size() > 0) {
+                    game.setMessagesSecond(null);
+                    gameRepository.save(game);
                 }
-            } else {
-                secondUser.user = game.getFirst().getLogin();
-                secondUser.avatar = game.getFirst().getAvatar();
-                secondUser.level = game.getFirst().getLevel();
-                detailDTO.messages = game.getMessagesFirst().stream().map(Message::getIcon).collect(Collectors.toList());
-
-                messageRepository.delete(game.getMessagesFirst());
             }
-            if (game.getDateTime() != null)
-                detailDTO.timeLeft = (game.getDateTime().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 1000;
+        } else {
+            secondUser.user = game.getFirst().getLogin();
+            secondUser.avatar = game.getFirst().getAvatar();
+            secondUser.level = game.getFirst().getLevel();
+            detailDTO.messages = game.getMessagesFirst().stream().map(Message::getIcon).collect(Collectors.toList());
+            if (detailDTO.messages != null && detailDTO.messages.size() > 0) {
+                game.setMessagesFirst(null);
+                gameRepository.save(game);
+            }
+        }
+        if (game.getDateTime() != null)
+            detailDTO.timeLeft = (game.getDateTime().toInstant().toEpochMilli() - ZonedDateTime.now().toInstant().toEpochMilli()) / 1000;
 
-            List<Challenge> finalL = l;
-            l.forEach(challenge -> {
-                DetailDTO.GameDTO gameDTO = new DetailDTO.GameDTO();
-                gameDTO.icon = challenge.getIcon();
-                if (game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
-                    if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
-                        gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
-                        gameDTO.secondScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
-                    } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
-                        gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
-                        gameDTO.secondScore = "???";
-                    } else {
-                        gameDTO.secondScore = "???";
-                        gameDTO.myScore = "???";
-                    }
-
+        List<Challenge> finalL = l;
+        l.forEach(challenge -> {
+            DetailDTO.GameDTO gameDTO = new DetailDTO.GameDTO();
+            gameDTO.icon = challenge.getIcon();
+            if (game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
+                if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
+                    gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
+                    gameDTO.secondScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
+                } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
+                    gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
+                    gameDTO.secondScore = "???";
                 } else {
-
-                    if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
-                        gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
-                        gameDTO.secondScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
-                    } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
-                        gameDTO.secondScore = "???";
-                        gameDTO.myScore = "???";
-                    } else {
-                        gameDTO.secondScore = "???";
-                        gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
-                    }
-
+                    gameDTO.secondScore = "???";
+                    gameDTO.myScore = "???";
                 }
-                detailDTO.gameDTOS.add(gameDTO);
 
-                gameDTO.challengeId = challenge.getId();
-                gameDTO.id = challenge.getAbstractId();
+            } else {
 
-                if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
-                    detailDTO.status = "1";
+                if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
+                    gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
+                    gameDTO.secondScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
+                } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
+                    gameDTO.secondScore = "???";
+                    gameDTO.myScore = "???";
+                } else {
+                    gameDTO.secondScore = "???";
+                    gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
+                }
+
+            }
+            detailDTO.gameDTOS.add(gameDTO);
+
+            gameDTO.challengeId = challenge.getId();
+            gameDTO.id = challenge.getAbstractId();
+
+            if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
+                detailDTO.status = "1";
+                detailDTO.url = challenge.getUrl();
+            }
+            if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && !game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
+                detailDTO.status = "2";
+            }
+
+            if (finalL.size() != 3 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
+                detailDTO.status = "1";
+                if (finalL.size() == 1) {
                     detailDTO.url = challenge.getUrl();
                 }
-                if (challenge.getSecondScore() != null && !challenge.getSecondScore().isEmpty() && (challenge.getFirstScore() == null || challenge.getFirstScore().isEmpty()) && !game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
-                    detailDTO.status = "2";
-                }
+            }
+            if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && !game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
+                detailDTO.status = "2";
+            }
 
-                if (finalL.size() != 3 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
-                    detailDTO.status = "1";
-                    if (finalL.size() == 1) {
-                        detailDTO.url = challenge.getUrl();
-                    }
-                }
-                if (challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && !game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
-                    detailDTO.status = "2";
-                }
+        });
 
-            });
+        if (l.size() == 0 && game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
+            detailDTO.status = "10";
+        } else if (l.size() == 0 && game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
+            detailDTO.status = "2";
 
-            if (l.size() == 0 && game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
-                detailDTO.status = "10";
-            } else if (l.size() == 0 && game.getSecond().getLogin().equalsIgnoreCase(s[1])) {
+        } else if (l.size() == 1 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+            if ((game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1]))
+                detailDTO.status = "1";
+            else {
                 detailDTO.status = "2";
 
-            } else if (l.size() == 1 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
-                if ((game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(s[1]))
-                    detailDTO.status = "1";
-                else {
-                    detailDTO.status = "2";
-
-                }
-            } else if (l.size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
-                detailDTO.status = "3";
-                AbstractGame abstractGame = gameService.thirdGame(Long.parseLong(s[0]));
-                detailDTO.url = abstractGame.getUrl();
-                List<Challenge> challengeList = game.getChallenges();
-                Challenge challenge = new Challenge();
-                challenge.setIcon(abstractGame.getIcon());
-                challenge.setName(abstractGame.getName());
-                challenge.setUrl(abstractGame.getUrl());
-                challenge.setAbstractId(abstractGame.getId());
-
-                challengeRepository.save(challenge);
-                challengeList.add(challenge);
-                gameRepository.save(game);
-
-            } else if (l.size() == 3 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
-                detailDTO.url = l.get(2).getUrl();
-                detailDTO.status = "3";
-
             }
-            if (game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
-                detailDTO.score = game.getFirstScore();
+        } else if (l.size() == 2 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+            detailDTO.status = "3";
+            AbstractGame abstractGame = gameService.thirdGame(Long.parseLong(s[0]));
+            detailDTO.url = abstractGame.getUrl();
+            Set<Challenge> challengeList = game.getChallenges();
+            Challenge challenge = new Challenge();
+            challenge.setIcon(abstractGame.getIcon());
+            challenge.setName(abstractGame.getName());
+            challenge.setUrl(abstractGame.getUrl());
+            challenge.setAbstractId(abstractGame.getId());
 
-                secondUser.score = game.getSecondScore();
-            } else {
-                detailDTO.score = game.getSecondScore();
+            challengeRepository.save(challenge);
+            challengeList.add(challenge);
+            gameRepository.save(game);
 
-                secondUser.score = game.getFirstScore();
-            }
+        } else if (l.size() == 3 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+            detailDTO.url = l.get(2).getUrl();
+            detailDTO.status = "3";
+        }
+        if (game.getFirst().getLogin().equalsIgnoreCase(s[1])) {
+            detailDTO.score = game.getFirstScore();
 
-            return ResponseEntity.ok(detailDTO);
+            secondUser.score = game.getSecondScore();
+        } else {
+            detailDTO.score = game.getSecondScore();
+
+            secondUser.score = game.getFirstScore();
+        }
+
+        return ResponseEntity.ok(detailDTO);
 
     }
 
@@ -1242,7 +1265,6 @@ public class BusinessService {
             }
             boolean newLevel = false;
             gameRedisDTO.gameId = game.getId();
-            gameRedisDTO.challengeList = l;
             if (l.size() == 3 && game.getLeague() == null && l.get(2).getFirstScore() != null && !l.get(2).getFirstScore().isEmpty() && l.get(2).getSecondScore() != null && !l.get(2).getSecondScore().isEmpty()) {
 
                 newLevel = finishState(s[3], game);
@@ -1485,4 +1507,6 @@ public class BusinessService {
         }
         return ResponseEntity.ok("201");
     }
+
+
 }

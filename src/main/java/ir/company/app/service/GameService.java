@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.inject.Inject;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -39,6 +40,8 @@ public class GameService {
         detailDTO.gameId = game.getId();
         DetailDTO.User secondUser = new DetailDTO.User();
         detailDTO.user = secondUser;
+        List<Challenge> challengeList =game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());;
+
         if (SecurityUtils.getCurrentUserLogin().equalsIgnoreCase(game.getFirst().getLogin())) {
             if (game.getSecond() != null) {
                 secondUser.user = game.getSecond().getLogin();
@@ -138,23 +141,22 @@ public class GameService {
 
             }
         }
-        if (game.getChallenges().size() == 4 && game.getChallenges().get(3).getFirstScore()!=null&& game.getChallenges().get(3).getFirstScore()!=null && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+        if (game.getChallenges().size() == 4 && challengeList.get(3).getFirstScore()!=null&& challengeList.get(3).getFirstScore()!=null && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             detailDTO.status = "3";
             AbstractGame abstractGame = thirdGame(game.getId());
             detailDTO.url = abstractGame.getUrl();
-            List<Challenge> challengeList = game.getChallenges();
             Challenge challenge = new Challenge();
             challenge.setIcon(abstractGame.getIcon());
             challenge.setName(abstractGame.getName());
             challenge.setUrl(abstractGame.getUrl());
             challenge.setAbstractId(abstractGame.getId());
             challengeRepository.save(challenge);
-            challengeList.add(challenge);
+            game.getChallenges().add(challenge);
             gameRepository.save(game);
 
         }
         if (game.getChallenges().size() == 5 && (detailDTO.status == null || detailDTO.status.isEmpty())) {
-            detailDTO.url = game.getChallenges().get(4).getUrl();
+            detailDTO.url = challengeList.get(4).getUrl();
             detailDTO.status = "3";
 
         }

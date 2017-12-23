@@ -5,7 +5,9 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by farzad on 7/18/17.
@@ -25,7 +27,7 @@ public class Game {
     @Enumerated
     GameStatus gameStatus;
     @OneToMany(fetch = FetchType.EAGER)
-    List<Challenge> challenges;
+    Set<Challenge> challenges;
     @OneToMany(fetch = FetchType.EAGER)
     List<Message> messagesFirst;
     @OneToMany(fetch = FetchType.EAGER)
@@ -72,12 +74,22 @@ public class Game {
         this.second = second;
     }
 
-    public List<Challenge> getChallenges() {
+    public Set<Challenge> getChallenges() {
+        if (challenges == null)
+            return new HashSet<>();
         return challenges;
     }
 
-    public void setChallenges(List<Challenge> challenges) {
+    public void setChallenges(Set<Challenge> challenges) {
         this.challenges = challenges;
+    }
+
+    public Boolean getFriendly() {
+        return friendly;
+    }
+
+    public void setFriendly(Boolean friendly) {
+        this.friendly = friendly;
     }
 
     public GameStatus getGameStatus() {

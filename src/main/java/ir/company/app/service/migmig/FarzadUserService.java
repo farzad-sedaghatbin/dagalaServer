@@ -8,7 +8,6 @@ import com.kavenegar.sdk.excepctions.HttpException;
 import ir.company.app.config.Constants;
 import ir.company.app.domain.Authority;
 import ir.company.app.domain.entity.Avatar;
-import ir.company.app.domain.entity.ErrorLog;
 import ir.company.app.domain.entity.User;
 import ir.company.app.repository.AuthorityRepository;
 import ir.company.app.repository.ErrorLogRepository;
@@ -34,8 +33,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -331,6 +328,21 @@ public class FarzadUserService {
         user1.setPassword(passwordEncoder.encode(s[1]));
         userRepository.save(user1);
         return ResponseEntity.ok("200");
+    }
+    @RequestMapping(value = "/2/changePassword", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> changePasswordV2(@Valid @RequestBody String data) {
+        String[] s = data.split(",");
+        User user1 = userRepository.findOneByLogin(s[0].toLowerCase());
+        if(user1.getPassword().equalsIgnoreCase(passwordEncoder.encode(s[2]))){
+        user1.setPassword(passwordEncoder.encode(s[1]));
+        userRepository.save(user1);
+        return ResponseEntity.ok("200");}
+        else{
+            return ResponseEntity.ok("201");
+        }
     }
 
 
