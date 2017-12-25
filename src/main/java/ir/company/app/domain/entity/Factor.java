@@ -2,6 +2,7 @@ package ir.company.app.domain.entity;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
 /**
@@ -26,6 +27,7 @@ public class Factor implements Serializable {
     @Column(name = "amount")
     private Long amount;
 
+    private ZonedDateTime zonedDateTime;
 
     @Column(name = "done")
     private Boolean done;
@@ -144,5 +146,13 @@ public class Factor implements Serializable {
             ", name='" + name + "'" +
             ", description='" + description + "'" +
             '}';
+    }
+
+    public ZonedDateTime getZonedDateTime() {
+        return zonedDateTime;
+    }
+
+    public void setZonedDateTime(ZonedDateTime zonedDateTime) {
+        this.zonedDateTime = zonedDateTime;
     }
 }

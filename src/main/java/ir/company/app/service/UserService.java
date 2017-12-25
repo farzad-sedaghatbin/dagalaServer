@@ -302,10 +302,10 @@ public class UserService {
                 challenge = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList()).get(game.getChallenges().size() - 1);
             if (challenge == null) {
                 if (game.getFirst().getLogin().equalsIgnoreCase(username)) {
-                    gameLowDTO.status = "1";
+                    gameLowDTO.status = "0";
 
                 } else {
-                    gameLowDTO.status = "0";
+                    gameLowDTO.status = "1";
 
                 }
 

@@ -14,6 +14,7 @@ import ir.company.app.service.util.CalendarUtil;
 import ir.company.app.service.util.RedisUtil;
 import ir.company.app.service.wsdl.PaymentIFBindingLocator;
 import ir.company.app.service.wsdl.PaymentIFBindingSoap;
+import org.apache.axis.AxisProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -661,6 +662,7 @@ public class BusinessService {
         User user = userRepository.findOneByLogin(s[1].toLowerCase());
         Factor factor = new Factor();
         factor.setUser(user);
+        factor.setZonedDateTime(ZonedDateTime.now());
         factor.setMarketObject(marketRepository.findOne(Long.valueOf(s[2])));
         factor.setAmount(Long.valueOf(s[0]));
         factorRepository.save(factor);
@@ -700,6 +702,11 @@ public class BusinessService {
                 PaymentIFBindingLocator paymentIFBindingSoapStub = new PaymentIFBindingLocator();
                 PaymentIFBindingSoap paymentIFBinding = null;
                 try {
+                    AxisProperties.getProperties().put("proxySet", "true");
+                    AxisProperties.setProperty("http.proxyHost", "us-east-1-static-hopper.statica.io");
+                    AxisProperties.setProperty("http.proxyPort", "9293");
+                    AxisProperties.setProperty("http.proxyUser", "statica4181");
+                    AxisProperties.setProperty("http.proxyPassword", "06361dccd7ec80fb");
                     paymentIFBinding = (PaymentIFBindingSoap) paymentIFBindingSoapStub.getPort(PaymentIFBindingSoap.class);
                 } catch (ServiceException e) {
                     e.printStackTrace();
@@ -922,6 +929,9 @@ public class BusinessService {
                     gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
                     gameDTO.secondScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
                 } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
+                    gameDTO.secondScore = "???";
+                    gameDTO.myScore = "???";
+                } else if ((challenge.getFirstScore() == null && challenge.getSecondScore() == null)) {
                     gameDTO.secondScore = "???";
                     gameDTO.myScore = "???";
                 } else {

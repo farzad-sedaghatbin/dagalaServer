@@ -329,6 +329,7 @@ public class FarzadUserService {
         userRepository.save(user1);
         return ResponseEntity.ok("200");
     }
+
     @RequestMapping(value = "/2/changePassword", method = RequestMethod.POST)
     @Timed
     @CrossOrigin(origins = "*")
@@ -336,11 +337,11 @@ public class FarzadUserService {
     public ResponseEntity<?> changePasswordV2(@Valid @RequestBody String data) {
         String[] s = data.split(",");
         User user1 = userRepository.findOneByLogin(s[0].toLowerCase());
-        if(user1.getPassword().equalsIgnoreCase(passwordEncoder.encode(s[2]))){
-        user1.setPassword(passwordEncoder.encode(s[1]));
-        userRepository.save(user1);
-        return ResponseEntity.ok("200");}
-        else{
+        if (user1.getPassword().equalsIgnoreCase(passwordEncoder.encode(s[2]))) {
+            user1.setPassword(passwordEncoder.encode(s[1]));
+            userRepository.save(user1);
+            return ResponseEntity.ok("200");
+        } else {
             return ResponseEntity.ok("201");
         }
     }
@@ -366,7 +367,7 @@ public class FarzadUserService {
         profileDTO.coins = user.getCoin();
         profileDTO.draw = user.getDraw();
         profileDTO.gem = user.getGem();
-        profileDTO.avatar= user.getAvatar();
+        profileDTO.avatar = user.getAvatar();
         profileDTO.setUsername(user.getLogin());
         profileDTO.guest = user.getGuest();
         profileDTO.level = user.getLevel();
@@ -393,16 +394,16 @@ public class FarzadUserService {
 
         User user = new User();
 
-            user.setLogin("dagala" + Constants.index.incrementAndGet());
-            user.setPassword(user.getLogin());
-            user.setGuestId(user.getLogin());
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            user.setActivated(true);
-            user.setCoin(Constants.newUser);
-            user.setCreatedBy("system");
-            user.setGuest(true);
-            List<Authority> authorities = new ArrayList<>();
-            authorities.add(authorityRepository.findOne(AuthoritiesConstants.USER));
+        user.setLogin("dagala" + Constants.index.incrementAndGet());
+        user.setPassword(user.getLogin());
+        user.setGuestId(user.getLogin());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setActivated(true);
+        user.setCoin(Constants.newUser);
+        user.setCreatedBy("system");
+        user.setGuest(true);
+        List<Authority> authorities = new ArrayList<>();
+        authorities.add(authorityRepository.findOne(AuthoritiesConstants.USER));
 //        user.setAuthorities(authoritie);
 //        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 //        user.setFirstName(userDTO.getFirstName());
@@ -410,30 +411,29 @@ public class FarzadUserService {
 //        user.setMobile(userDTO.getMobile());
 //        user.setGender(userDTO.getGender());
 
-            user.setAvatar("img/default.png");
-            userRepository.save(user);
+        user.setAvatar("img/default.png");
+        userRepository.save(user);
 
-            UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(user.getLogin(), user.getLogin());
-            HomeDTO guestDTO = new HomeDTO();
-            Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
-            if (authentication.isAuthenticated()) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+            new UsernamePasswordAuthenticationToken(user.getLogin(), user.getLogin());
+        HomeDTO guestDTO = new HomeDTO();
+        Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
+        if (authentication.isAuthenticated()) {
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 //                boolean rememberMe = (loginDTO.isRememberMe() == null) ? false : loginDTO.isRememberMe();
-                String jwt = tokenProvider.createToken(authentication, true);
-                response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
+            String jwt = tokenProvider.createToken(authentication, true);
+            response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
 
 
-                guestDTO = userService.refreshV2(false, user.getLogin());
-                guestDTO.token = jwt;
-                guestDTO.guest = true;
-                guestDTO.user = user.getLogin();
-            }
-            return ResponseEntity.ok(guestDTO);
+            guestDTO = userService.refreshV2(false, user.getLogin());
+            guestDTO.token = jwt;
+            guestDTO.guest = true;
+            guestDTO.user = user.getLogin();
+        }
+        return ResponseEntity.ok(guestDTO);
 
     }
-
 
 
 }
