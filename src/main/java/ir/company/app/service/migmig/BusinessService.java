@@ -698,7 +698,7 @@ public class BusinessService {
             ErrorLog error = new ErrorLog();
 
             if (s[0].split("=")[1].equalsIgnoreCase("ok")) {
-                String ss = s[6].split("=")[1];
+                String ss = s[4].split("=")[1];
                 PaymentIFBindingLocator paymentIFBindingSoapStub = new PaymentIFBindingLocator();
                 PaymentIFBindingSoap paymentIFBinding = null;
                 try {
