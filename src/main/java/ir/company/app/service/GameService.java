@@ -40,7 +40,8 @@ public class GameService {
         detailDTO.gameId = game.getId();
         DetailDTO.User secondUser = new DetailDTO.User();
         detailDTO.user = secondUser;
-        List<Challenge> challengeList =game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());;
+        List<Challenge> challengeList = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
+        ;
 
         if (SecurityUtils.getCurrentUserLogin().equalsIgnoreCase(game.getFirst().getLogin())) {
             if (game.getSecond() != null) {
@@ -107,7 +108,7 @@ public class GameService {
 
             if (game.getChallenges().size() != 5 && challenge.getFirstScore() != null && !challenge.getFirstScore().isEmpty() && (challenge.getSecondScore() == null || challenge.getSecondScore().isEmpty()) && (game.getSecond() != null) && game.getSecond().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                 detailDTO.status = "1";
-                if (game.getChallenges().size() % 2== 1) {
+                if (game.getChallenges().size() % 2 == 1) {
                     detailDTO.url = challenge.getUrl();
                 }
             }
@@ -141,7 +142,7 @@ public class GameService {
 
             }
         }
-        if (game.getChallenges().size() == 4 && challengeList.get(3).getFirstScore()!=null&& challengeList.get(3).getFirstScore()!=null && (detailDTO.status == null || detailDTO.status.isEmpty())) {
+        if (game.getChallenges().size() == 4 && challengeList.get(3).getFirstScore() != null && challengeList.get(3).getFirstScore() != null && (detailDTO.status == null || detailDTO.status.isEmpty())) {
             detailDTO.status = "3";
             AbstractGame abstractGame = thirdGame(game.getId());
             detailDTO.url = abstractGame.getUrl();
@@ -190,6 +191,8 @@ public class GameService {
         int i = 0;
         String field = RedisUtil.getFields("half", i);
         gameRedisDTO = RedisUtil.getHashItem("half", field);
+        if (gameRedisDTO == null)
+            return null;
         while (gameRedisDTO.first.user.equalsIgnoreCase(user.getLogin())) {
             field = RedisUtil.getFields("half", ++i);
 

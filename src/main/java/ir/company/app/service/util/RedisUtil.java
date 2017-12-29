@@ -38,7 +38,7 @@ public class RedisUtil {
 //        }
     }
 
-//        public static void main(String[] args) {
+    //        public static void main(String[] args) {
 //        addItem("omiddagala","");
 //    }
     public static void addItem(String key, String value) {
@@ -72,9 +72,10 @@ public class RedisUtil {
             return null;
         }
     }
+
     public static String getItemPlain(String key) {
 
-            return jedis.get(key);
+        return jedis.get(key);
     }
 
     public static String getFields(String key, int index) {
@@ -84,7 +85,7 @@ public class RedisUtil {
         else return null;
     }
 
-    public static GameRedisDTO getHashItem(String key, String field) {
+    public static synchronized GameRedisDTO getHashItem(String key, String field) {
 
         try {
             return new ObjectMapper().readValue(jedis.hget(key, field), GameRedisDTO.class);
@@ -135,7 +136,6 @@ public class RedisUtil {
 //// return the instance to the pool when you're done
 //        pool.returnResource(jedis);
 //    }
-
 
 
 }
