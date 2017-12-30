@@ -247,7 +247,7 @@ public class BusinessService {
                 second.avatar = game.getSecond().getAvatar();
                 game.setGameStatus(GameStatus.FULL);
                 gameRepository.save(game);
-                if (game.getLeague() == null)
+                if (game.getLeague() == null && !game.isFriendly())
                     RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
                 user.setCoin(user.getCoin() - Constants.perGame);
                 gameRedisDTO.challengeList = new ArrayList<>(game.getChallenges());
@@ -317,8 +317,8 @@ public class BusinessService {
     public ResponseEntity<?> friendly(@RequestBody String data) throws JsonProcessingException {
         String[] s = data.split(",");
         User user = userRepository.findOneByLogin(s[0].toLowerCase());
-        User freind = userRepository.findOneByLogin(s[1].toLowerCase());
-        if (freind == null) {
+        User friend = userRepository.findOneByLogin(s[1].toLowerCase());
+        if (friend == null) {
             return ResponseEntity.ok("201");
 
         }
@@ -326,7 +326,7 @@ public class BusinessService {
         game.setGameStatus(GameStatus.FRIENDLY);
         game.setFirst(user);
         game.setFriendly(true);
-        game.setSecond(freind);
+        game.setSecond(friend);
         gameRepository.save(game);
         User u = game.getFirst();
         u.setCoin(u.getCoin() - Constants.friendGame);
@@ -536,7 +536,7 @@ public class BusinessService {
                 game.setDateTime(ZonedDateTime.now(ZoneId.of("UTC+03:30")).plusDays(1));
             game.setGameStatus(GameStatus.FULL);
             gameRepository.save(game);
-            if (game.getLeague() == null)
+            if (game.getLeague() == null && !game.isFriendly())
                 RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
 
             JoinResult joinResult = new JoinResult();
@@ -1288,9 +1288,9 @@ public class BusinessService {
 
             }
 
-            if (l.size() == 1 && l.get(0).getSecondScore() == null && game.getLeague() == null) {
+            if (l.size() == 1 && l.get(0).getSecondScore() == null && game.getLeague() == null && !game.isFriendly()) {
                 RedisUtil.addHashItem("half", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
-            } else if (!game.getGameStatus().equals(GameStatus.FINISHED) && game.getLeague() == null) {
+            } else if (!game.getGameStatus().equals(GameStatus.FINISHED) && game.getLeague() == null && !game.isFriendly())  {
                 RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
             }
 

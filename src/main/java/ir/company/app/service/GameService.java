@@ -195,7 +195,6 @@ public class GameService {
             return null;
         while (gameRedisDTO.first.user.equalsIgnoreCase(user.getLogin())) {
             field = RedisUtil.getFields("half", ++i);
-
             if (field == null) {
                 return null;
             }
