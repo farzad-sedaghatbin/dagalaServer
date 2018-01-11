@@ -723,6 +723,7 @@ public class BusinessService {
                     MarketObject marketObject = factor.getMarketObject();
                     hanldeInAppPurchase(user, marketObject);
                     factor.setDone(true);
+                    factorRepository.save(factor);
                     userRepository.save(user);
                     error.setLog("paymetn was ok " + data);
                     errorLogRepository.save(error);
@@ -758,6 +759,15 @@ public class BusinessService {
         }
         hanldeInAppPurchase(s[0], user, marketObject);
         userRepository.save(user);
+        Factor factor = new Factor();
+        factor.setUser(user);
+        factor.setZonedDateTime(ZonedDateTime.now());
+        factor.setMarketObject(marketObject);
+        factor.setAmount(new Double(marketObject.getAmount()).longValue());
+        factor.setDone(true);
+        factorRepository.save(factor);
+        factor.setuID("DAG" + Integer.toHexString((System.identityHashCode(factor.getId()))).toUpperCase());
+        factorRepository.save(factor);
         return ResponseEntity.ok(userService.refreshV2(false, user.getLogin()));
     }
 
@@ -1290,7 +1300,7 @@ public class BusinessService {
 
             if (l.size() == 1 && l.get(0).getSecondScore() == null && game.getLeague() == null && !game.isFriendly()) {
                 RedisUtil.addHashItem("half", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
-            } else if (!game.getGameStatus().equals(GameStatus.FINISHED) && game.getLeague() == null && !game.isFriendly())  {
+            } else if (!game.getGameStatus().equals(GameStatus.FINISHED) && game.getLeague() == null && !game.isFriendly()) {
                 RedisUtil.addHashItem("full", game.getId().toString(), new ObjectMapper().writeValueAsString(gameRedisDTO));
             }
 
