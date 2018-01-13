@@ -1215,7 +1215,10 @@ public class BusinessService {
             String[] s = data.split(",");
             Game game = gameRepository.findOne(Long.valueOf(s[0]));
             List<Challenge> l = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
-
+            String turn = RedisUtil.getItemPlain(s[3]);
+            if (turn != null) {
+                RedisUtil.removeItem(s[3]);
+            }
             for (Challenge challenge : l) {
                 if (challenge.getId().equals(Long.valueOf(s[1]))) {
                     if (s[3].equalsIgnoreCase(game.getFirst().getLogin())) {
