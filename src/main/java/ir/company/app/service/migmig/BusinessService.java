@@ -18,6 +18,7 @@ import org.apache.axis.AxisProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -594,9 +595,13 @@ public class BusinessService {
             leagueDTO.minLevel = league.getMinLevel();
             leagueDTO.left = league.getCapacity() - league.getFill();
             leagueDTO.fill = league.getFill();
+            leagueDTO.priceType = league.getPriceType();
             leagueDTO.index = i % 4;
             if (league.getCost() > 0)
-                leagueDTO.cost = league.getCost() + "  الماس  ";
+                if (league.getPriceType().equalsIgnoreCase("gem"))
+                    leagueDTO.cost = league.getCost() + "  الماس  ";
+                else
+                    leagueDTO.cost = league.getCost() + "  سکه  ";
             else
                 leagueDTO.cost = "رایگان";
             leagueDTO.costNum = league.getCost();
@@ -1422,31 +1427,34 @@ public class BusinessService {
     public ResponseEntity<?> submitRecord(@RequestBody InputDTO data) throws
         JsonProcessingException {
         User user = userRepository.findOneByLogin(data.user.toLowerCase());
-        try {
+        if (user != null) {
+            try {
 
 
-            AbstractGame abstractGame = abstractGameRepository.findOne(Long.valueOf(data.gameId));
-            Record record = recordRepository.findByAbstractGameAndUser(abstractGame, user);
-            if (record == null) {
-                record = new Record();
-                record.setUser(user);
-                record.setAbstractGame(abstractGame);
-                record.setScore(data.score);
-                recordRepository.save(record);
+                AbstractGame abstractGame = abstractGameRepository.findOne(Long.valueOf(data.gameId));
+                Record record = recordRepository.findByAbstractGameAndUser(abstractGame, user);
+                if (record == null) {
+                    record = new Record();
+                    record.setUser(user);
+                    record.setAbstractGame(abstractGame);
+                    record.setScore(data.score);
+                    recordRepository.save(record);
+                }
+                if (record.getScore() < data.score) {
+                    record.setScore(data.score);
+                    record.setUser(user);
+                    record.setAbstractGame(abstractGame);
+                    recordRepository.save(record);
+                }
+
+                return ResponseEntity.ok("200");
+
+            } catch (Throwable e) {
+                return getResponseEntity(user, e);
+
             }
-            if (record.getScore() < data.score) {
-                record.setScore(data.score);
-                record.setUser(user);
-                record.setAbstractGame(abstractGame);
-                recordRepository.save(record);
-            }
-
-            return ResponseEntity.ok("200");
-
-        } catch (Throwable e) {
-            return getResponseEntity(user, e);
-
         }
+        return new ResponseEntity<>(Collections.singletonMap("AuthenticationException", ""), HttpStatus.UNAUTHORIZED);
     }
 
     private ResponseEntity<?> getResponseEntity(User user, Throwable e) {

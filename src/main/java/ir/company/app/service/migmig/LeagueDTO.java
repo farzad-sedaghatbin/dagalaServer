@@ -24,6 +24,7 @@ public class LeagueDTO {
     public int minLevel;
     public int fill;
     public int costNum;
+    public String priceType;
 
     public static class Prize {
         public Prize(int index, String desc) {

@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
@@ -28,6 +29,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     @ExceptionHandler(value = {RuntimeException.class, Throwable.class})
     protected ResponseEntity<Object> InternalError(Exception ex, WebRequest request) {
+
 
         ErrorLog errorLog = new ErrorLog();
         String login = SecurityUtils.getCurrentUserLogin();
@@ -43,6 +45,10 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         errorLog.setLocalDateTime(LocalDateTime.now());
         errorLogRepository.save(errorLog);
         String bodyOfResponse = "Internal error";
+        if (ex instanceof NullPointerException) {
+            return new ResponseEntity<>(Collections.singletonMap("AuthenticationException", ex.getLocalizedMessage()), HttpStatus.UNAUTHORIZED);
+
+        }
         return handleExceptionInternal(ex, bodyOfResponse,
             new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }

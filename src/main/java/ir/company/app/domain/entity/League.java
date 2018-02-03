@@ -19,6 +19,7 @@ public class League {
     private int cost = 0;
     private int minLevel = 0;
     private String name;
+    private String priceType;
     private String description;
     private StatusEnum status;
     private ZonedDateTime startDate;
@@ -115,5 +116,13 @@ public class League {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getPriceType() {
+        return priceType;
+    }
+
+    public void setPriceType(String priceType) {
+        this.priceType = priceType;
     }
 }
