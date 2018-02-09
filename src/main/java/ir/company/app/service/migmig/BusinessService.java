@@ -434,8 +434,6 @@ public class BusinessService {
 
         String[] s = data.split(",");
         Game game = gameRepository.findOne(Long.valueOf(s[0]));
-
-
         List<Challenge> challengeList = game.getChallenges().stream().sorted(Comparator.comparingLong(Challenge::getId)).collect(Collectors.toList());
         if (challengeList.size() > 1) {
             GameRedisDTO gameRedisDTO = new GameRedisDTO();
@@ -560,12 +558,20 @@ public class BusinessService {
 
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
         LeagueUser leagueUser = new LeagueUser();
-        if (league.getCapacity() - league.getFill() != 0 && user.getGem() >= league.getCost()) {
+        if (league.getPriceType().equalsIgnoreCase("coin") && user.getCoin() < league.getCost() ) return ResponseEntity.ok("201");
+        if (league.getPriceType().equalsIgnoreCase("gem") && user.getGem() < league.getCost() ) return ResponseEntity.ok("201");
+
+        if (league.getCapacity() - league.getFill() != 0 ) {
             league.setFill(league.getFill() + 1);
             leagueUser.setLeague(league);
             leagueUser.setUser(user);
             leagueUser.setRanking(0);
-            user.setGem(user.getGem() - league.getCost());
+            if (league.getPriceType().equalsIgnoreCase("coin")) {
+                user.setCoin(user.getCoin() - league.getCost());
+            } else {
+                user.setGem(user.getGem() - league.getCost());
+
+            }
             userRepository.save(user);
             leagueUserRepository.save(leagueUser);
             leagueRepository.save(league);
@@ -703,49 +709,97 @@ public class BusinessService {
             String[] s = URLDecoder.decode(data, StandardCharsets.UTF_8.toString()).split("\\&");
             ErrorLog error = new ErrorLog();
 
-            if (s[0].split("=")[1].equalsIgnoreCase("ok")) {
-                String ss = s[4].split("=")[1];
-                PaymentIFBindingLocator paymentIFBindingSoapStub = new PaymentIFBindingLocator();
-                PaymentIFBindingSoap paymentIFBinding = null;
-                try {
-                    AxisProperties.getProperties().put("proxySet", "true");
-                    AxisProperties.setProperty("http.proxyHost", "us-east-1-static-hopper.statica.io");
-                    AxisProperties.setProperty("http.proxyPort", "9293");
-                    AxisProperties.setProperty("http.proxyUser", "statica4181");
-                    AxisProperties.setProperty("http.proxyPassword", "06361dccd7ec80fb");
-                    paymentIFBinding = (PaymentIFBindingSoap) paymentIFBindingSoapStub.getPort(PaymentIFBindingSoap.class);
-                } catch (ServiceException e) {
-                    e.printStackTrace();
-                }
-                double d = paymentIFBinding.verifyTransaction(ss, "10822833");
-                if (d < 0) {
-                    error.setLog("d < 0 and d is " + d + " %%%% " + data);
-                    errorLogRepository.save(error);
-                    response.sendRedirect("http://dagala.ir/error.html?code=" + d);
+
+            if(data.startsWith("ResNum")) {
+                if (s[1].split("=")[1].equalsIgnoreCase("ok")) {
+                    String ss = s[6].split("=")[1];
+                    PaymentIFBindingLocator paymentIFBindingSoapStub = new PaymentIFBindingLocator();
+                    PaymentIFBindingSoap paymentIFBinding = null;
+                    paymentIFBinding = getPaymentIFBindingSoap(paymentIFBindingSoapStub, paymentIFBinding);
+                    ErrorLog log = new ErrorLog();
+                    log.setLog(ss + "\r\n" + s[0].split("=").length + "\r\n" + s[0]);
+                    errorLogRepository.save(log);
+                    double d = paymentIFBinding.verifyTransaction(ss, "10822833");
+                    if (d < 0) {
+                        error.setLog("d < 0 and d is " + d + " %%%% " + data);
+                        errorLogRepository.save(error);
+                        response.sendRedirect("http://dagala.ir/error.html?code=" + d);
+
+                    } else {
+                        Factor factor = factorRepository.findByUID(s[0].split("=")[2]);
+                        User user = factor.getUser();
+                        MarketObject marketObject = factor.getMarketObject();
+                        hanldeInAppPurchase(user, marketObject);
+                        factor.setDone(true);
+                        factorRepository.save(factor);
+                        userRepository.save(user);
+                        error.setLog("paymetn was ok " + data);
+                        errorLogRepository.save(error);
+                        response.sendRedirect("http://dagala.ir/payment.html?code=" + ss);
+
+                    }
 
                 } else {
-                    Factor factor = factorRepository.findByUID(s[2].split("=")[1]);
-                    User user = factor.getUser();
-                    MarketObject marketObject = factor.getMarketObject();
-                    hanldeInAppPurchase(user, marketObject);
-                    factor.setDone(true);
-                    factorRepository.save(factor);
-                    userRepository.save(user);
-                    error.setLog("paymetn was ok " + data);
+                    error.setLog("s is not OK and s is" + s[0] + " %%%% " + data);
                     errorLogRepository.save(error);
-                    response.sendRedirect("http://dagala.ir/payment.html?code=" + ss);
+                    response.sendRedirect("http://dagala.ir/error.html?code=" + s[1].split("=")[1]);
+
+                }
+            }else if(data.startsWith("State")){
+                if (s[0].split("=")[1].equalsIgnoreCase("ok")) {
+                    String ss = s[4].split("=")[1];
+                    PaymentIFBindingLocator paymentIFBindingSoapStub = new PaymentIFBindingLocator();
+                    PaymentIFBindingSoap paymentIFBinding = null;
+                    paymentIFBinding = getPaymentIFBindingSoap(paymentIFBindingSoapStub, paymentIFBinding);
+                    ErrorLog log = new ErrorLog();
+                    log.setLog(ss);
+                    errorLogRepository.save(log);
+                    double d = paymentIFBinding.verifyTransaction(ss, "10822833");
+                    if (d < 0) {
+                        error.setLog("d < 0 and d is " + d + " %%%% " + data);
+                        errorLogRepository.save(error);
+                        response.sendRedirect("http://dagala.ir/error.html?code=" + d);
+
+                    } else {
+                        Factor factor = factorRepository.findByUID(s[2].split("=")[1]);
+                        User user = factor.getUser();
+                        MarketObject marketObject = factor.getMarketObject();
+                        hanldeInAppPurchase(user, marketObject);
+                        factor.setDone(true);
+                        factorRepository.save(factor);
+                        userRepository.save(user);
+                        error.setLog("paymetn was ok " + data);
+                        errorLogRepository.save(error);
+                        response.sendRedirect("http://dagala.ir/payment.html?code=" + ss);
+
+                    }
+
+                } else {
+                    error.setLog("s is not OK and s is" + s[0] + " %%%% " + data);
+                    errorLogRepository.save(error);
+                    response.sendRedirect("http://dagala.ir/error.html?code=" + s[1].split("=")[1]);
 
                 }
 
-            } else {
-                error.setLog("s is not OK and s is" + s[0] + " %%%% " + data);
-                errorLogRepository.save(error);
-                response.sendRedirect("http://dagala.ir/error.html?code=" + s[1].split("=")[1]);
 
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private PaymentIFBindingSoap getPaymentIFBindingSoap(PaymentIFBindingLocator paymentIFBindingSoapStub, PaymentIFBindingSoap paymentIFBinding) {
+        try {
+            AxisProperties.getProperties().put("proxySet", "true");
+            AxisProperties.setProperty("http.proxyHost", "us-east-1-static-hopper.statica.io");
+            AxisProperties.setProperty("http.proxyPort", "9293");
+            AxisProperties.setProperty("http.proxyUser", "statica4181");
+            AxisProperties.setProperty("http.proxyPassword", "06361dccd7ec80fb");
+            paymentIFBinding = (PaymentIFBindingSoap) paymentIFBindingSoapStub.getPort(PaymentIFBindingSoap.class);
+        } catch (ServiceException e) {
+            e.printStackTrace();
+        }
+        return paymentIFBinding;
     }
 
 

@@ -298,6 +298,37 @@ public class FarzadUserService {
         }
     }
 
+
+    @RequestMapping(value = "/1/notification", method = RequestMethod.POST)
+    @Timed
+    @CrossOrigin(origins = "*")
+
+    public ResponseEntity<?> notification(@Valid @RequestBody String username) {
+        //todo forget scenario send email or sms
+//            user1.setResetDate();
+            try {
+//                String tel = "09397408122,09035470603,09357939303,09137009097,09128385011,09379614885,09132133219,09389213598,09363148990,09187799917,09131403235,09102472447,09179307173,09382084405,09386636862,09384873311,09120563496,09333634218,,09388889552,09122462180,09128626242";
+
+                KavenegarApi api = new KavenegarApi("5635717141617A52534F636F49546D38454E647870773D3D");
+
+//                for (String s : tel.split(",")){
+
+                    api.send("10006006606600", "09128626242", "لیگ سکه ای شروع شد اطلاعات بیشتر :\r\n http://t.me/dagala ");
+
+//                    api.se(s, "سکه", "dagalaLeague");
+//                }
+
+            } catch (HttpException ex) { // در صورتی که خروجی وب سرویس 200 نباشد این خطارخ می دهد.
+                System.out.print("HttpException  : " + ex.getMessage());
+                return ResponseEntity.ok("302");
+            } catch (ApiException ex) { // در صورتی که خروجی وب سرویس 200 نباشد این خطارخ می دهد.
+                System.out.print("ApiException : " + ex.getMessage());
+                return ResponseEntity.ok("302");
+            }
+//            MailUtils.sendEmail("farzad.sedaghatbin@gmail.com", s, "ResetPassword");
+            return ResponseEntity.ok("200");
+    }
+
     @RequestMapping(value = "/1/confirmReset", method = RequestMethod.POST)
     @Timed
     @CrossOrigin(origins = "*")
