@@ -558,10 +558,12 @@ public class BusinessService {
 
         League league = leagueRepository.findOne(Long.valueOf(s[0]));
         LeagueUser leagueUser = new LeagueUser();
-        if (league.getPriceType().equalsIgnoreCase("coin") && user.getCoin() < league.getCost() ) return ResponseEntity.ok("201");
-        if (league.getPriceType().equalsIgnoreCase("gem") && user.getGem() < league.getCost() ) return ResponseEntity.ok("201");
+        if (league.getPriceType().equalsIgnoreCase("coin") && user.getCoin() < league.getCost())
+            return ResponseEntity.ok("201");
+        if (league.getPriceType().equalsIgnoreCase("gem") && user.getGem() < league.getCost())
+            return ResponseEntity.ok("201");
 
-        if (league.getCapacity() - league.getFill() != 0 ) {
+        if (league.getCapacity() - league.getFill() != 0) {
             league.setFill(league.getFill() + 1);
             leagueUser.setLeague(league);
             leagueUser.setUser(user);
@@ -710,7 +712,7 @@ public class BusinessService {
             ErrorLog error = new ErrorLog();
 
 
-            if(data.startsWith("ResNum")) {
+            if (data.startsWith("ResNum")) {
                 if (s[1].split("=")[1].equalsIgnoreCase("ok")) {
                     String ss = s[6].split("=")[1];
                     PaymentIFBindingLocator paymentIFBindingSoapStub = new PaymentIFBindingLocator();
@@ -745,7 +747,7 @@ public class BusinessService {
                     response.sendRedirect("http://dagala.ir/error.html?code=" + s[1].split("=")[1]);
 
                 }
-            }else if(data.startsWith("State")){
+            } else if (data.startsWith("State")) {
                 if (s[0].split("=")[1].equalsIgnoreCase("ok")) {
                     String ss = s[4].split("=")[1];
                     PaymentIFBindingLocator paymentIFBindingSoapStub = new PaymentIFBindingLocator();
@@ -1466,6 +1468,7 @@ public class BusinessService {
         newLevel = isNewLevel(firstUser, secondUser, username);
 
         game.setGameStatus(GameStatus.FINISHED);
+        game = gameService.finalCheck(game);
         gameRepository.save(game);
         if (game.getLeague() == null)
             RedisUtil.removeItem("full", game.getId().toString());

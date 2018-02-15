@@ -68,29 +68,31 @@ public class GameService {
             gameDTO.icon = challenge.getIcon();
             if (game.getFirst().getLogin().equalsIgnoreCase(SecurityUtils.getCurrentUserLogin())) {
                 if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
-                    gameDTO.myScore = challenge.getFirstScore();
-                    gameDTO.secondScore = challenge.getSecondScore();
+                    gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
+                    gameDTO.secondScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
                 } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
-                    gameDTO.myScore = challenge.getFirstScore();
+                    gameDTO.myScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
                     gameDTO.secondScore = "???";
                 } else {
                     gameDTO.secondScore = "???";
                     gameDTO.myScore = "???";
                 }
-
             } else {
 
                 if (challenge.getFirstScore() != null && challenge.getSecondScore() != null) {
-                    gameDTO.myScore = challenge.getSecondScore();
-                    gameDTO.secondScore = challenge.getFirstScore();
-
+                    gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
+                    gameDTO.secondScore = challenge.getFirstScore().equalsIgnoreCase("-1") ? "0" : challenge.getFirstScore();
                 } else if ((challenge.getFirstScore() != null && challenge.getSecondScore() == null)) {
+                    gameDTO.secondScore = "???";
+                    gameDTO.myScore = "???";
+                } else if ((challenge.getFirstScore() == null && challenge.getSecondScore() == null)) {
                     gameDTO.secondScore = "???";
                     gameDTO.myScore = "???";
                 } else {
                     gameDTO.secondScore = "???";
-                    gameDTO.myScore = challenge.getSecondScore();
+                    gameDTO.myScore = challenge.getSecondScore().equalsIgnoreCase("-1") ? "0" : challenge.getSecondScore();
                 }
+
 
             }
             detailDTO.gameDTOS.add(gameDTO);
@@ -202,5 +204,22 @@ public class GameService {
         }
         RedisUtil.removeItem("half", field);
         return gameRedisDTO;
+    }
+
+    public Game finalCheck(Game game) {
+        final int[] first = {0};
+        final int[] second = {0};
+        game.getChallenges().forEach(c -> {
+            if (Long.valueOf(c.getFirstScore()) > Long.valueOf(c.getSecondScore())) {
+                first[0]++;
+            } else if (Long.valueOf(c.getFirstScore()) < Long.valueOf(c.getSecondScore())) {
+                second[0]++;
+            }
+
+        });
+        game.setFirstScore(first[0]);
+        game.setSecondScore(second[0]);
+
+        return game;
     }
 }
